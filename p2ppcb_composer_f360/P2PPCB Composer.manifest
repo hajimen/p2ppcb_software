@@ -1,0 +1,11 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"addin",
+	"id":	"87e7eede-e022-48f4-98db-d0967f8281be",
+	"author":	"Hajime NAKAZATO",
+	"description":	{
+		"":	"P2PPCB Composer"
+	},
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true
+}

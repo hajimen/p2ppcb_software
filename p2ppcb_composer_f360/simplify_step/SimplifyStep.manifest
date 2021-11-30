@@ -1,0 +1,10 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"script",
+	"author":	"",
+	"description":	{
+		"":	"Gathers bodies in components of imported STEP file and moves them into the root component."
+	},
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true
+}

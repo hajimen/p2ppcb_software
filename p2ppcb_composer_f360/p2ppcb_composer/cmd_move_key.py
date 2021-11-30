@@ -1,0 +1,187 @@
+import typing as ty
+import adsk.core as ac
+from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
+import adsk.fusion as af
+from f360_common import AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, get_context, CN_INTERNAL, \
+    key_placeholder_name, F3Occurrence
+from p2ppcb_composer.cmd_common import get_cis, has_sel_in, AN_LOCATORS_PLANE_TOKEN, TOOLTIP_NOT_SELECTED, InputLocators, \
+    get_selected_locators, locator_notify_pre_select, CommandHandlerBase, CheckInterferenceCommandBlock, MoveComponentCommandBlock
+from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, get_layout_plane_transform, place_key_placeholders
+
+INP_ID_KEY_ANGLE_SURFACE_SEL = 'keyAngleSurface'
+
+
+def get_lp(lp_in: ac.SelectionCommandInput):
+    return af.ConstructionPlane.cast(lp_in.selection(0).entity)
+
+
+def get_orig_lp(lp_in: ac.SelectionCommandInput, selected_locators: ty.List[F3Occurrence]):
+    con = get_context()
+    lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
+    token = lp_ci.get_locators_attr_value(selected_locators)
+    if token is None:
+        raise Exception('Locators have different lp.')
+    return af.ConstructionPlane.cast(con.find_by_token(token)[0])
+
+
+class MoveKeyCommandHandler(CommandHandlerBase):
+    def __init__(self):
+        super().__init__()
+        self.move_comp_cb: MoveComponentCommandBlock
+        self.check_interference_cb: CheckInterferenceCommandBlock
+
+    @property
+    def cmd_name(self) -> str:
+        return 'Move Key'
+
+    @property
+    def tooltip(self) -> str:
+        return "Moves keys via key locators. You can select key locators, not key placeholders. You can also change the layout plane or the key angle surface of the keys. Inference check can require tens of seconds."
+
+    @property
+    def resource_folder(self) -> str:
+        return 'Resources/move_key'
+
+    def notify_create(self, event_args: CommandCreatedEventArgs):
+        inputs = self.inputs
+        locator_in = inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select an entity')
+        locator_in.addSelectionFilter('Occurrences')
+        locator_in.setSelectionLimits(0, 0)
+
+        layout_plane_in = inputs.addSelectionInput(INP_ID_LAYOUT_PLANE_SEL, 'Layout Plane', 'Select an entity')
+        layout_plane_in.addSelectionFilter('ConstructionPlanes')
+        layout_plane_in.setSelectionLimits(1, 1)
+        layout_plane_in.isVisible = False
+
+        angle_surface_in = inputs.addSelectionInput(INP_ID_KEY_ANGLE_SURFACE_SEL, 'Key Angle Surface', 'Select an entity')
+        angle_surface_in.addSelectionFilter('SurfaceBodies')
+        angle_surface_in.setSelectionLimits(1, 1)
+        angle_surface_in.isVisible = False
+
+        self.move_comp_cb = MoveComponentCommandBlock(self)
+        self.move_comp_cb.notify_create(event_args)
+
+        self.check_interference_cb = CheckInterferenceCommandBlock(self)
+        self.check_interference_cb.notify_create(event_args)
+
+    def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
+        if active_input.id == INP_ID_KEY_LOCATOR_SEL:
+            locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
+            return
+        elif active_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
+            ent = af.BRepBody.cast(selection.entity)
+        elif active_input.id == INP_ID_LAYOUT_PLANE_SEL:
+            ent = af.ConstructionPlane.cast(selection.entity)
+        else:
+            return
+        # ent.assemblyContext is None when the parentComponent is the root component.
+        if ent is None or (ent.assemblyContext is not None and CN_INTERNAL in ent.assemblyContext.fullPathName):
+            event_args.isSelectable = False
+
+    def get_selection_ins(self) -> ty.Tuple[ac.SelectionCommandInput, ...]:
+        return get_cis(self.inputs, [INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, INP_ID_KEY_ANGLE_SURFACE_SEL], ac.SelectionCommandInput)
+
+    def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
+        print('notify_input_changed')
+        locator_in, layout_plane_in, angle_surface_in = self.get_selection_ins()
+        if_in = self.check_interference_cb.get_checkbox_ins()[0]
+        selected_locators = get_selected_locators(locator_in)
+
+        if changed_input.id == INP_ID_KEY_LOCATOR_SEL:
+            lp_ci = InputLocators(layout_plane_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
+            angle_ci = InputLocators(angle_surface_in, AN_LOCATORS_ANGLE_TOKEN, af.BRepBody)
+            if not has_sel_in(locator_in):
+                lp_ci.hide()
+                angle_ci.hide()
+                if_in.isVisible = False
+                if_in.value = False
+            else:
+                lp_ci.show_by_token(lp_ci.get_locators_attr_value(selected_locators))
+                angle_ci.show(selected_locators)
+                if_in.isVisible = True
+                if_in.value = False
+            self.check_interference_cb.show(if_in.value)
+            locator_in.hasFocus = True
+        elif changed_input.id == INP_ID_LAYOUT_PLANE_SEL or changed_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
+            sci = ac.SelectionCommandInput.cast(changed_input)
+            if not has_sel_in(sci):
+                sci.tooltip = TOOLTIP_NOT_SELECTED
+            else:
+                sci.tooltip = sci.selection(0).entity.name  # type: ignore
+        self.check_interference_cb.notify_input_changed(event_args, changed_input)
+
+        if has_sel_in(locator_in) and has_sel_in(layout_plane_in) and has_sel_in(angle_surface_in):
+            if changed_input.id == INP_ID_LAYOUT_PLANE_SEL or changed_input.id == INP_ID_KEY_LOCATOR_SEL:
+                lp = get_lp(layout_plane_in)
+                orig_lp = get_orig_lp(layout_plane_in, selected_locators)
+                if not self.move_comp_cb.in_transaction() or lp != orig_lp:
+                    t1 = get_layout_plane_transform(lp)
+                    t2 = get_layout_plane_transform(orig_lp)
+                    t2.invert()
+                    mt = selected_locators[0].transform.copy()
+                    mt.transformBy(t2)
+                    mt.transformBy(t1)
+                    self.move_comp_cb.start_transaction(mt)
+        else:
+            self.move_comp_cb.stop_transaction()
+        self.move_comp_cb.b_notify_changed_input(changed_input)
+
+    def execute_common(self, event_args: CommandEventArgs) -> ty.List[F3Occurrence]:
+        print('notify_execute_preview')
+        con = get_context()
+
+        locator_in, lp_in, angle_in = self.get_selection_ins()
+        if has_sel_in(locator_in):
+            selected_locators = get_selected_locators(locator_in)
+
+            lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
+            lp = get_lp(lp_in)
+            token = lp_ci.get_locators_attr_value(selected_locators)
+            if token is None:
+                raise Exception('Locators have different lp.')
+            orig_lp = af.ConstructionPlane.cast(con.find_by_token(token)[0])
+            if lp != orig_lp:
+                orig_t = get_layout_plane_transform(orig_lp)
+                new_t = get_layout_plane_transform(lp)
+                orig_t.invert()
+                for o in selected_locators:
+                    t = o.transform.copy()
+                    t.transformBy(orig_t)
+                    t.transformBy(new_t)
+                    o.transform = t
+                lp_ci.set_locators_attr_value(selected_locators, lp.entityToken)
+            self.move_comp_cb.b_notify_execute_preview(event_args, selected_locators)
+
+            angle_ci = InputLocators(angle_in, AN_LOCATORS_ANGLE_TOKEN, af.BRepBody)
+            angle = af.BRepBody.cast(angle_in.selection(0).entity)
+            token = angle_ci.get_locators_attr_value(selected_locators)
+            if angle.entityToken != token:
+                angle_ci.set_locators_attr_value(selected_locators, angle.entityToken)
+
+            place_key_placeholders(selected_locators)  # type: ignore
+            return selected_locators
+        return []
+
+    def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
+        selected_locators = self.execute_common(event_args)
+        self.check_interference_cb.b_notify_execute_preview(selected_locators)
+
+    def notify_execute(self, event_args: CommandEventArgs) -> None:
+        selected_locators = self.execute_common(event_args)
+        selected_kpns: ty.Set[str] = set()
+        for kl_occ in selected_locators:
+            pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
+            i = int(kl_occ.comp_attr[AN_LOCATORS_I])
+            selected_kpns.add(key_placeholder_name(i, pattern_name))
+        result = self.check_interference_cb.check_key_placeholders(selected_kpns)
+        if result is None:
+            return
+        hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body = result
+        for _, tb in cache_temp_body:
+            tb.deleteMe()
+        n_hit = len(hit_mev) + len(hit_hole) + len(hit_mf)
+        if n_hit > 0:
+            get_context().ui.messageBox(f'Warning: {n_hit} interference(s) exists among {len(hit_kpns)} key placeholder(s).')
+
+    def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        print('destroy')
