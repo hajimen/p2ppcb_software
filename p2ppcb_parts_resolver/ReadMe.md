@@ -82,9 +82,9 @@ even it is not for `DSA Keycap v8.f3d`.
 Key parts stack vertically (Z direction). The reference level depends on the keyboard's design. p2ppcb_parts_resolver
 resolves it too.
 
-- Cap: `TopHeight`, `StemBottomHeight`
-- Switch: `StemTopHeight`, `SwitchBottomHeight`, `Travel`
-- Stabilizer: ``StemTopHeight`
+- Cap: `TopHeight`, `CapStemBottomHeight`
+- Switch: `SwitchStemBottomHeight`, `SwitchBottomHeight`, `Travel`
+- Stabilizer: `StabilizerStemBottomHeight`
 
 From these special parameters and alignment type (`StemBottom` or `TravelBottom`), p2ppcb_parts_resolver resolves
 Z position of each part in a key assembly.

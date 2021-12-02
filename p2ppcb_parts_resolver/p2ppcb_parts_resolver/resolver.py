@@ -252,29 +252,29 @@ class PartsInfo:
                 qps: ty.Dict[str, Quantity] = {n: Quantity(v) for n, v in ps.items()}  # type: ignore
             except pint.errors.UndefinedUnitError as pe:
                 raise Exception('Bad value in parts info:' + str(pe))
-            for n in ['StemBottomHeight', 'StemTopHeight', 'SwitchBottomHeight']:
+            for n in ['CapStemBottomHeight', 'SwitchStemBottomHeight', 'SwitchBottomHeight']:
                 if n in qps:
                     if part not in part_height_parameter:
                         part_height_parameter[part] = {}
                     part_height_parameter[part][n] = qps.pop(n)
             parameters.update(qps)
 
-        for n, p in [('StemBottomHeight', Part.Cap), ('StemTopHeight', Part.Switch),
-                     ('SwitchBottomHeight', Part.Switch), ('StemTopHeight', Part.Stabilizer)]:
+        for n, p in [('CapStemBottomHeight', Part.Cap), ('SwitchStemBottomHeight', Part.Switch),
+                     ('SwitchBottomHeight', Part.Switch), ('StabilizerStemBottomHeight', Part.Stabilizer)]:
             if p not in part_height_parameter or n not in part_height_parameter[p]:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {stabilizer_desc}, {switch_desc}.')
         for n, p in [('TopHeight', Part.Cap), ('Travel', Part.Switch)]:
             if n not in parameters:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {switch_desc}.')
         part_z_pos: ty.Dict[Part, Quantity] = {
-            Part.Cap: - part_height_parameter[Part.Cap]['StemBottomHeight'],
-            Part.Stabilizer: - part_height_parameter[Part.Stabilizer]['StemTopHeight'],
-            Part.Switch: - part_height_parameter[Part.Switch]['StemTopHeight'],
-            Part.PCB: - part_height_parameter[Part.Switch]['StemTopHeight'] + part_height_parameter[Part.Switch]['SwitchBottomHeight'],
+            Part.Cap: - part_height_parameter[Part.Cap]['CapStemBottomHeight'],
+            Part.Stabilizer: - part_height_parameter[Part.Stabilizer]['StabilizerStemBottomHeight'],
+            Part.Switch: - part_height_parameter[Part.Switch]['SwitchStemBottomHeight'],
+            Part.PCB: - part_height_parameter[Part.Switch]['SwitchStemBottomHeight'] + part_height_parameter[Part.Switch]['SwitchBottomHeight'],
         }  # type: ignore
         if align_to == AlignTo.TravelBottom:
             for p in part_z_pos.keys():
-                part_z_pos[p] += part_height_parameter[Part.Cap]['StemBottomHeight'] + parameters['Travel'] - parameters['TopHeight']  # type: ignore
+                part_z_pos[p] += part_height_parameter[Part.Cap]['CapStemBottomHeight'] + parameters['Travel'] - parameters['TopHeight']  # type: ignore
 
         part_parameters: ty.Dict[Part, ty.Dict[str, Quantity]] = {}
         for part in PARTS_WITH_COMPONENT:

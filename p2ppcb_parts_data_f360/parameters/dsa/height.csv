@@ -1,2 +1,2 @@
-Specifier,TopHeight,StemBottomHeight
-.*,8 mm,0 mm
+Specifier,TopHeight,CapStemBottomHeight
+.*,8 mm,0.2 mm

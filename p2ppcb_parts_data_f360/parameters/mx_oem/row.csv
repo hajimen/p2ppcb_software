@@ -1,4 +1,4 @@
-Specifier,TopHeight,TopAngle,StemBottomHeight,x_distance,y_distance
+Specifier,TopHeight,TopAngle,CapStemBottomHeight,x_distance,y_distance
 Spacebar,8 mm,-100 deg,1.2 mm,-1.5 mm,0 mm
 R1 Vertical,8 mm,-94.2 deg,1.2 mm,-1.5 mm,0 mm
 R1,8 mm,-100 deg,1.2 mm,-1.5 mm,0 mm
