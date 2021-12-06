@@ -252,7 +252,7 @@ class PartsInfo:
                 qps: ty.Dict[str, Quantity] = {n: Quantity(v) for n, v in ps.items()}  # type: ignore
             except pint.errors.UndefinedUnitError as pe:
                 raise Exception('Bad value in parts info:' + str(pe))
-            for n in ['CapStemBottomHeight', 'SwitchStemBottomHeight', 'SwitchBottomHeight']:
+            for n in ['CapStemBottomHeight', 'SwitchStemBottomHeight', 'StabilizerStemBottomHeight', 'SwitchBottomHeight']:
                 if n in qps:
                     if part not in part_height_parameter:
                         part_height_parameter[part] = {}
@@ -297,7 +297,7 @@ class PartsInfo:
                         else:
                             mapping.append(_MappingRow(re.compile(row[0]), row[1], row[2].split()))
                 return mapping, path
-        raise Exception(f'Wrong description: {desc}')
+        raise Exception(f'Wrong description: {desc} about part: {part.name}')
 
     @functools.lru_cache(maxsize=None)
     def _resolve_parameters(self, specifier: str, desc: str, part: Part):

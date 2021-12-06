@@ -827,7 +827,10 @@ class OnceEventHandler(ac.CustomEventHandler):
         get_context().app.unregisterCustomEvent(self.event_id)
         del CUSTOM_EVENT_EVENTS[self.event_id]
         del CUSTOM_EVENT_HANDLERS[self.event_id]
-        self.notify_event()
+        try:
+            self.notify_event()
+        except Exception as e:
+            get_context().ui.messageBox(str(e), 'P2PPCB')
 
     def notify_event(self):
         raise NotImplementedError('notify_event() not implemented.')
