@@ -1,0 +1,5 @@
+Specifier,filename,Parameter
+Spacebar,OEM Spacebar v4.f3d,Width Travel CapStemBottomHeight BottomFilletR BackAngle TopWidthMargin
+Vertical,OEM Keycap v3.f3d,Depth Travel TopHeight TopAngle LayoutAngle CapStemBottomHeight BottomFilletR BackAngle TopWidthMargin
+(ISO|Bigass)_Enter,DSA ISO Enter v2.f3d,Width1 Width2 Depth1 Depth2 Width Travel BottomFilletR BottomTaperHeight
+.*u,OEM Keycap v3.f3d,Width Travel TopHeight TopAngle CapStemBottomHeight BottomFilletR BackAngle TopWidthMargin

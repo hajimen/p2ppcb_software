@@ -99,7 +99,8 @@ class SetAttributeCommandHandler(CommandHandlerBase):
         bodies, attr_name, attr_value = self.get_inputs()
         attrs = con.des.findAttributes(ATTR_GROUP, attr_name)
         for a in attrs:
-            a.deleteMe()
+            if a.value == attr_value:
+                a.deleteMe()
         for b in bodies:
             for a in b.attributes:
                 a.deleteMe()

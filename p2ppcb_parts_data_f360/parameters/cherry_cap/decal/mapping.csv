@@ -1,0 +1,4 @@
+Specifier,filename,Parameter
+(ISO|Bigass)_Enter,,x_distance y_distance z_angle scale_plane_xy
+Vertical,,x_distance z_angle scale_plane_xy
+.*,,x_distance y_distance z_angle scale_plane_xy

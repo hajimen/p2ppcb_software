@@ -1,6 +1,7 @@
 Part,Description,Path
 Cap,DSA,dsa
 Cap,OEM profile,mx_oem
+Cap,Cherry,cherry_cap
 Stabilizer,Cherry-style plate mount,cherry_stabilizer
 Stabilizer,Costar,costar_stabilizer
 Stabilizer,Choc V1,choc_v1_stabilizer
@@ -12,5 +13,6 @@ PCB,Choc V1,choc_pcb
 PCB,MX,mx_pcb
 Decal,DSA,decal_common_19mm
 Decal,OEM profile,mx_oem/decal
+Decal,Cherry,cherry_cap/decal
 Decal,Key Locator,decal_key_locator
 Wiring,Choc V2,wiring_choc_pcb

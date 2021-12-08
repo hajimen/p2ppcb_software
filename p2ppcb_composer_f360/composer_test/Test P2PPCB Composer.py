@@ -17,7 +17,7 @@ reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.d
           'composer_test.test_base', 'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
           'p2ppcb_composer.cmd_start_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
-          'composer_test.test_cmd', ])
+          'p2ppcb_composer.cmd_set_attribute', 'composer_test.test_cmd', ])
 
 from f360_common import catch_exception
 from composer_test.test_base import HANDLERS, HANDLER_IDS
@@ -107,6 +107,9 @@ def run(context):
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_place_mb'))
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_place_foot'))
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_finish'))
+
+    # from composer_test.test_cmd import TestSetAttribute
+    # test_suite.addTest(TestSetAttribute('test_cmd_interactive'))
 
     runner = unittest.TextTestRunner()
     runner.run(test_suite)

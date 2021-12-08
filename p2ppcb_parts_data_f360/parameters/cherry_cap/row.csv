@@ -1,0 +1,8 @@
+Specifier,TopHeight,TopAngle,FrontAngle,x_distance
+Spacebar,8 mm,-101 deg,65 deg,-1.8 mm
+R1 Vertical 2u,6.5 mm,-95 deg,63.5 deg,-1.8 mm
+R1,7 mm,-101 deg,65 deg,-1.8 mm
+R2,6.5 mm,-95 deg,63.5 deg,-1.3 mm
+R3 Vertical 2u,9 mm,-89.5 deg,63.5 deg,-1.6 mm
+R3,7 mm,-93 deg,63.5 deg,-1.6 mm
+R4,9 mm,-89.5 deg,69 deg,-1.8 mm

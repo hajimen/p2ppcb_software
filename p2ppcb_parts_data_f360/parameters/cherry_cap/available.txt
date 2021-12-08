@@ -1,0 +1,13 @@
+R[1234] 1u
+R2 Homing 1u
+R1 125u
+R[14] 2u
+R[12] 225u
+R1 275u
+R2 175u
+R3 15u
+R1 Spacebar 625u
+R1 Vertical 2u
+R3 Vertical 2u
+ISO_Enter
+Bigass_Enter

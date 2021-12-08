@@ -394,3 +394,10 @@ class TestEditFrame(unittest.TestCase):
         # img.save(TEST_PNG_DIR / 'generate_frame.png')
         self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'generate_frame.png'))
         doc.close(False)
+
+
+class TestSetAttribute(unittest.TestCase):
+    def test_cmd_interactive(self):
+        from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
+        execute_command(SetAttributeCommandHandler)
+        adsk.autoTerminate(False)
