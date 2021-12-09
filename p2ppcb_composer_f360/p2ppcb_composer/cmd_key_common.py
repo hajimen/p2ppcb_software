@@ -414,52 +414,55 @@ def _check_intra_key_assembly_interference(ka_occ_list: ty.List[VirtualF3Occurre
                     elif an == AN_MF:
                         col_hole_mf.add(tb)
 
-        inf_in = con.des.createInterferenceInput(col_mev)
-        inf_results = con.des.analyzeInterference(inf_in)
-        if inf_results is None:
-            hit_bug = True
-        else:
-            for ir in inf_results:
-                pns: ty.List[str] = []
-                bns: ty.List[str] = []
-                for e in [ir.entityOne, ir.entityTwo]:
-                    b = af.BRepBody.cast(e)  # native object, not proxy
-                    bns.append(_get_original_body_name(b))
-                    for rb, pn in temp_refs:
-                        if rb == b:
-                            pns.append(pn)
-                            break
-                result_str_list.append(f'MEV to MEV:\n  parts: {pns[0]} <--> {pns[1]}\n  bodies: {bns[0]} <--> {bns[1]}')
+        if len(col_mev) > 1:
+            inf_in = con.des.createInterferenceInput(col_mev)
+            inf_results = con.des.analyzeInterference(inf_in)
+            if inf_results is None:
+                hit_bug = True
+            else:
+                for ir in inf_results:
+                    pns: ty.List[str] = []
+                    bns: ty.List[str] = []
+                    for e in [ir.entityOne, ir.entityTwo]:
+                        b = af.BRepBody.cast(e)  # native object, not proxy
+                        bns.append(_get_original_body_name(b))
+                        for rb, pn in temp_refs:
+                            if rb == b:
+                                pns.append(pn)
+                                break
+                    result_str_list.append(f'MEV to MEV:\n  parts: {pns[0]} <--> {pns[1]}\n  bodies: {bns[0]} <--> {bns[1]}')
 
-        inf_in = con.des.createInterferenceInput(col_hole_mf)
-        inf_results = con.des.analyzeInterference(inf_in)
-        if inf_results is None:
-            hit_bug = True
-        else:
-            for ir in inf_results:
-                bs: ty.List[af.BRepBody] = []
-                ans: ty.List[str] = []
-                for e in [ir.entityOne, ir.entityTwo]:
-                    b = af.BRepBody.cast(e)
-                    bs.append(b)
-                    ans.append(b.attributes[0].name)
-                if all(an == AN_HOLE for an in ans) or all(an == AN_MF for an in ans):
-                    continue
+        if len(col_hole_mf) > 1:
+            inf_in = con.des.createInterferenceInput(col_hole_mf)
+            inf_results = con.des.analyzeInterference(inf_in)
+            if inf_results is None:
+                hit_bug = True
+            else:
+                for ir in inf_results:
+                    bs: ty.List[af.BRepBody] = []
+                    ans: ty.List[str] = []
+                    for e in [ir.entityOne, ir.entityTwo]:
+                        b = af.BRepBody.cast(e)
+                        bs.append(b)
+                        ans.append(b.attributes[0].name)
+                    if all(an == AN_HOLE for an in ans) or all(an == AN_MF for an in ans):
+                        continue
 
-                pn_hole = ''
-                bn_hole = ''
-                pn_mf = ''
-                bn_mf = ''
-                for b, an in zip(bs, ans):
-                    for rb, pn in temp_refs:
-                        if rb == b:
-                            if an == AN_HOLE:
-                                pn_hole = pn
-                                bn_hole = _get_original_body_name(b)
-                            else:
-                                pn_mf = pn
-                                bn_mf = _get_original_body_name(b)
-                result_str_list.append(f'Hole to MF:\n  parts: {pn_hole} <--> {pn_mf}\n  bodies: {bn_hole} <--> {bn_mf}')
+                    pn_hole = ''
+                    bn_hole = ''
+                    pn_mf = ''
+                    bn_mf = ''
+                    for b, an in zip(bs, ans):
+                        for rb, pn in temp_refs:
+                            if rb == b:
+                                if an == AN_HOLE:
+                                    pn_hole = pn
+                                    bn_hole = _get_original_body_name(b)
+                                else:
+                                    pn_mf = pn
+                                    bn_mf = _get_original_body_name(b)
+                    result_str_list.append(f'Hole to MF:\n  parts: {pn_hole} <--> {pn_mf}\n  bodies: {bn_hole} <--> {bn_mf}')
+
         for tb, _ in temp_refs:
             tb.deleteMe()
         if len(result_str_list) > 0:

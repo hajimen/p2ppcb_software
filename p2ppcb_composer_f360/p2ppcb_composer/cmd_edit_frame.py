@@ -756,15 +756,17 @@ def finish_frame(frame: af.BRepBody):
     before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
     frame.name = BN_FRAME
     combines = con.root_comp.features.combineFeatures
-    co_in3 = combines.createInput(frame, fill_body_col)
-    co_in3.operation = af.FeatureOperations.JoinFeatureOperation
-    co_in3.isKeepToolBodies = False
-    _ = combines.add(co_in3)
+    if len(fill_body_col) > 0:
+        co_in3 = combines.createInput(frame, fill_body_col)
+        co_in3.operation = af.FeatureOperations.JoinFeatureOperation
+        co_in3.isKeepToolBodies = False
+        _ = combines.add(co_in3)
 
-    co_in4 = combines.createInput(frame, hole_body_col)
-    co_in4.operation = af.FeatureOperations.CutFeatureOperation
-    co_in4.isKeepToolBodies = False
-    _ = combines.add(co_in4)
+    if len(hole_body_col) > 0:
+        co_in4 = combines.createInput(frame, hole_body_col)
+        co_in4.operation = af.FeatureOperations.CutFeatureOperation
+        co_in4.isKeepToolBodies = False
+        _ = combines.add(co_in4)
 
     after_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
     nbs: ty.List[af.BRepBody] = []
