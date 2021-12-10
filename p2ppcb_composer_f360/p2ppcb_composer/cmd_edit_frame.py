@@ -229,7 +229,7 @@ class GenerateFrameCommandHandler(CommandHandlerBase):
         prof_in.setSelectionLimits(1, 0)
 
         self.offset_cb = OffsetCommandBlock(self)
-        self.offset_cb.b_notify_create('Bridge Offset', '3 mm')
+        self.offset_cb.b_notify_create('Bridge Offset', '5 mm')
         self.offset_cb.show(False)
 
         self.check_interference_cb = CheckInterferenceCommandBlock(self)

@@ -284,13 +284,33 @@ class PartsDepot:
             PROF.tick()
 
             for _, image in lp.names_images:
-                img_hash_bytes = Image.open(image).tobytes()
+                if image is None:
+                    img_hash_bytes = b''
+                else:
+                    pil_image = Image.open(image)
+                    all_white = True
+                    for rgb in pil_image.getdata():
+                        if rgb != (255, 255, 255):
+                            all_white = False
+                            break
+                    if all_white:
+                        image = None
+                        img_hash_bytes = b''
+                    else:
+                        img_hash_bytes = Image.open(image).tobytes()
+                # img_hash_bytes = Image.open(image).tobytes()
                 pattern_img_hash = hashlib.md5(pattern_hash_bytes + img_hash_bytes).hexdigest()
                 locator_hashes.append(pattern_img_hash)
                 comp_name = pattern_img_hash + CNP_LOCATOR_IMG
                 if pattern_img_hash not in locator_decal_redundant_check[pattern_hash]:
                     locator_decal_redundant_check[pattern_hash].add(pattern_img_hash)
-                    if comp_name not in locator_acc_occ.child:
+                    if image is None:
+                        target_occ = locator_acc_occ.child.get_real(comp_name)
+                        for b in locator_src_occ.comp.bRepBodies:
+                            b.copyToComponent(target_occ.raw_occ)
+                        target_occ.comp.attributes.add('P2PPCB Depot', 'pattern_hash', hashlib.md5(pattern_hash_bytes).hexdigest())
+                        target_occ.comp.attributes.add('P2PPCB Depot', 'img_hash', hashlib.md5(img_hash_bytes).hexdigest())
+                    elif comp_name not in locator_acc_occ.child:
                         idps.append(InsertDecalParameter(
                             locator_src_occ.raw_occ,
                             locator_acc_occ.raw_occ,
@@ -403,7 +423,6 @@ class PartsDepot:
                             img_hash_bytes = b''
                         else:
                             img_hash_bytes = Image.open(image).tobytes()
-                    # img_hash_bytes = b'' if image is None else Image.open(image).tobytes()
                     cp_img_cpdp_hash = hashlib.md5(bytes.fromhex(fp_hash) + img_hash_bytes + cpdp_hash_bytes).hexdigest()
                     comp_name = cp_img_cpdp_hash + CNP_CP_IMG_CPDP
                     cp_img_cpdp_hashes.append(cp_img_cpdp_hash)
