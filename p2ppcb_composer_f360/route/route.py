@@ -200,6 +200,8 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], row_cable_placement:
     image_cache = {}
     for pattern_name, specs_ops in specs_ops_on_pn.items():
         for i, (specifier, op) in enumerate(specs_ops):
+            if op is None:
+                raise Exception('Bad code.')
             kl_name = key_locator_name(i, pattern_name)
             kl_occ = locators_occ.child[kl_name]
             switch_desc = kl_occ.comp_attr[AN_SWITCH_DESC]

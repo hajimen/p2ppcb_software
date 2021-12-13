@@ -5,14 +5,16 @@ Cap,Cherry,cherry_cap
 Stabilizer,Cherry-style plate mount,cherry_stabilizer
 Stabilizer,Costar,costar_stabilizer
 Stabilizer,Choc V1,choc_v1_stabilizer
-Switch,Choc V2,choc_v2
-Switch,Choc V1,choc_v1
 Switch,MX,mx
-PCB,Choc V2,choc_pcb
-PCB,Choc V1,choc_pcb
+Switch,Choc V1,choc_v1
+Switch,Choc V2,choc_v2
 PCB,MX,mx_pcb
+PCB,Choc V1,choc_pcb
+PCB,Choc V2,choc_pcb
 Decal,DSA,decal_common_19mm
 Decal,OEM profile,mx_oem/decal
 Decal,Cherry,cherry_cap/decal
 Decal,Key Locator,decal_key_locator
+Wiring,MX,wiring_mx_pcb
+Wiring,Choc V1,wiring_choc_pcb
 Wiring,Choc V2,wiring_choc_pcb

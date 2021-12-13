@@ -640,8 +640,9 @@ class PartsDepot:
     def prepare_next(self, acc_occ: F3Occurrence, next: ty.Callable, error: ty.Callable) -> None:
         try:
             self._prepare_next_impl(acc_occ)
-        except Exception:
-            traceback.print_exc()  # TODO
+        except Exception as e:
+            traceback.print_exc()
+            get_context().ui.messageBox(str(e), 'P2PPCB')
             error()
             return
         next()

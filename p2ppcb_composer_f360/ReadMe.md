@@ -12,6 +12,9 @@ DISCLAIMER: So far, P2PPCB Composer F360 remains sketchy quality. In some cases,
 
 F360 runs on Mac too, but P2PPCB Composer F360 uses RPA to get over the lack of F360 API features.
 
+By leaving all top legends empty, you can get around the problem, I guess (I didn't test it).
+But without legends, your work may be a bit hard.
+
 - Autodesk Fusion 360 (F360)
 
 F360 is a proprietary 3D CAD. Autodesk generously offers free plan for hobbyists so far.
@@ -22,7 +25,7 @@ You need your own firmware for your own design. P2PPCB Composer F360 helps you, 
 
 ## Requirements: Building your own design
 
-- A 3D printing service of HP Multi Jet Fusion (MJF)
+- A 3D printing service of HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html>
 
 You might know the quality of 3D printers for hobbyists. MJF is in another league.
 
@@ -40,7 +43,7 @@ I can make custom printed PBT keycaps. The total charge is from around $30.
 
 ## Installation
 
-Download latest release file from here: <https://github.com/hajimen/p2ppcb_software/releases>
+Download a latest release file from here: <https://github.com/hajimen/p2ppcb_software/releases>
 
 Unzip the release file, run F360, type Shift-S. Click "Add-Ins" tab, click **+** at the right of "My Add-Ins".
 Choose `p2ppcb_composer` directory in the unzipped release file. Choose `P2PPCB Composer` in "Add-Ins" tab and click "Run".
@@ -62,9 +65,11 @@ You can see how they work by a scaffold which is built in P2PPCB Composer F360.
 Specify the main preference of key switch, cap, stabilizer, vertical alignment, etc.
 F360 file holds the preference.
 
+You can run this command more than once.
+
 4. Load KLE file
 
-It can consume tens of minutes. F360 isn't very suitable to P2PPCB Composer, but you don't want to pay thousands of USD for CATIA, right?
+It can consume tens of minutes. F360 isn't very suitable to P2PPCB Composer, but you don't want to pay thousands of USD for CATIA, I guess.
 
 5. Adjust each key
 
@@ -72,15 +77,23 @@ You can move each key, or change switch/cap/stabilizer of each key.
 
 6. Generate a frame
 
-In this step, generated frame doesn't have holes for keys. It is for fill/hole method. The detail is later.
+A generated frame doesn't have holes for keys yet. It is for fill/hole method. The detail is later.
 
-7. Place a mainboard and feet, and connect their bosses to a frame
+7. Place a mainboard and feet
 
-You need to do this step by F360's feature like loft, extrude, etc.
+You can run this command more than once. To place feet, you need to do so in most cases.
 
-8. Finish
+8. Connect bosses of the mainboard/feet to a frame
+
+You need to do this step by F360's features like loft, extrude, etc.
+
+9. Finish
 
 It makes a 3D printable solid body. Run **Save As Mesh**, choose STL and OK. Send the STL file to 3D printing service of MJF.
+
+10. There is isolated thin wall? Oh...
+
+MJF cannot print isolated thin wall around under 0.8 mm. If it occurs, you need to remove them by F360's features.
 
 ## Bridge and fill/hole - MF/MEV method
 
