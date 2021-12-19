@@ -395,10 +395,9 @@ class PartsDepot:
 
                 def on_create_cp_src_occ(new_occ: F3Occurrence):
                     self.cache_doc_is_modified = True
-                    ph = 'Placeholder' if pp.placeholder is None else pp.placeholder
                     for b in fp_comp.bRepBodies:
                         ad = F3AttributeDict(b.attributes)
-                        if 'Placeholder' in ad and ad['Placeholder'] == ph:
+                        if 'Placeholder' in ad and ad['Placeholder'] == pp.placeholder:
                             b.copyToComponent(new_occ.raw_occ)
                     for b in new_occ.comp.bRepBodies:
                         b.isLightBulbOn = True

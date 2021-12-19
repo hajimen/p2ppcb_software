@@ -1,0 +1,4 @@
+Specifier,SwitchX,SwitchY,SwitchAngle
+ISO_Enter,4.45 mm,0 mm,-90 deg
+Vertical 2u,0 mm,0 mm,180 deg
+.*u,0 mm,0 mm,180 deg

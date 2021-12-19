@@ -31,6 +31,9 @@ ATTR_GROUP = 'P2PPCB'
 # F360 cannot have two same component names. To avoid name collision to user, MAGIC is added after CN for P2PPCB.
 MAGIC = ' mU0jU'
 
+# PN: Parameter Name
+PN_USE_STABILIZER = 'UseStabilizer'
+
 # CN: Component Name
 # CNP: Component Name Postfix
 CN_INTERNAL = 'P2PPCB Internal'
@@ -743,19 +746,19 @@ def _part_name(desc: str, specifier: ty.Optional[str] = None):
 
 
 def cap_name(cap_desc: str, specifier: str):
-    return _part_name(cap_desc, specifier)
+    return _part_name('Cap ' + cap_desc, specifier)
 
 
 def stabilizer_name(stabilizer_desc: str, specifier: str):
-    return _part_name(stabilizer_desc, specifier)
+    return _part_name('Stabilizer ' + stabilizer_desc, specifier)
 
 
-def switch_name(switch_desc: str, specifier: ty.Optional[str] = None):
-    return _part_name(switch_desc)
+def switch_name(switch_desc: str, specifier: str):
+    return _part_name('Switch ' + switch_desc, specifier)
 
 
-def pcb_name(switch_desc: str, specifier: ty.Optional[str] = None):
-    return _part_name('PCB ' + switch_desc)
+def pcb_name(switch_desc: str, specifier: str):
+    return _part_name('PCB ' + switch_desc, specifier)
 
 
 def get_ids(comp: af.Component) -> ty.Set[str]:

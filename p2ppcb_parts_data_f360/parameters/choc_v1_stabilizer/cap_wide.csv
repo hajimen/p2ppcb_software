@@ -1,5 +1,5 @@
-Specifier,Width,WireLength
-2u,37 mm,24 mm
-225u,41.75 mm,24 mm
-275u,51.25 mm,24 mm
-625u,117 mm,76 mm
+Specifier,WireLength,UseStabilizer
+2u,24 mm,1 mm
+25u,24 mm,1 mm
+ISO_Enter,24 mm,1 mm
+55u,76 mm,1 mm

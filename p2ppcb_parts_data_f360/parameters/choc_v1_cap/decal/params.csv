@@ -1,0 +1,8 @@
+Specifier,y_distance,z_angle,scale_plane_xy
+Vertical 2u,0 mm,0 deg,1.7
+1u,0.5 mm,90 deg,1.3
+125u,0.5 mm,90 deg,1.5
+15u,1 mm,90 deg,1.6
+2u,1 mm,90 deg,1.8
+25u,0.5 mm,90 deg,1.8
+55u,1 mm,0 deg,2.5

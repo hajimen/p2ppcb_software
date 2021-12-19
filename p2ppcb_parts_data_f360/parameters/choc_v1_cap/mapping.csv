@@ -1,0 +1,5 @@
+Specifier,filename,Parameter
+Vertical 2u,Choc v1 Cap v4.f3d,Depth Travel LayoutAngle
+ISO_Enter,Choc v1 ISO Enter v3.f3d,Travel
+Spacebar 55u,Choc v1 Spacebar v1.f3d,Travel
+\d*u,Choc v1 Cap v4.f3d,Width Travel

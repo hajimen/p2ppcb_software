@@ -10,7 +10,7 @@ import adsk.fusion as af
 from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, ANS_OPTION, \
     ATTR_GROUP, CN_DEPOT_CAP_PLACEHOLDER, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, \
-    CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, CreateObjectCollectionT, \
+    CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, CreateObjectCollectionT, \
     F3Occurrence, SpecsOpsOnPn, SurrogateF3Occurrence, VirtualF3Occurrence, cap_name, \
     cap_placeholder_name, capture_position, \
     get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, XU_V3D, \
@@ -274,7 +274,11 @@ def prepare_key_assembly(
 
         part_filename, part_parameters, part_placeholder, part_z_pos = pi.resolve_specifier(specifier, cap_desc, stabilizer_desc, switch_desc, align_to)
 
-        if len(part_parameters[Part.Stabilizer]) == 0:
+        if PN_USE_STABILIZER in part_parameters[Part.Stabilizer]:
+            if part_parameters[Part.Stabilizer][PN_USE_STABILIZER].m_as('mm') == 0:
+                del part_z_pos[Part.Stabilizer]
+            del part_parameters[Part.Stabilizer][PN_USE_STABILIZER]
+        else:
             del part_z_pos[Part.Stabilizer]
 
         part_trans = {

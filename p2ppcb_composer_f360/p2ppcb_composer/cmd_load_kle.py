@@ -81,7 +81,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                 occ = locators_occ.child.get(name, on_surrogate=_on_surrogate)
             r = - (op.angle * np.pi / 180)
             rot_mat = np.array([[np.cos(r), - np.sin(r)], [np.sin(r), np.cos(r)]])
-            x, y = (np.array(op.center_xyu) + rot_mat @ np.array(op.image_center_offset_u) - min_xyu) * U
+            x, y = (np.array(op.center_xyu) - min_xyu) * U
             mat_3d = np.eye(4)
             mat_3d[:2, :2] = rot_mat
             mat_3d[:2, 3] = x - w / 2, h / 2 - y

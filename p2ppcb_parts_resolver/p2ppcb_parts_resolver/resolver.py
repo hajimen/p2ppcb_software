@@ -192,7 +192,7 @@ class PartsInfo:
 
     def resolve_decal(self, specifier: str, decal_desc: str):
         _, decal_parameter_names, path = self._resolve_parameters(specifier, decal_desc, Part.Decal)
-        ps = self._collect_parameters(specifier, path, {})
+        ps, _ = self._collect_parameters(specifier, path, {})
         try:
             parameters: ty.Dict[str, Quantity] = {n: Quantity(v) for n, v in ps.items()}  # type: ignore
         except pint.errors.UndefinedUnitError as pe:
@@ -204,7 +204,7 @@ class PartsInfo:
 
     def resolve_pcb_wiring(self, specifier: str, switch_desc: str):
         filename, parameter_names, path = self._resolve_parameters(specifier, switch_desc, Part.Wiring)
-        ps = self._collect_parameters(specifier, path, {})
+        ps, _ = self._collect_parameters(specifier, path, {})
         try:
             parameters: ty.Dict[str, Quantity] = {n: Quantity(v) for n, v in ps.items()}  # type: ignore
         except pint.errors.UndefinedUnitError as pe:
@@ -245,9 +245,8 @@ class PartsInfo:
                         break
                 if not available:
                     raise SpecifierException(lines, specifier)
-            ps = self._collect_parameters(specifier, path, {})
-            if 'Placeholder' in ps:
-                part_placeholder[part] = ps.pop('Placeholder')
+            ps, ph = self._collect_parameters(specifier, path, {})
+            part_placeholder[part] = ph
             try:
                 qps: ty.Dict[str, Quantity] = {n: Quantity(v) for n, v in ps.items()}  # type: ignore
             except pint.errors.UndefinedUnitError as pe:
@@ -320,7 +319,7 @@ class PartsInfo:
                     ret.append((str(p), ret2))
         return ret
 
-    def _collect_parameters(self, specifier: str, path: str, parameters: ty.Dict[str, str]) -> ty.Dict[str, str]:
+    def _collect_parameters_rec(self, specifier: str, path: str, parameters: ty.Dict[str, str]) -> ty.Dict[str, str]:
         for p, reader in self._list_csv_files(path):
             pns = []
             for i, row in enumerate(reader):
@@ -336,9 +335,16 @@ class PartsInfo:
                         break
         if path != '':
             parent, _ = os.path.split(path)
-            return self._collect_parameters(specifier, parent, parameters)
+            return self._collect_parameters_rec(specifier, parent, parameters)
         else:
             return parameters
+
+    def _collect_parameters(self, specifier: str, path: str, parameters: ty.Dict[str, str]) -> ty.Tuple[ty.Dict[str, str], str]:
+        parameters = self._collect_parameters_rec(specifier, path, parameters)
+        ph = 'Placeholder'
+        if 'Placeholder' in parameters:
+            ph = parameters.pop('Placeholder')
+        return parameters, ph
 
     def resolve_kle(self, kle_json_path: os.PathLike, image_output_dir: os.PathLike):
         image_output_dir = pathlib.Path(image_output_dir)
@@ -376,7 +382,7 @@ class PartsInfo:
                 if w == 1:
                     if k.nub:
                         specs.append('Homing')
-                if w >= 6.25:
+                if w >= 5:
                     specs.append('Spacebar')
                 pattern_name = width_u_to_str(w)
                 specs.append(pattern_name)
