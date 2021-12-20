@@ -1,0 +1,8 @@
+[
+    [{p:"R4"},"R4\n1u",{w:2},"R4\n2u"],
+    [{p:"R3"},"R3\n1u",{w:1.5},"R3\n15u",{x:0.5,p:"R3 Vertical",h:2},"R3\nVert",{x:0.25,p:"",w:1.25,h:2,w2:1.5,h2:1,x2:-0.25},"ISO Enter",{p:"R1 Vertical",h:2},"R1\nVert"],
+    [{p:"R2"},"R2\n1u",{n:true},"R2\n1u\n\n\n\n\nHoming"],
+    [{w:1.75},"R2\n175u",{w:2.25},"R2\n225u",{p:"R1",w:2.75},"R1\n275u"],
+    ["R1\n1u",{w:1.25},"R1\n125u",{w:2},"R1\n2u",{w:2.25},"R1\n225u"],
+    [{p:"R1",w:6.25},"R1\nSpacebar"]
+]
