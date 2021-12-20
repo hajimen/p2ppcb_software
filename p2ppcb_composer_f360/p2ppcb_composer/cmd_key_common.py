@@ -294,7 +294,8 @@ def prepare_key_assembly(
         t.setCell(0, 3, switch_xya[parts_resolver.SPN_SWITCH_X].m_as('cm'))
         t.setCell(1, 3, switch_xya[parts_resolver.SPN_SWITCH_Y].m_as('cm'))
         for p in [Part.Stabilizer, Part.Switch, Part.PCB]:
-            part_trans[p].transformBy(t)
+            if p in part_trans:
+                part_trans[p].transformBy(t)
 
         offset_trans = ac.Matrix3D.create()
         offset_trans.setCell(2, 3, offset)

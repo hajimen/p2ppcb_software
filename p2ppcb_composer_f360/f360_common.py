@@ -754,11 +754,11 @@ def stabilizer_name(stabilizer_desc: str, specifier: str):
 
 
 def switch_name(switch_desc: str, specifier: str):
-    return _part_name('Switch ' + switch_desc, specifier)
+    return _part_name('Switch ' + switch_desc)
 
 
 def pcb_name(switch_desc: str, specifier: str):
-    return _part_name('PCB ' + switch_desc, specifier)
+    return _part_name('PCB ' + switch_desc)
 
 
 def get_ids(comp: af.Component) -> ty.Set[str]:
