@@ -6,6 +6,6 @@ Fusion 360 (F360) often overlooks `SwitchAngle` rotation. To get around the bug,
 we need to erase design history (Disable capturing and Enable it again) and prepare
 `SwitchAngle` `SwitchX` `SwitchY` for each exporting of F3D.
 
-## `UserStabilizer` parameter
+## `UseStabilizer` parameter
 
 It just shows as the name. If the value exists and is nonzero, it is true.
