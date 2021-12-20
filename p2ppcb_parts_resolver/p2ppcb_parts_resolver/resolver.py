@@ -19,6 +19,17 @@ MAPPING_FILENAME = 'mapping.csv'
 AVAILABLE_FILENAME = 'available.txt'
 PARTS_INFO_DIRNAME = 'parameters'
 
+# SPN: Special Parameter Name
+SPN_SWITCH_ANGLE = 'SwitchAngle'
+SPN_SWITCH_X = 'SwitchX'
+SPN_SWITCH_Y = 'SwitchY'
+
+SPN_TRAVEL = 'Travel'
+SPN_TOP_HEIGHT = 'TopHeight'
+SPN_CAP_SB_HEIGHT = 'CapStemBottomHeight'
+SPN_SWITCH_SB_HEIGHT = 'SwitchStemBottomHeight'
+SPN_STABILIZER_SB_HEIGHT = 'StabilizerStemBottomHeight'
+SPN_SWITCH_BOTTOM_HEIGHT = 'SwitchBottomHeight'
 
 # import traceback
 # from time import perf_counter
@@ -221,12 +232,13 @@ class PartsInfo:
 
     def resolve_specifier(
         self, specifier: str, cap_desc: str, stabilizer_desc: str, switch_desc: str, align_to: AlignTo
-    ) -> ty.Tuple[ty.Dict[Part, str], ty.Dict[Part, ty.Dict[str, Quantity]], ty.Dict[Part, str], ty.Dict[Part, Quantity]]:
+    ) -> ty.Tuple[ty.Dict[Part, str], ty.Dict[Part, ty.Dict[str, Quantity]], ty.Dict[Part, str], ty.Dict[Part, Quantity], ty.Dict[str, Quantity]]:
         parameters: ty.Dict[str, Quantity] = {}
         part_filename: ty.Dict[Part, str] = {}
         part_parameter_names: ty.Dict[Part, ty.List[str]] = {}
         part_placeholder: ty.Dict[Part, str] = {}
         part_height_parameter: ty.Dict[Part, ty.Dict[str, Quantity]] = {}
+        switch_xya: ty.Dict[str, Quantity] = {SPN_SWITCH_ANGLE: Quantity('0 deg'), SPN_SWITCH_X: Quantity('0 mm'), SPN_SWITCH_Y: Quantity('0 mm')}  # type: ignore
         for desc, part in [(cap_desc, Part.Cap), (stabilizer_desc, Part.Stabilizer), (switch_desc, Part.Switch), (switch_desc, Part.PCB)]:
             try:
                 part_filename[part], part_parameter_names[part], path = self._resolve_parameters(specifier, desc, part)
@@ -251,29 +263,32 @@ class PartsInfo:
                 qps: ty.Dict[str, Quantity] = {n: Quantity(v) for n, v in ps.items()}  # type: ignore
             except pint.errors.UndefinedUnitError as pe:
                 raise Exception('Bad value in parts info:' + str(pe))
-            for n in ['CapStemBottomHeight', 'SwitchStemBottomHeight', 'StabilizerStemBottomHeight', 'SwitchBottomHeight']:
+            for n in [SPN_CAP_SB_HEIGHT, SPN_SWITCH_SB_HEIGHT, SPN_STABILIZER_SB_HEIGHT, SPN_SWITCH_BOTTOM_HEIGHT]:
                 if n in qps:
                     if part not in part_height_parameter:
                         part_height_parameter[part] = {}
                     part_height_parameter[part][n] = qps.pop(n)
             parameters.update(qps)
 
-        for n, p in [('CapStemBottomHeight', Part.Cap), ('SwitchStemBottomHeight', Part.Switch),
-                     ('SwitchBottomHeight', Part.Switch), ('StabilizerStemBottomHeight', Part.Stabilizer)]:
+        for n, p in [(SPN_CAP_SB_HEIGHT, Part.Cap), (SPN_SWITCH_SB_HEIGHT, Part.Switch),
+                     (SPN_SWITCH_BOTTOM_HEIGHT, Part.Switch), (SPN_STABILIZER_SB_HEIGHT, Part.Stabilizer)]:
             if p not in part_height_parameter or n not in part_height_parameter[p]:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {stabilizer_desc}, {switch_desc}.')
-        for n, p in [('TopHeight', Part.Cap), ('Travel', Part.Switch)]:
+        for n, p in [(SPN_TOP_HEIGHT, Part.Cap), (SPN_TRAVEL, Part.Switch)]:
             if n not in parameters:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {switch_desc}.')
+        for n in [SPN_SWITCH_ANGLE, SPN_SWITCH_X, SPN_SWITCH_Y]:
+            if n in parameters:
+                switch_xya[n] = parameters.pop(n)
         part_z_pos: ty.Dict[Part, Quantity] = {
-            Part.Cap: - part_height_parameter[Part.Cap]['CapStemBottomHeight'],
-            Part.Stabilizer: - part_height_parameter[Part.Stabilizer]['StabilizerStemBottomHeight'],
-            Part.Switch: - part_height_parameter[Part.Switch]['SwitchStemBottomHeight'],
-            Part.PCB: - part_height_parameter[Part.Switch]['SwitchStemBottomHeight'] + part_height_parameter[Part.Switch]['SwitchBottomHeight'],
+            Part.Cap: - part_height_parameter[Part.Cap][SPN_CAP_SB_HEIGHT],
+            Part.Stabilizer: - part_height_parameter[Part.Stabilizer][SPN_STABILIZER_SB_HEIGHT],
+            Part.Switch: - part_height_parameter[Part.Switch][SPN_SWITCH_SB_HEIGHT],
+            Part.PCB: - part_height_parameter[Part.Switch][SPN_SWITCH_SB_HEIGHT] + part_height_parameter[Part.Switch][SPN_SWITCH_BOTTOM_HEIGHT],
         }  # type: ignore
         if align_to == AlignTo.TravelBottom:
             for p in part_z_pos.keys():
-                part_z_pos[p] += part_height_parameter[Part.Cap]['CapStemBottomHeight'] + parameters['Travel'] - parameters['TopHeight']  # type: ignore
+                part_z_pos[p] += part_height_parameter[Part.Cap][SPN_CAP_SB_HEIGHT] + parameters[SPN_TRAVEL] - parameters[SPN_TOP_HEIGHT]  # type: ignore
 
         part_parameters: ty.Dict[Part, ty.Dict[str, Quantity]] = {}
         for part in PARTS_WITH_COMPONENT:
@@ -281,7 +296,7 @@ class PartsInfo:
             for n in set(part_parameter_names[part]) & set(parameters.keys()):
                 part_parameters[part][n] = parameters[n]
 
-        return part_filename, part_parameters, part_placeholder, part_z_pos
+        return part_filename, part_parameters, part_placeholder, part_z_pos, switch_xya
 
     def _read_mapping_from_desc(self, desc: str, part: Part) -> ty.Tuple[ty.List[_MappingRow], str]:
         for d, path in self.description_dict[part]:

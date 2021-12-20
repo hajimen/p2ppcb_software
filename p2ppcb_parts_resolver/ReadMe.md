@@ -89,7 +89,12 @@ resolves it too.
 From these special parameters and alignment type (`StemBottom` or `TravelBottom`), p2ppcb_parts_resolver resolves
 Z position of each part in a key assembly.
 
-## Special parameter: Placeholder
+## Special parameters for switch_xya
+
+The angle, x, and y of a switch/stabilizer/PCB depend on the specifier. For example, ISO Enter requires right angled a switch/stabilizer/PCB.
+`SwitchAngle`, `SwitchX`, and `SwitchY` are special parameters for the purpose.
+
+## Special parameter: `Placeholder`
 
 `Placeholder` is another special parameter. All design files should have placeholder bodies.
 Those bodies should be tagged as placeholder, and the tag have a string value which denotes the detail.

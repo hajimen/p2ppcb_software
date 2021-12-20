@@ -272,7 +272,7 @@ def prepare_key_assembly(
         offset = pka.offset
         specs_ops = specs_ops_on_pn[pattern_name]
 
-        part_filename, part_parameters, part_placeholder, part_z_pos = pi.resolve_specifier(specifier, cap_desc, stabilizer_desc, switch_desc, align_to)
+        part_filename, part_parameters, part_placeholder, part_z_pos, switch_xya = pi.resolve_specifier(specifier, cap_desc, stabilizer_desc, switch_desc, align_to)
 
         if PN_USE_STABILIZER in part_parameters[Part.Stabilizer]:
             if part_parameters[Part.Stabilizer][PN_USE_STABILIZER].m_as('mm') == 0:
@@ -286,6 +286,16 @@ def prepare_key_assembly(
             for p in parts_resolver.PARTS_WITH_COMPONENT
             if p in part_z_pos
         }
+
+        t = EYE_M3D.copy()
+        switch_angle = switch_xya[parts_resolver.SPN_SWITCH_ANGLE].m_as('rad')
+        if switch_angle != 0.:
+            t.setToRotation(switch_angle, ZU_V3D, ORIGIN_P3D)
+        t.setCell(0, 3, switch_xya[parts_resolver.SPN_SWITCH_X].m_as('cm'))
+        t.setCell(1, 3, switch_xya[parts_resolver.SPN_SWITCH_Y].m_as('cm'))
+        for p in [Part.Stabilizer, Part.Switch, Part.PCB]:
+            part_trans[p].transformBy(t)
+
         offset_trans = ac.Matrix3D.create()
         offset_trans.setCell(2, 3, offset)
 
