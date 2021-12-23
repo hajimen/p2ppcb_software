@@ -3,7 +3,7 @@
 **p2ppcb_parts_resolver** is a Python library for P2PPCB Composer F360.
 
 p2ppcb_parts_resolver is independent from Autodesk Fusion 360 (F360), but designed to be used in it.
-This is mainly for debugging, but good for porting of P2PPCB Composer F360 to other 3D CADs.
+The independency is mainly for debugging, and good for porting of P2PPCB Composer F360 to other 3D CADs.
 
 p2ppcb_parts_resolver resolves the design files' names, the part parameter set, and the specifier of the parts of a key.
 The key is represented in a KLE file and annotated by a part description set.
@@ -21,7 +21,7 @@ Decal or Wiring is a different story, but it is an exception.
 ## From KLE file to pattern name
 
 A KLE file doesn't contain names like "ISO Enter" or "2u", but obviously we can spot such name of a key in a KLE file.
-p2ppcb_parts_resolver does. The spotted name is pattern name.
+p2ppcb_parts_resolver does. The spotted name is a pattern name.
 
 ## Specifier
 
@@ -60,7 +60,7 @@ You can see the file connects specifiers to their design file names and paramete
 
 The row order matters. `Specifier` column is regular expression, and `\d*u` matches to "1u".
 But p2ppcb_parts_resolver searches matching row from top to bottom. Once a row matches,
-it stops further search. Specifier "1u" matches the `1u` row, and the `\d*u` row doesn't matter anymore.
+it stops further search. Specifier "1u" matches the `1u` row, and the `\d*u` row is ignored.
 
 Let's go with "2u". `\d*u` row hits, so the design file name is `DSA Keycap v8.f3d`, and the parameter name set is `Width Travel`.
 We need to resolve and give those parameters to `DSA Keycap v8.f3d`. To do so, p2ppcb_parts_resolver looks at CSV files in the directory.
@@ -79,7 +79,7 @@ even it is not for `DSA Keycap v8.f3d`.
 
 ## Special parameters for part_z_pos
 
-Key parts stack vertically (Z direction). The reference level depends on the keyboard's design. p2ppcb_parts_resolver
+Key parts stack eac other vertically (Z direction). The reference level depends on the keyboard's design. p2ppcb_parts_resolver
 resolves it too.
 
 - Cap: `TopHeight`, `CapStemBottomHeight`
@@ -91,7 +91,7 @@ Z position of each part in a key assembly.
 
 ## Special parameters for switch_xya
 
-The angle, x, and y of a switch/stabilizer/PCB depend on the specifier. For example, ISO Enter requires right angled a switch/stabilizer/PCB.
+The angle, x, and y of a switch/stabilizer/PCB depend on the specifier. For example, ISO Enter requires right angled switch/stabilizer/PCB.
 `SwitchAngle`, `SwitchX`, and `SwitchY` are special parameters for the purpose.
 
 ## Special parameter: `Placeholder`
