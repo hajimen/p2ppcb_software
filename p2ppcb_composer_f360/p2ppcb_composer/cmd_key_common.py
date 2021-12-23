@@ -358,7 +358,7 @@ def prepare_key_assembly(
                     [TwoOrientation.Front, stabilizer_orientation, switch_orientation, switch_orientation]):
                 if p in part_trans:
                     part_occ = depot_parts_occ.child.get(
-                        pn(desc_on_part[p], specifier),
+                        pn(desc_on_part[p], specifier, part_parameters[p]),
                         on_surrogate=_on_surrogate_parts(p))
                     pt = part_trans[p].copy()
                     if orientation is TwoOrientation.Back:

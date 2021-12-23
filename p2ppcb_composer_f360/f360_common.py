@@ -9,6 +9,7 @@ import pathlib
 import traceback
 import typing as ty
 from contextlib import contextmanager
+from pint import Quantity
 import p2ppcb_parts_resolver.resolver as parts_resolver
 import adsk.core as ac
 import adsk.fusion as af
@@ -745,19 +746,19 @@ def _part_name(desc: str, specifier: ty.Optional[str] = None):
         return f'{desc} {specifier}{CNP_PARTS}'
 
 
-def cap_name(cap_desc: str, specifier: str):
+def cap_name(cap_desc: str, specifier: str, parameters: ty.Dict[str, Quantity]):
     return _part_name('Cap ' + cap_desc, specifier)
 
 
-def stabilizer_name(stabilizer_desc: str, specifier: str):
-    return _part_name('Stabilizer ' + stabilizer_desc, specifier)
+def stabilizer_name(stabilizer_desc: str, specifier: str, parameters: ty.Dict[str, Quantity]):
+    return _part_name('Stabilizer ' + stabilizer_desc, ' '.join([k + ' ' + str(v) for k, v in parameters.items()]))
 
 
-def switch_name(switch_desc: str, specifier: str):
+def switch_name(switch_desc: str, specifier: str, parameters: ty.Dict[str, Quantity]):
     return _part_name('Switch ' + switch_desc)
 
 
-def pcb_name(switch_desc: str, specifier: str):
+def pcb_name(switch_desc: str, specifier: str, parameters: ty.Dict[str, Quantity]):
     return _part_name('PCB ' + switch_desc)
 
 
