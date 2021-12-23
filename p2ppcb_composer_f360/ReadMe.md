@@ -4,7 +4,7 @@
 
 DISCLAIMER: P2PPCB Composer F360 is extraordinarily slow for a large keyboard, so far.
 
-DISCLAIMER: So far, P2PPCB Composer F360 remains sketchy quality. In some cases, you'll get stuck into F360's critical bug and find no choice but giving up the design.
+DISCLAIMER: So far, P2PPCB Composer F360 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug and find no choice but giving up the design.
 
 ## Requirements: Just designing a keyboard
 
@@ -12,7 +12,7 @@ DISCLAIMER: So far, P2PPCB Composer F360 remains sketchy quality. In some cases,
 
 F360 runs on Mac too, but P2PPCB Composer F360 uses RPA to get over the lack of F360 API features.
 
-By leaving all top legends empty, you can get around the problem, I guess (I didn't test it).
+By leaving all top legends empty, you can get around the problem, I guess (I haven't test it yet).
 But without legends, your work may be a bit hard.
 
 - Autodesk Fusion 360 (F360)
@@ -38,7 +38,7 @@ P2PPCB Composer F360 is free, but the parts aren't :-)
 
 - Switches, caps, stabilizers
 
-If you need elaborately designed caps, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
+If you need custom caps for your own design, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
 I can make custom printed PBT keycaps. The total charge is from around $30.
 
 ## Installation
@@ -51,14 +51,16 @@ Now "P2PPCB" tab should appear on F360 main window.
 
 ## Overview of the design process by P2PPCB Composer F360
 
-1. Design your own key layout by KLE <http://www.keyboard-layout-editor.com/> and download the deliverable by JSON.
+1. Design your own key layout by KLE <http://www.keyboard-layout-editor.com/> and download the deliverable by JSON. The file is KLE file.
 
 You can include QMK keycodes in your KLE file. The detail is later.
 
 2. Design the height/angle of keys by F360 surface.
 
 The F360 surface is **skeleton surface**. You need a F360 construction plane as **layout plane** too.
-You can see how they work by a scaffold which is built in P2PPCB Composer F360.
+
+You can see how they work by a scaffold set which is built in P2PPCB Composer F360.
+Click green **P2P/PCB** icon and enable 'Generate a scaffold set' checkbox in the command dialog.
 
 3. Start a P2PPCB project
 
@@ -99,13 +101,13 @@ MJF cannot print isolated thin wall around under 0.8 mm. If it occurs, you need 
 
 Key switches, stabilizers, and screws should be fixed on their holes. Such holes must be void without defect, otherwise parts will be stuck.
 
-On the other hand, a frame is not so rigorous about "defect". Frame should be strong, stiff, and have essential areas to hold parts (screw thread, for example).
+On the other hand, a frame is not so rigorous about "defect". Frame should be strong, stiff, and have essential areas to hold parts (internal screw thread, for example).
 Except for essential areas, a frame can have void to some extent.
 
 P2PPCB Composer F360 adopts fill/hole method to form a frame. Fill: make a block. Hole: cut the block.
 
 Make a block, how? By connecting essential areas. Where key layout is dense, essential areas overlap each other. In this case, simply do "join" operation.
-Where key layout is sparse, bridge connects between essential areas. Bridge is a board parallel to the skeleton surface. 
+Where key layout is sparse, a bridge connects between essential areas. Bridge is a board parallel to the skeleton surface. 
 By joining essential areas and a bridge, a block has been made. This is **Fill**.
 
 Cutting the block will be obvious. Holes must be void without defect, so fill/hole method doesn't allow fill-after-hole. This is **Hole**.
@@ -196,7 +198,7 @@ pip install -r requirements.txt -t app-packages --extra-index-url ../../pep503/s
 
 # Further development
 
-So far, P2PPCB Composer F360 remains sketchy quality. It helps you design your own keyboard *in many cases*. In some cases, it annoys you rather than helps you.
+So far, P2PPCB Composer F360 remains at sketchy quality. It helps you design your own keyboard *in many cases*. In some cases, it annoys you rather than helps you.
 In other cases, it gets stuck in F360's bugs. We need further development for better quality of P2PPCB Composer F360.
 
 ## Why so extraordinarily slow for a large keyboard?
@@ -208,7 +210,7 @@ There are two reasons.
 I need to get over the limitation by RPA (extraordinarily slow by its nature) and by manipulating bodies in units of F360 components.
 It causes a lot of redundant F360 components. However it doesn't cause O(n^2) complexity, so our common sense says "no problem", but Autodesk doesn't.
 
-2. F360 becomes extraordinarily slow when there are 100 or above F360 components.
+2. F360 becomes extraordinarily slow when there are 100 or above F360 components in a file.
 
 I don't know why. Autodesk doesn't expect such usage, I guess.
 
