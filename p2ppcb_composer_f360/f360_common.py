@@ -747,7 +747,7 @@ def _part_name(desc: str, specifier: ty.Optional[str] = None):
 
 
 def cap_name(cap_desc: str, specifier: str, parameters: ty.Dict[str, Quantity]):
-    return _part_name('Cap ' + cap_desc, specifier)
+    return _part_name('Cap ' + cap_desc, specifier + ' Travel ' + str(parameters['Travel']))
 
 
 def stabilizer_name(stabilizer_desc: str, specifier: str, parameters: ty.Dict[str, Quantity]):
