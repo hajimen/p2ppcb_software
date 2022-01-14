@@ -348,7 +348,13 @@ class PartsDepot:
                 with create_component(fixed_root_occ.comp, fp_hash, CNP_FIXED) as container:
                     im = con.app.importManager
                     try:
+                        for _ in range(200):  # F360's bug workaround
+                            time.sleep(0.01)
+                            adsk.doEvents()
                         im.importToTarget(im.createFusionArchiveImportOptions(pp.part_source_filename), fixed_root_occ.comp)
+                        for _ in range(200):  # F360's bug workaround
+                            time.sleep(0.01)
+                            adsk.doEvents()
                     except Exception:
                         traceback.print_exc()
                         raise Exception(f'F3D file import failed: {pp.part_source_filename}')
