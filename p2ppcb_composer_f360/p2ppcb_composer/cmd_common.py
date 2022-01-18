@@ -16,6 +16,7 @@ from pint import Quantity
 
 AN_LOCATORS_PLANE_TOKEN = 'locatorsPlaneToken'
 AN_SKELETON_SURFACE = 'skeletonSurface'
+AN_MAINBOARD = 'mainboard'
 AN_MAIN_KEY_ANGLE_SURFACE = 'mainKeyAngleSurface'
 AN_MAIN_LAYOUT_PLANE = 'mainLayoutPlane'
 AN_MAIN_CAP_DESC = 'mainCapDesc'

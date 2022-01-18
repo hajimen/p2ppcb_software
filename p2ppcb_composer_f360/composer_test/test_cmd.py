@@ -9,9 +9,9 @@ import adsk.fusion as af
 import adsk
 
 from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CN_KEY_LOCATORS, \
-    CN_KEY_PLACEHOLDERS, CN_MAINBOARD_ALICE, F3Occurrence, FourOrientation, SpecsOpsOnPn, SurrogateF3Occurrence, TwoOrientation, get_context, \
+    CN_KEY_PLACEHOLDERS, CNP_PARTS, F3Occurrence, FourOrientation, SpecsOpsOnPn, SurrogateF3Occurrence, TwoOrientation, get_context, \
     get_part_info, key_placeholder_name, load_kle
-from p2ppcb_composer.cmd_common import INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
+from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
 from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events
 
@@ -111,8 +111,8 @@ class TestCmdCommon(unittest.TestCase):
             (0., 0.), (0., 0.), (1., 1.), 0., [''] * 12, CURRENT_DIR
         ))]
         pps_part = prepare_key_assembly(specs_ops_on_pn, get_part_info())
-        self.assertEqual(pps_part[0].new_name, 'DSA 1u_P')
-        self.assertEqual(pps_part[1].new_name, 'Choc V2_P')
+        self.assertEqual(pps_part[0].new_name, 'Cap DSA 1u Travel 3.2 millimeter_P')
+        self.assertEqual(pps_part[1].new_name, 'Switch Choc V2_P')
         self.assertEqual(pps_part[2].new_name, 'PCB Choc V2_P')
         doc.close(False)
 
@@ -188,10 +188,10 @@ class TestStartProject(unittest.TestCase):
         doc = new_document()
         con = get_context()
         from p2ppcb_composer.cmd_start_project import initialize
-        _ = con.child.get_real(CN_INTERNAL)
+        inl_occ = con.child.get_real(CN_INTERNAL)
+        inl_occ.comp_attr[AN_MAINBOARD] = 'Alice'
         initialize()
         self.assertTrue(CN_INTERNAL in con.child)
-        inl_occ = con.child[CN_INTERNAL]
         self.assertIsInstance(inl_occ, F3Occurrence)
         self.assertTrue(CN_DEPOT_APPEARANCE in inl_occ.child)
         depot_appearance_occ = inl_occ.child[CN_DEPOT_APPEARANCE]
@@ -199,8 +199,9 @@ class TestStartProject(unittest.TestCase):
         self.assertGreater(len(depot_appearance_occ.comp.bRepBodies), 0)
         self.assertTrue(CN_DEPOT_PARTS in inl_occ.child)
         depot_parts_occ = inl_occ.child[CN_DEPOT_PARTS]
-        self.assertTrue(CN_MAINBOARD_ALICE in depot_parts_occ.child)
-        alice_occ = depot_parts_occ.child[CN_MAINBOARD_ALICE]
+        cn_mainboard_alice = 'Alice' + CNP_PARTS
+        self.assertTrue(cn_mainboard_alice in depot_parts_occ.child)
+        alice_occ = depot_parts_occ.child[cn_mainboard_alice]
         self.assertGreater(len(alice_occ.comp.bRepBodies), 0)
         self.assertTrue(CN_FOOT in depot_parts_occ.child)
         foot_occ = depot_parts_occ.child[CN_FOOT]
@@ -327,12 +328,12 @@ class TestMatrixRoute(unittest.TestCase):
 
     def test_generate_route(self):
         from route import route as rt
+        from mainboard.Alice import constants
         doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
-        row_cable_placement = rt.FlatCablePlacement(True, FourOrientation.Right, rt.ALICE_ROW_CABLE)
-        col_cable_placement = rt.FlatCablePlacement(False, FourOrientation.Back, rt.ALICE_COL_CABLE)
+        mc = constants()
         with open(TEST_PKL_DIR / 'matrix.pkl', 'rb') as f:
             matrix = pickle.load(f)
-        result = rt.generate_route(matrix, row_cable_placement, col_cable_placement)
+        result = rt.generate_route(matrix, mc.flat_cable_placements)
         with open(TEST_PKL_DIR / 'route.pkl', 'rb') as f:
             oracle = pickle.load(f)
             self.assertTrue(oracle == result)
@@ -352,9 +353,11 @@ class TestMatrixRoute(unittest.TestCase):
 
     def test_generate_keymap(self):
         from route import route as rt
+        from mainboard.Alice import constants
         with open(TEST_PKL_DIR / 'route.pkl', 'rb') as f:
             keys_rc, _, _ = pickle.load(f)
-        generated_snippet = rt.generate_keymap(keys_rc, rt.ALICE_N_LOGICAL_RC)
+        mc = constants()
+        generated_snippet = rt.generate_keymap(keys_rc, mc.n_logical_rc)
         # with open((TEST_PKL_DIR / 'keymap.pkl'), 'wb') as f:
         #     pickle.dump(generated_snippet, f)
         with open((TEST_PKL_DIR / 'keymap.pkl'), 'rb') as f:

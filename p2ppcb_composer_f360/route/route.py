@@ -1,3 +1,5 @@
+import importlib
+import re
 from itertools import product
 from collections import defaultdict
 from enum import Enum, IntEnum, auto
@@ -7,8 +9,9 @@ import typing as ty
 import mip
 from PIL import Image, ImageDraw, ImageOps, ImageFont
 import numpy as np
+from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
-from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, \
+from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, \
     get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH, FourOrientation, AN_KLE_B64
 
 
@@ -80,9 +83,12 @@ def _get_rot(angle):
 
 
 class FlatCable:
-    def __init__(self, n_wire: int) -> None:
+    WIRE_NAME_N_RE = re.compile(r'.+?(\d+)$')
+
+    def __init__(self, n_wire: int, first_index_in_wire_name: int) -> None:
         self.n_wire = n_wire
         self.groups: ty.List[WireGroup] = []
+        self.first_index_in_wire_name = first_index_in_wire_name
 
     def add_group(self, wire_group: WireGroup):
         self.groups.append(wire_group)
@@ -106,37 +112,31 @@ class FlatCable:
             entries.append(Entry(rp[0], rp[1], angle, pn, ln))
         return entries
 
-    def _get_group(self, wire_name: str):
-        rc = RC.Row if 'ROW' in wire_name else RC.Col
+    def _get_group(self, wire_name: str, rc: RC):
         led = 'LED' in wire_name
-        i_in_group = int(wire_name.split('_')[-1]) - 1
+        m = FlatCable.WIRE_NAME_N_RE.match(wire_name)
+        if m is None:
+            raise Exception(f"wire_name: {wire_name} lacks number.")
+        i_in_group = int(m.group(1)) - self.first_index_in_wire_name
         for g in self.groups:
             if g.rc == rc and g.led == led:
                 if i_in_group < g.end - g.start:
                     return i_in_group, g
-        raise Exception(f'Cannot find wire_name: {wire_name}')
+        return None
 
-    def get_pin_number(self, wire_name: str):
-        i_in_group, g = self._get_group(wire_name)
+    def get_pin_number(self, wire_name: str, rc: RC):
+        ret = self._get_group(wire_name, rc)
+        if ret is None:
+            return None
+        i_in_group, g = ret
         return g.start + i_in_group
 
-    def get_logical_number(self, wire_name: str):
-        i_in_group, g = self._get_group(wire_name)
+    def get_logical_number(self, wire_name: str, rc: RC):
+        ret = self._get_group(wire_name, rc)
+        if ret is None:
+            return None
+        i_in_group, g = ret
         return g.logical_start + i_in_group
-
-
-ALICE_WIRE_NAMES_RC = {
-    RC.Row: [f'ROW_{i + 1}' for i in range(8)] + ['LED_ROW_1', 'LED_ROW_2'],
-    RC.Col: [f'COL_{i + 1}' for i in range(24)] + [f'LED_COL_{i + 1}' for i in range(6)]
-}
-ALICE_N_LOGICAL_RC = {RC.Row: 10, RC.Col: 24}
-
-ALICE_ROW_CABLE = FlatCable(10)
-ALICE_ROW_CABLE.add_group(WireGroup(0, 8, 0, RC.Row, False))
-ALICE_ROW_CABLE.add_group(WireGroup(8, 10, 8, RC.Row, True))
-ALICE_COL_CABLE = FlatCable(30)
-ALICE_COL_CABLE.add_group(WireGroup(0, 24, 0, RC.Col, False))
-ALICE_COL_CABLE.add_group(WireGroup(24, 30, 0, RC.Col, True))
 
 
 @dataclass
@@ -181,7 +181,7 @@ def _make_dist_map(keys: ty.List[Key], rc: RC, entry: Entry):
     return dist_map
 
 
-def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], row_cable_placement: FlatCablePlacement, col_cable_placement: FlatCablePlacement):
+def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty.List[FlatCablePlacement]):
     reverse_matrix: ty.Dict[str, ty.Tuple[str, str]] = {}
     for row_name, col_dic in matrix.items():
         for col_name, kl_name in col_dic.items():
@@ -227,14 +227,30 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], row_cable_placement:
                 }
             }
             row_name, col_name = reverse_matrix[kl_name]
-            i_row = row_cable_placement.cable.get_pin_number(row_name)
-            i_col = col_cable_placement.cable.get_pin_number(col_name)
+            i_pin_row = None
+            i_logical_row = None
+            cp_row = None
+            i_pin_col = None
+            i_logical_col = None
+            cp_col = None
+            for cp in cable_placements:
+                if i_pin_row is None:
+                    i_pin_row = cp.cable.get_pin_number(row_name, RC.Row)
+                    cp_row = cp
+                if i_logical_row is None:
+                    i_logical_row = cp.cable.get_logical_number(row_name, RC.Row)
+                if i_pin_col is None:
+                    i_pin_col = cp.cable.get_pin_number(col_name, RC.Col)
+                    cp_col = cp
+                if i_logical_col is None:
+                    i_logical_col = cp.cable.get_logical_number(col_name, RC.Col)
+            if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or cp_row is None or cp_col is None:
+                raise Exception('Bad code.')
             k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), orientation, switch_path,
                     img,  # type: ignore
-                    code, i_row, i_col,
-                    row_cable_placement.cable.get_logical_number(row_name), col_cable_placement.cable.get_logical_number(col_name))
-            keys_row[i_row].append(k)
-            keys_col[i_col].append(k)
+                    code, i_pin_row, i_pin_col, i_logical_row, i_logical_col)
+            keys_row[i_pin_row].append(k)
+            keys_col[i_pin_col].append(k)
 
     def _orientation_to_angle_xy(orientation: FourOrientation):
         if orientation == FourOrientation.Left:
@@ -246,16 +262,16 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], row_cable_placement:
         else:
             return np.deg2rad(-90.), ((min_xyu[0] + max_xyu[0]) * pitch / 2, (max_xyu[1] + 1) * pitch)
 
-    row_angle, row_xy = _orientation_to_angle_xy(row_cable_placement.orientation)
-    col_angle, col_xy = _orientation_to_angle_xy(col_cable_placement.orientation)
-    entries_rc = {
-        RC.Row: row_cable_placement.cable.get_entries(row_angle, row_cable_placement.flip, RC.Row, row_xy),
-        RC.Col: col_cable_placement.cable.get_entries(col_angle, col_cable_placement.flip, RC.Col, col_xy)
-    }
     keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]] = {RC.Row: keys_row, RC.Col: keys_col}
     route_rc: ty.Dict[RC, ty.Dict[int, Line]] = {RC.Col: {}, RC.Row: {}}
+    entries_rc: ty.Dict[RC, ty.List[Entry]] = {}
     for rc in RC:
-        for i_entry, entry in enumerate(entries_rc[rc]):
+        entries = []
+        for cp in cable_placements:
+            angle, xy = _orientation_to_angle_xy(cp.orientation)
+            entries += cp.cable.get_entries(angle, cp.flip, rc, xy)
+        entries_rc[rc] = entries
+        for i_entry, entry in enumerate(entries):
             if len(keys_rc[rc][i_entry]) == 0:
                 continue
             dist_map = _make_dist_map(keys_rc[rc][i_entry], rc, entry)
@@ -428,3 +444,21 @@ def generate_keymap(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], n_logical_
     return '''const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = {
 ''' + code_str + '    }\n};\n'
+
+
+@dataclass
+class MainboardConstants:
+    wire_names_rc: ty.Dict[RC, ty.List[str]]
+    n_logical_rc: ty.Dict[RC, int]
+    flat_cable_placements: ty.List[FlatCablePlacement]
+    f3d_name: str
+
+
+def get_mainboard_constants() -> MainboardConstants:
+    mb = get_context().child[CN_INTERNAL].comp_attr[AN_MAINBOARD]
+    mod = importlib.import_module(f'mainboard.{mb}')
+    return mod.constants()
+
+
+def get_cn_mainboard():
+    return get_context().child[CN_INTERNAL].comp_attr[AN_MAINBOARD] + CNP_PARTS

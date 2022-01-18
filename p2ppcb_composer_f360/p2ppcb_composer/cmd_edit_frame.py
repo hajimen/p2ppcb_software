@@ -3,13 +3,15 @@ from pint import Quantity
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MAINBOARD_ALICE, CN_MISC_PLACEHOLDERS, \
+from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, AN_SKELETON_SURFACE, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
+from route.route import get_cn_mainboard
 
 INP_ID_BRIDGE_PROFILE_SEL = 'bridgeProfile'
 INP_ID_MAINBOARD_LAYOUT_RADIO = 'maiboardLayout'
+INP_ID_FLIP_BOOL = 'flip'
 INP_ID_CHECK_INTERFERENCE_BOOL = 'checkInterference'
 INP_ID_FOOT_LOCATOR_SEL = 'footLocator'
 INP_ID_OFFSET_STR = 'offset'
@@ -416,6 +418,9 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         layout_in.listItems.add('Back', True)
         layout_in.listItems.add('Bottom', False)
 
+        flip_in = self.inputs.addBoolValueInput(INP_ID_FLIP_BOOL, 'Flip', True)
+        flip_in.value = False
+
         if_in = self.inputs.addBoolValueInput(INP_ID_CHECK_INTERFERENCE_BOOL, 'Check Interference', True)
         if_in.value = False
 
@@ -424,10 +429,11 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
         inl_occ = con.child[CN_INTERNAL]
         mp_occ = inl_occ.child.get_real(CN_MISC_PLACEHOLDERS)
-        if CN_MAINBOARD_ALICE in mp_occ.child:
-            o = mp_occ.child[CN_MAINBOARD_ALICE]
+        cn_mainboard = get_cn_mainboard()
+        if cn_mainboard in mp_occ.child:
+            o = mp_occ.child[cn_mainboard]
         else:
-            mb_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_MAINBOARD_ALICE]
+            mb_occ = inl_occ.child[CN_DEPOT_PARTS].child[cn_mainboard]
             o = mp_occ.child.add(mb_occ, t)
         o.light_bulb = False
         for b in o.bodies_by_attr(AN_FILL):
@@ -435,6 +441,9 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def get_layout_in(self):
         return get_ci(self.inputs, INP_ID_MAINBOARD_LAYOUT_RADIO, ac.RadioButtonGroupCommandInput)
+
+    def get_flip_in(self):
+        return get_ci(self.inputs, INP_ID_FLIP_BOOL, ac.BoolValueCommandInput)
 
     def get_check_interference_in(self):
         return get_ci(self.inputs, INP_ID_CHECK_INTERFERENCE_BOOL, ac.BoolValueCommandInput)
@@ -445,24 +454,29 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def get_mainboard_transform(self):
         con = get_context()
-        mb_occ = con.child[CN_INTERNAL].child[CN_DEPOT_PARTS].child[CN_MAINBOARD_ALICE]
+        cn_mainboard = get_cn_mainboard()
+        mb_occ = con.child[CN_INTERNAL].child[CN_DEPOT_PARTS].child[cn_mainboard]
         mb_bb = mb_occ.comp.boundingBox  # type: ignore
         frame_bb = get_frame().boundingBox
         offset = self.offset_cb.get_value()
 
         t = ac.Matrix3D.create()
         layout = self.get_layout_in().selectedItem.name
+        mzu = ZU_V3D.copy()
+        flip = self.get_flip_in().value
+        if flip:
+            mzu.scaleBy(-1.)
         if layout == 'Back':
             o = ac.Point3D.create(frame_bb.minPoint.x - mb_bb.minPoint.x, frame_bb.maxPoint.y + offset, frame_bb.minPoint.z - mb_bb.minPoint.y)
             mxu = XU_V3D.copy()
-            mxu.scaleBy(-1.)
-            t.setWithCoordinateSystem(o, mxu, ZU_V3D, YU_V3D)
+            if not flip:
+                mxu.scaleBy(-1.)
+            t.setWithCoordinateSystem(o, mxu, mzu, YU_V3D)
         else:  # Bottom
             o = ac.Point3D.create(frame_bb.maxPoint.x - mb_bb.maxPoint.x, frame_bb.maxPoint.y + mb_bb.minPoint.y, frame_bb.minPoint.z + offset)
             myu = YU_V3D.copy()
-            myu.scaleBy(-1.)
-            mzu = ZU_V3D.copy()
-            mzu.scaleBy(-1.)
+            if flip:
+                myu.scaleBy(-1.)
             t.setWithCoordinateSystem(o, XU_V3D, myu, mzu)
         return t
 
@@ -482,7 +496,8 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
     def execute_common(self, event_args: CommandEventArgs):
         con = get_context()
         inl_occ = con.child[CN_INTERNAL]
-        o = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(CN_MAINBOARD_ALICE)
+        cn_mainboard = get_cn_mainboard()
+        o = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(cn_mainboard)
         o.transform = self.get_mainboard_transform()
         o.light_bulb = True
         self.move_comp_cb.b_notify_execute_preview(event_args, [o])  # type: ignore

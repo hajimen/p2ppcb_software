@@ -23,7 +23,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Assigns a matrix for key layout. You can select key locators of a row/col once and assign a row/col line.'
+        return 'Assigns a matrix for key layout. You can select key locators of a source/drain once and assign a source/drain line.'
 
     @property
     def resource_folder(self) -> str:
@@ -35,9 +35,9 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         locator_in.addSelectionFilter('Occurrences')
         locator_in.setSelectionLimits(0, 0)
 
-        rowcol_in = inputs.addRadioButtonGroupCommandInput(INP_ID_ROW_COL_RADIO, 'Row / Col')
-        rowcol_in.listItems.add('Row', True)
-        rowcol_in.listItems.add('Col', False)
+        rowcol_in = inputs.addRadioButtonGroupCommandInput(INP_ID_ROW_COL_RADIO, 'Source / Drain')
+        rowcol_in.listItems.add('Source', True)
+        rowcol_in.listItems.add('Drain', False)
 
         _ = inputs.addDropDownCommandInput(INP_ID_WIRE_NAME_DD, 'Wire Name', ac.DropDownStyles.TextListDropDownStyle)
         self.set_wire_in()
@@ -57,7 +57,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         return get_ci(self.inputs, INP_ID_ROW_COL_RADIO, ac.RadioButtonGroupCommandInput)
 
     def get_rc(self) -> rt.RC:
-        return rt.RC.Row if self.get_rowcol_in().selectedItem.name == 'Row' else rt.RC.Col
+        return rt.RC.Row if self.get_rowcol_in().selectedItem.name == 'Source' else rt.RC.Col
 
     def get_wire_in(self):
         return get_ci(self.inputs, INP_ID_WIRE_NAME_DD, ac.DropDownCommandInput)
@@ -67,7 +67,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         wire_in.listItems.clear()
         wire_in.listItems.add('', True)
         rc = self.get_rc()
-        for wn in rt.ALICE_WIRE_NAMES_RC[rc]:
+        for wn in rt.get_mainboard_constants().wire_names_rc[rc]:
             wire_in.listItems.add(wn, False)
 
         locator_in = self.get_locator_in()
@@ -188,7 +188,7 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
                 matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
             else:
-                con.ui.messageBox('Assign row/col to all key locators.', 'P2PPCB')
+                con.ui.messageBox('Assign source/drain to all key locators.', 'P2PPCB')
                 return
 
         dir_dlg = con.ui.createFolderDialog()
@@ -197,20 +197,19 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             return
         output_dir_path = pathlib.Path(dir_dlg.folder)
 
-        row_cable_placement = rt.FlatCablePlacement(True, FourOrientation.Right, rt.ALICE_ROW_CABLE)
-        col_cable_placement = rt.FlatCablePlacement(False, FourOrientation.Back, rt.ALICE_COL_CABLE)
         # import pickle
         # from f360_common import CURRENT_DIR
         # m = {k1: {k2: matrix[k1][k2] for k2 in matrix[k1]} for k1 in matrix}
         # with open(CURRENT_DIR / 'matrix.pkl', 'wb') as f:
         #     pickle.dump(m, f)
-        keys_rc, entries_rc, route_rc = rt.generate_route(matrix, row_cable_placement, col_cable_placement)
+        mc = rt.get_mainboard_constants()
+        keys_rc, entries_rc, route_rc = rt.generate_route(matrix, mc.flat_cable_placements)
         img_row, img_col = rt.draw_wire(keys_rc, entries_rc, route_rc)
-        generated_snippet = rt.generate_keymap(keys_rc, rt.ALICE_N_LOGICAL_RC)
+        generated_snippet = rt.generate_keymap(keys_rc, mc.n_logical_rc)
 
         with open(output_dir_path / 'keymap.txt', 'w') as f:
             f.write(generated_snippet)
-        img_row.save(str(output_dir_path / 'wiring_row.png'))
-        img_col.save(str(output_dir_path / 'wiring_col.png'))
+        img_row.save(str(output_dir_path / 'wiring_source.png'))
+        img_col.save(str(output_dir_path / 'wiring_drain.png'))
 
         con.ui.messageBox('QMK keymap and wiring diagrams has been generated.', 'P2PPCB')

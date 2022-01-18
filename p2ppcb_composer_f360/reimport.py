@@ -13,6 +13,7 @@ del ap
 
 
 def reimport(module_names: ty.List[str], package_names: ty.List[str] = []):
+    importlib.invalidate_caches()
     for i in module_names:
         if i in sys.modules:
             importlib.reload(sys.modules[i])

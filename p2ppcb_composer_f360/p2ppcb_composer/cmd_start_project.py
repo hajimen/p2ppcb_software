@@ -3,14 +3,17 @@ import typing as ty
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
-from f360_common import CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CN_MAINBOARD_ALICE, CURRENT_DIR, CreateObjectCollectionT, \
+from f360_common import CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, CreateObjectCollectionT, \
     AN_KEY_PITCH, create_component, get_context, AN_PARTS_DATA_PATH
-from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION, OnceEventHandler, \
+from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, \
     has_sel_in, get_cis, PartsCommandBlock, AN_SKELETON_SURFACE, CommandHandlerBase, check_layout_plane
+import mainboard
+from route.route import get_cn_mainboard, get_mainboard_constants
 
 INP_ID_SKELETON_SURFACE_SEL = 'skeletonSurface'
 INP_ID_MAIN_LAYOUT_PLANE_SEL = 'layoutPlane'
 INP_ID_KEY_PITCH_VAL = 'keyPitch'
+INP_ID_MAINBOARD = 'mainboard'
 INP_ID_SCAFFOLD_BOOL = 'scaffold'
 
 
@@ -30,10 +33,12 @@ def initialize():
             im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'appearance.f3d')), inl_occ.comp)
     inl_occ.child[CN_DEPOT_APPEARANCE].light_bulb = False
     depot_parts_occ = inl_occ.child.get_real(CN_DEPOT_PARTS)
-    if CN_MAINBOARD_ALICE not in depot_parts_occ.child:
+    cn_mainboard = get_cn_mainboard()
+    if cn_mainboard not in depot_parts_occ.child:
         _set_design_type()
-        with create_component(depot_parts_occ.comp, CN_MAINBOARD_ALICE):
-            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'Alice.f3d')), depot_parts_occ.comp)
+        mc = get_mainboard_constants()
+        with create_component(depot_parts_occ.comp, cn_mainboard):
+            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / mc.f3d_name)), depot_parts_occ.comp)
     if CN_FOOT not in depot_parts_occ.child:
         _set_design_type()
         with create_component(depot_parts_occ.comp, CN_FOOT):
@@ -171,6 +176,11 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
             pitch_vi = ac.ValueInput.createByString('19 mm')
         _ = self.inputs.addValueInput(INP_ID_KEY_PITCH_VAL, 'Key Pitch', 'mm', pitch_vi)
 
+        mb = attr[AN_MAINBOARD] if AN_MAINBOARD in attr else mainboard.DEFAULT
+        mb_in = self.inputs.addDropDownCommandInput(INP_ID_MAINBOARD, 'Mainboard', ac.DropDownStyles.TextListDropDownStyle)
+        for b in mainboard.BOARDS:
+            mb_in.listItems.add(b, b == mb, '', -1)
+
         self.parts_cb = PartsCommandBlock(self)
         self.parts_cb.notify_create(event_args)
         if AN_PARTS_DATA_PATH in attr:
@@ -200,12 +210,15 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
     def get_pitch_in(self):
         return ac.ValueCommandInput.cast(self.inputs.itemById(INP_ID_KEY_PITCH_VAL))
 
+    def get_mainboard_in(self):
+        return ac.DropDownCommandInput.cast(self.inputs.itemById(INP_ID_MAINBOARD))
+
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         if changed_input.id == INP_ID_SCAFFOLD_BOOL:
             scaffold_in = ac.BoolValueCommandInput.cast(changed_input)
             scaffold_disabled = not scaffold_in.value
             for ci in self.get_selection_ins() + self.parts_cb.get_option_ins() \
-                    + (self.get_pitch_in(), self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in()):
+                    + (self.get_pitch_in(), self.get_mainboard_in(), self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in()):
                 ci.isEnabled = scaffold_disabled
                 ci.isVisible = scaffold_disabled
             for sci in self.get_selection_ins():
@@ -232,6 +245,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         if self.get_scaffold_in().value:
             options = [inp.listItems.item(1).name for inp in self.parts_cb.get_option_ins()]
             pitch, offset, skeleton_surface, _, layout_plane = generate_scaffold()
+            mb = mainboard.DEFAULT
         else:
             skeleton_in, layout_plane_in = self.get_selection_ins()
             skeleton_surface = af.BRepBody.cast(skeleton_in.selection(0).entity)
@@ -242,6 +256,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
             offset = self.parts_cb.get_v_offset()
             if offset is None:
                 raise Exception('Bad code.')
+            mb = self.get_mainboard_in().selectedItem.name
 
         con.attr_singleton[AN_SKELETON_SURFACE] = ('noop', skeleton_surface)
         con.attr_singleton[AN_MAIN_LAYOUT_PLANE] = ('noop', layout_plane)
@@ -251,6 +266,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         for an, option in zip(ANS_MAIN_OPTION, options):
             inl_occ.comp_attr[an] = option
         inl_occ.comp_attr[AN_MAIN_KEY_V_OFFSET] = str(offset)
+        inl_occ.comp_attr[AN_MAINBOARD] = mb
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)

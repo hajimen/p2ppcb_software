@@ -51,7 +51,6 @@ CNP_CAP_PLACEHOLDER = '_CP'
 CN_DEPOT_PARTS = 'Depot Parts' + MAGIC
 CNP_PARTS = '_P'
 CN_DEPOT_APPEARANCE = 'Depot Appearance' + MAGIC
-CN_MAINBOARD_ALICE = 'Alice' + CNP_PARTS
 CN_FOOT = 'Foot' + CNP_PARTS
 
 # BN: Body Name

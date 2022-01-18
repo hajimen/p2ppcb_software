@@ -14,7 +14,7 @@ if str(CURRENT_DIR) not in sys.path:
 from reimport import reimport
 
 reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.depot',
-          'composer_test.test_base', 'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
+          'composer_test.test_base', 'route.route', 'mainboard', 'mainboard.Alice', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
           'p2ppcb_composer.cmd_start_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
           'p2ppcb_composer.cmd_set_attribute', 'composer_test.test_cmd', ])
