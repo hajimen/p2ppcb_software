@@ -25,7 +25,7 @@ def _set_design_type():
 
 def initialize():
     con = get_context()
-    inl_occ = con.child[CN_INTERNAL]
+    inl_occ = con.child.get_real(CN_INTERNAL)
     im = con.app.importManager
     if CN_DEPOT_APPEARANCE not in inl_occ.child:
         _set_design_type()

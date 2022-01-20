@@ -121,6 +121,8 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
                     pn = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
                     same_pn = same_pn and (last_pn is None or pn == last_pn)
                     last_pn = pn
+                if last_specifier is None:
+                    raise Exception('Bad code')
                 for option, inp, same in zip(last_options, self.parts_cb.get_option_ins(), sames):
                     if not same:
                         option = ''

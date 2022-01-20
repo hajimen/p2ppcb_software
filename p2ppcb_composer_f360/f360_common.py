@@ -11,6 +11,7 @@ import typing as ty
 from contextlib import contextmanager
 from pint import Quantity
 import p2ppcb_parts_resolver.resolver as parts_resolver
+from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
 import adsk.core as ac
 import adsk.fusion as af
 import adsk
@@ -97,7 +98,6 @@ DECAL_DESC_KEY_LOCATOR = 'Key Locator'
 
 VirtualF3Occurrence = ty.Union['SurrogateF3Occurrence', 'F3Occurrence']
 VirtualComponent = ty.Union['SurrogateComponent', af.Component]
-SpecsOpsOnPn = ty.Dict[str, ty.List[ty.Tuple[str, ty.Optional[parts_resolver.OccurrenceParameter]]]]
 
 
 def _DO_NOTHING(*args, **kwargs):

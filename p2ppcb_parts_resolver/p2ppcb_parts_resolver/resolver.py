@@ -31,6 +31,8 @@ SPN_SWITCH_SB_HEIGHT = 'SwitchStemBottomHeight'
 SPN_STABILIZER_SB_HEIGHT = 'StabilizerStemBottomHeight'
 SPN_SWITCH_BOTTOM_HEIGHT = 'SwitchBottomHeight'
 
+SpecsOpsOnPn = ty.Dict[str, ty.List[ty.Tuple[str, ty.Optional['OccurrenceParameter']]]]
+
 # import traceback
 # from time import perf_counter
 
@@ -364,7 +366,7 @@ class PartsInfo:
     def resolve_kle(self, kle_json_path: os.PathLike, image_output_dir: os.PathLike):
         image_output_dir = pathlib.Path(image_output_dir)
         # op: OccurrenceParameter, pn: pattern name
-        specs_ops_on_pn: ty.Dict[str, ty.List[ty.Tuple[str, OccurrenceParameter]]] = defaultdict(list)
+        specs_ops_on_pn: SpecsOpsOnPn = defaultdict(list)
         vertices: ty.Set[ty.Tuple[float, float]] = set()
 
         keyboard = scrape(kle_json_path, image_output_dir)

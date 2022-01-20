@@ -71,7 +71,7 @@ class _CommandEventHandler(ac.CommandEventHandler):  # type: ignore
 
 
 class _ExecuteCommandEventHandler(_CommandEventHandler):
-    def __init__(self, parent: _CommandEventHandler):
+    def __init__(self, parent: 'CommandHandlerBase'):
         super().__init__(parent, 'notify_execute')
 
     def notify(self, args):
@@ -775,7 +775,10 @@ class MoveComponentCommandBlock:
 
     def get_mov_trans(self, dist_x: float, dist_y: float):
         v = ac.Vector3D.create(dist_x, dist_y, 0.)
-        v.transformBy(self.transaction_trans)
+        t = self.transaction_trans
+        if t is None:
+            raise Exception('Bad code')
+        v.transformBy(t)
         mov = ac.Matrix3D.create()
         mov.setCell(0, 3, v.x)
         mov.setCell(1, 3, v.y)
@@ -797,6 +800,8 @@ class MoveComponentCommandBlock:
     def b_notify_execute_preview(self, event_args: CommandEventArgs, selections: ty.List[F3Occurrence]) -> None:
         if self.transaction_trans is not None:
             rot, mov = self.get_rot_mov_trans()
+            if rot is None or mov is None:
+                raise Exception('Bad code')
             for occ in selections:
                 sel_trans = occ.transform
                 t = sel_trans.copy()

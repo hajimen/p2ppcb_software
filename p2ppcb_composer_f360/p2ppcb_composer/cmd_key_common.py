@@ -209,26 +209,26 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
 
 _BACK_TRANS = ac.Matrix3D.create()
 _BACK_TRANS.setWithArray(
-    (-1., 0., 0., 0.,
+    [-1., 0., 0., 0.,
      0., -1., 0., 0.,
      0., 0., 1., 0.,
-     0., 0., 0., 1.))
+     0., 0., 0., 1.])
 
 
 _RIGHT_TRANS = ac.Matrix3D.create()
 _RIGHT_TRANS.setWithArray(
-    (0., -1., 0., 0.,
+    [0., -1., 0., 0.,
      1., 0., 0., 0.,
      0., 0., 1., 0.,
-     0., 0., 0., 1.))
+     0., 0., 0., 1.])
 
 
 _LEFT_TRANS = ac.Matrix3D.create()
 _LEFT_TRANS.setWithArray(
-    (0., 1., 0., 0.,
+    [0., 1., 0., 0.,
      -1., 0., 0., 0.,
      0., 0., 1., 0.,
-     0., 0., 0., 1.))
+     0., 0., 0., 1.])
 
 
 def prepare_key_assembly(
