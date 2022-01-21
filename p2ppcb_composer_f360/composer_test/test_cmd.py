@@ -14,6 +14,7 @@ from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KE
 from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
 from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events
+from route.route import FlatCablePlacement
 
 
 CURRENT_DIR = pathlib.Path(os.path.dirname(__file__)).parent
@@ -327,13 +328,19 @@ class TestMatrixRoute(unittest.TestCase):
         adsk.autoTerminate(False)
 
     def test_generate_route(self):
+        import numpy as np
         from route import route as rt
         from mainboard.Alice import constants
         doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
         mc = constants()
         with open(TEST_PKL_DIR / 'matrix.pkl', 'rb') as f:
             matrix = pickle.load(f)
-        result = rt.generate_route(matrix, mc.flat_cable_placements)
+        flat_cable_placements: ty.List[rt.FlatCablePlacement] = []
+        flat_cable_placements.append(FlatCablePlacement((4., 0.), np.pi / 2, mc.flat_cables[0]))
+        flat_cable_placements.append(FlatCablePlacement((0., 6.), 0., mc.flat_cables[1]))
+        result = rt.generate_route(matrix, flat_cable_placements)
+        # with open(TEST_PKL_DIR / 'route.pkl', 'wb') as f:
+        #     pickle.dump(result, f)
         with open(TEST_PKL_DIR / 'route.pkl', 'rb') as f:
             oracle = pickle.load(f)
             self.assertTrue(oracle == result)

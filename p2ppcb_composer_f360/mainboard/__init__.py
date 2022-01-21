@@ -1,2 +1,2 @@
-BOARDS = ['Alice', 'Bob']
+BOARDS = ['Alice', 'Bob', 'Charlotte']
 DEFAULT = 'Alice'

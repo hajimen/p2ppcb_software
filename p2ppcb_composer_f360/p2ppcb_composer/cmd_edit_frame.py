@@ -462,17 +462,20 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
         t = ac.Matrix3D.create()
         layout = self.get_layout_in().selectedItem.name
-        mzu = ZU_V3D.copy()
         flip = self.get_flip_in().value
-        if flip:
-            mzu.scaleBy(-1.)
         if layout == 'Back':
             o = ac.Point3D.create(frame_bb.minPoint.x - mb_bb.minPoint.x, frame_bb.maxPoint.y + offset, frame_bb.minPoint.z - mb_bb.minPoint.y)
             mxu = XU_V3D.copy()
-            if not flip:
+            myu = YU_V3D.copy()
+            if flip:
                 mxu.scaleBy(-1.)
-            t.setWithCoordinateSystem(o, mxu, mzu, YU_V3D)
+            else:
+                myu.scaleBy(-1.)
+            t.setWithCoordinateSystem(o, mxu, ZU_V3D, myu)
         else:  # Bottom
+            mzu = ZU_V3D.copy()
+            if flip:
+                mzu.scaleBy(-1.)
             o = ac.Point3D.create(frame_bb.maxPoint.x - mb_bb.maxPoint.x, frame_bb.maxPoint.y + mb_bb.minPoint.y, frame_bb.minPoint.z + offset)
             myu = YU_V3D.copy()
             if flip:
@@ -495,12 +498,10 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def execute_common(self, event_args: CommandEventArgs):
         con = get_context()
-        inl_occ = con.child[CN_INTERNAL]
-        cn_mainboard = get_cn_mainboard()
-        o = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(cn_mainboard)
+        o = con.child[CN_INTERNAL].child[CN_MISC_PLACEHOLDERS].child.get_real(get_cn_mainboard())
         o.transform = self.get_mainboard_transform()
         o.light_bulb = True
-        self.move_comp_cb.b_notify_execute_preview(event_args, [o])  # type: ignore
+        self.move_comp_cb.b_notify_execute_preview(event_args, [o])
         return o
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:

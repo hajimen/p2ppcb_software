@@ -1,13 +1,14 @@
 from collections import defaultdict
 import typing as ty
 import pathlib
+import numpy as np
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, FourOrientation, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
-from p2ppcb_composer.cmd_common import CommandHandlerBase, get_ci, locator_notify_pre_select
+from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
+from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, locator_notify_pre_select
 from route import route as rt
-from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL
+from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
 
 INP_ID_ROW_COL_RADIO = 'rowCol'
 INP_ID_WIRE_NAME_DD = 'wireName'
@@ -182,9 +183,10 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         con = get_context()
+        inl_occ = con.child[CN_INTERNAL]
 
         matrix: ty.Dict[str, ty.Dict[str, str]] = defaultdict(lambda: defaultdict(str))
-        for kl_occ in con.child[CN_INTERNAL].child[CN_KEY_LOCATORS].child.values():
+        for kl_occ in inl_occ.child[CN_KEY_LOCATORS].child.values():
             if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
                 matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
             else:
@@ -203,7 +205,35 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
         # with open(CURRENT_DIR / 'matrix.pkl', 'wb') as f:
         #     pickle.dump(m, f)
         mc = rt.get_mainboard_constants()
-        keys_rc, entries_rc, route_rc = rt.generate_route(matrix, mc.flat_cable_placements)
+        mb_occ = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(rt.get_cn_mainboard())
+        lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
+        inv_lp_trans = get_layout_plane_transform(lp)
+        inv_lp_trans.invert()
+        sk = con.root_comp.sketches.add(lp)
+        flat_cable_placements: ty.List[rt.FlatCablePlacement] = []
+        for i, cable in enumerate(mc.flat_cables):
+            cp_s = mb_occ.comp.constructionPoints.itemByName(f'Cable{i}_Start')
+            if cp_s is None:
+                raise Exception(f'The mainboard F3D lacks Cable{i}_Start construction point.')
+            cp_s = cp_s.createForAssemblyContext(mb_occ.raw_occ)
+            cp_e = mb_occ.comp.constructionPoints.itemByName(f'Cable{i}_End')
+            if cp_e is None:
+                raise Exception(f'The mainboard F3D lacks Cable{i}_End construction point.')
+            cp_e = cp_e.createForAssemblyContext(mb_occ.raw_occ)
+            oc: ac.ObjectCollectionT[af.SketchPoint] = sk.project(cp_s)  # type: ignore
+            start = sk.sketchToModelSpace(oc[0].geometry)
+            start.transformBy(inv_lp_trans)
+            oc: ac.ObjectCollectionT[af.SketchPoint] = sk.project(cp_e)  # type: ignore
+            end = sk.sketchToModelSpace(oc[0].geometry)
+            end.transformBy(inv_lp_trans)
+            angle = np.pi / 2
+            if not start.isEqualToByTolerance(end, 0.01):
+                uv = ac.Point3D.create(start.x + 1., start.y, start.z)
+                mr = con.app.measureManager.measureAngle(uv, start, end)
+                angle = mr.value
+            flat_cable_placements.append(rt.FlatCablePlacement((start.x, start.y), angle, cable))
+        sk.deleteMe()
+        keys_rc, entries_rc, route_rc = rt.generate_route(matrix, flat_cable_placements)
         img_row, img_col = rt.draw_wire(keys_rc, entries_rc, route_rc)
         generated_snippet = rt.generate_keymap(keys_rc, mc.n_logical_rc)
 

@@ -1,4 +1,5 @@
 import importlib
+from operator import attrgetter
 import re
 from itertools import product
 from collections import defaultdict
@@ -8,6 +9,7 @@ import typing as ty
 
 import mip
 from PIL import Image, ImageDraw, ImageOps, ImageFont
+from PIL.Image import Image as ImageType
 import numpy as np
 from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
@@ -61,7 +63,7 @@ class Key:
     key_location: ty.Tuple[float, float, float]  # x, y, angle
     switch_orientation: FourOrientation
     path: SwitchPath
-    img: Image = field(compare=False)
+    img: ImageType = field(compare=False)
     code: str
     i_row: int
     i_col: int
@@ -93,23 +95,28 @@ class FlatCable:
     def add_group(self, wire_group: WireGroup):
         self.groups.append(wire_group)
 
-    def get_entries(self, angle: float, flip: bool, rc: RC, origin_xy: ty.Tuple[float, float]):  # angle==0 flip==False: cable aligns to vertical. The top is 1 pin. Entry direction is right.
+    def get_entries(self, angle: float, start_xy: ty.Tuple[float, float], center_xy: ty.Tuple[float, float], rc: RC):
         pos = []
         nps = []
         nls = []
         for g in self.groups:
             if g.rc == rc:
                 for i in range(g.start, g.end):
-                    pos.append((0., i * WIRE_PITCH * (-1 if flip else 1)))
+                    pos.append((i * WIRE_PITCH, 0.))
                     nps.append(i + 1)
-                    nls.append(g.logical_start + i)
+                    nls.append(g.logical_start + i - g.start)
         pos = np.array(pos)
         entries: ty.List[Entry] = []
-        center_p = np.array([0., self.n_wire * WIRE_PITCH * (-1 if flip else 1) / 2])
-        origin = np.array(origin_xy)
+        rot = _get_rot(angle)
+        start = np.array(start_xy)
+        yu = np.array([0., 1.])
+        pa = np.linalg.norm((yu @ rot) + start)
+        na = np.linalg.norm((yu @ (-rot)) + start)
+        entry_angle = angle + (np.pi / 2 if pa > na else - np.pi / 2)
         for p, pn, ln in zip(pos, nps, nls):
-            rp = ((p - center_p) @ _get_rot(angle)) + origin
-            entries.append(Entry(rp[0], rp[1], angle, pn, ln))
+            rp = (p @ rot) + start
+            rp = np.array([rp[0], -rp[1]]) + np.array(center_xy)
+            entries.append(Entry(rp[0], rp[1], entry_angle, pn, ln))
         return entries
 
     def _get_group(self, wire_name: str, rc: RC):
@@ -141,8 +148,8 @@ class FlatCable:
 
 @dataclass
 class FlatCablePlacement:
-    flip: bool  # True: descending order at FourOrientation.Left
-    orientation: FourOrientation
+    start: ty.Tuple[float, float]
+    angle: float
     cable: FlatCable
 
 
@@ -249,33 +256,24 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), orientation, switch_path,
                     img,  # type: ignore
                     code, i_pin_row, i_pin_col, i_logical_row, i_logical_col)
-            keys_row[i_pin_row].append(k)
-            keys_col[i_pin_col].append(k)
-
-    def _orientation_to_angle_xy(orientation: FourOrientation):
-        if orientation == FourOrientation.Left:
-            return 0., ((min_xyu[0] - 1) * pitch, (min_xyu[1] + max_xyu[1]) * pitch / 2)
-        elif orientation == FourOrientation.Back:
-            return np.deg2rad(90.), ((min_xyu[0] + max_xyu[0]) * pitch / 2, (min_xyu[1] - 1) * pitch)
-        elif orientation == FourOrientation.Right:
-            return np.deg2rad(180.), ((max_xyu[0] + 1) * pitch, (min_xyu[1] + max_xyu[1]) * pitch / 2)
-        else:
-            return np.deg2rad(-90.), ((min_xyu[0] + max_xyu[0]) * pitch / 2, (max_xyu[1] + 1) * pitch)
+            keys_row[i_logical_row].append(k)
+            keys_col[i_logical_col].append(k)
 
     keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]] = {RC.Row: keys_row, RC.Col: keys_col}
     route_rc: ty.Dict[RC, ty.Dict[int, Line]] = {RC.Col: {}, RC.Row: {}}
     entries_rc: ty.Dict[RC, ty.List[Entry]] = {}
+    center_xy = ((min_xyu[0] + max_xyu[0]) * pitch / 2, (min_xyu[1] + max_xyu[1]) * pitch / 2)
     for rc in RC:
         entries = []
         for cp in cable_placements:
-            angle, xy = _orientation_to_angle_xy(cp.orientation)
-            entries += cp.cable.get_entries(angle, cp.flip, rc, xy)
+            entries += cp.cable.get_entries(cp.angle, cp.start, center_xy, rc)
+        entries = sorted(entries, key=attrgetter('logical_number'))
         entries_rc[rc] = entries
-        for i_entry, entry in enumerate(entries):
-            if len(keys_rc[rc][i_entry]) == 0:
+        for i_logical, entry in enumerate(entries):
+            if len(keys_rc[rc][i_logical]) == 0:
                 continue
-            dist_map = _make_dist_map(keys_rc[rc][i_entry], rc, entry)
-            N = len(keys_rc[rc][i_entry])
+            dist_map = _make_dist_map(keys_rc[rc][i_logical], rc, entry)
+            N = len(keys_rc[rc][i_logical])
             T = set(range(N))
             V: ty.Set[VertexType] = {(n, td) for n, td in product(range(N), TerminalDirection)}
             V_START = V | {START}
@@ -295,7 +293,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
 
             # constraint: canont use the same direction of a terminal for enter / leave both
             for v in V:
-                model += mip.xsum(x[v, j] for j in V_GOAL if j[0] != v[0]) + mip.xsum(x[i, v] for i in V_START if i[0] != v[0]) <= 1
+                model += mip.xsum(x[v, j] for j in V_GOAL if j[0] != v[0]) + mip.xsum(x[i, v] for i in V_START if i[0] != v[0]) <= 1  # type: ignore
 
             # constraint : leave each terminal only once except goal
             model += mip.xsum(x[START, j] for j in V) == 1
@@ -329,7 +327,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                     break
                 line.append(j)
                 i = (j[0], TerminalDirection.Left if j[1] == TerminalDirection.Right else TerminalDirection.Right)
-            route_rc[rc][i_entry] = line
+            route_rc[rc][i_logical] = line
 
     return keys_rc, entries_rc, route_rc
 
@@ -342,12 +340,12 @@ def draw_wire(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], entries_rc: ty.D
     ys: ty.Set[float] = set()
     wires_pn_rc: ty.Dict[RC, ty.Dict[int, ty.List[ty.Tuple[ty.List[ty.Tuple[float, float]], int]]]] = {RC.Col: {}, RC.Row: {}}
     for rc, eps in entries_rc.items():
-        for i_entry, line in route_rc[rc].items():
-            ep = eps[i_entry]
+        for i_logical, line in route_rc[rc].items():
+            ep = eps[i_logical]
             orig_wire_path = (ep.x, ep.y, ep.angle)
             wires: ty.List[ty.Tuple[ty.List[ty.Tuple[float, float]], int]] = []
             for j in line:
-                keys = keys_rc[rc][i_entry]
+                keys = keys_rc[rc][i_logical]
                 dest_wire_path = _get_absolute_wire_path(keys[j[0]], rc, j[1], False)
                 path_x, path_y, _, _, _ = dubins.dubins_path_planning(orig_wire_path[0], orig_wire_path[1], orig_wire_path[2], dest_wire_path[0], dest_wire_path[1], dest_wire_path[2], CURVATURE)
                 wires.append(([(x, y) for x, y in zip(path_x, path_y)], j[0]))
@@ -450,7 +448,7 @@ def generate_keymap(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], n_logical_
 class MainboardConstants:
     wire_names_rc: ty.Dict[RC, ty.List[str]]
     n_logical_rc: ty.Dict[RC, int]
-    flat_cable_placements: ty.List[FlatCablePlacement]
+    flat_cables: ty.List[FlatCable]
     f3d_name: str
 
 
