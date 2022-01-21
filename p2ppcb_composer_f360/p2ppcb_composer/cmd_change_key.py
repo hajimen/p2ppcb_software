@@ -4,7 +4,7 @@ import p2ppcb_parts_resolver.resolver as parts_resolver
 import adsk.fusion as af
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, CNP_KEY_ASSEMBLY, \
+from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, \
     CN_KEY_PLACEHOLDERS, CURRENT_DIR, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, \
     AN_KLE_B64, get_context, CN_INTERNAL, key_placeholder_name, load_kle_by_b64, get_part_info, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
