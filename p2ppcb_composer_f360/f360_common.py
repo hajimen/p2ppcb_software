@@ -261,9 +261,9 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
             capture_position()
             o = self.parent_comp.occurrences.addExistingComponent(f3occ.comp, EYE_M3D)
             o = self._proxy_if_required(o)
-            for _ in range(5):
-                o.transform = transform
-            return F3Occurrence(o)
+            occ = F3Occurrence(o)
+            occ.transform = transform
+            return occ
         else:
             if self.parent_occ is None:
                 raise Exception('add() with SurrogateF3Occurrence is not available to root component.')
@@ -403,25 +403,7 @@ class SurrogateF3Occurrence:
             o.parent = new_occ
             o.replace()
 
-        # This is a remedy to a bug of F360.
-        pos = ORIGIN_P3D.copy()
-        pos.transformBy(self.transform)
-        last_distance = None
-        while True:
-            new_occ.transform = self.transform
-            pos2 = ORIGIN_P3D.copy()
-            pos2.transformBy(new_occ.transform)
-            if pos2.isEqualToByTolerance(pos, 0.01):
-                break
-            d = pos2.distanceTo(pos)
-            if last_distance is not None and d > last_distance and d > 0.1:
-                con.ui.messageBox(
-                    'Sorry, you came across a fatal bug of Fusion 360. \nhttps://forums.autodesk.com/t5/fusion-360-api-and-scripts/strange-behavior-of-occurrence-transform-when-it-was-assigned/m-p/10638077\n' +
-                    'I could not find any workaround. There is nothing we can do about it. Ask Autodesk, at most.')
-                break
-            last_distance = d
-            print('transform iteration...')
-
+        new_occ.transform = self.transform
         new_occ.light_bulb = self.light_bulb
 
         if self.rigid_in_replace:
@@ -515,11 +497,23 @@ class F3Occurrence:
 
     @property
     def transform(self):
-        return self.raw_occ.transform
+        if self.has_parent:
+            t = self.parent.raw_occ.transform2.copy()
+            t.invert()
+            t2 = self.raw_occ.transform2.copy()
+            t2.transformBy(t)
+            return t2
+        else:
+            return self.raw_occ.transform2
     
     @transform.setter
     def transform(self, transform: ac.Matrix3D):
-        self.raw_occ.transform = transform
+        if self.has_parent:
+            t = transform.copy()
+            t.transformBy(self.parent.raw_occ.transform2)
+            self.raw_occ.transform2 = t
+        else:
+            self.raw_occ.transform2 = transform
 
 
 class F3AttributeSingletonDict:

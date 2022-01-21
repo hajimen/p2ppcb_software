@@ -200,17 +200,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         else:
             event_args.areInputsValid = False
 
-    def bug_workaround(self):
-        con = get_context()
-        inl_occ = con.child[CN_INTERNAL]
-        key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
-        for kp_occ in key_placeholders_occ.child.values():
-            for name, cp_ka_occ in kp_occ.child.items():
-                if name.endswith(CNP_KEY_ASSEMBLY):
-                    for p_occ in cp_ka_occ.child.values():
-                        t = p_occ.transform
-                        p_occ.transform = t
-
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         print('notify_execute_preview')
         changed_locators = self.get_changed_locators()
@@ -221,7 +210,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             fill_surrogate()
             con.clear_surrogate()
             con.prepare_parameter_dict.clear()
-        self.bug_workaround()
         self.show_key_placeholders(True)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
@@ -240,7 +228,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         print('destroy')
         self.show_key_placeholders(True)
-        self.bug_workaround()
 
 
 TOOLTIP_PATTERN_NAME = "Usually '1u', '125u', '15u' and so on. There are some special pattern names too, like 'ISO Enter'."
