@@ -193,6 +193,10 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
                 con.ui.messageBox('Assign source/drain to all key locators.', 'P2PPCB')
                 return
 
+        mc = rt.get_mainboard_constants()
+        if CN_MISC_PLACEHOLDERS not in inl_occ.child or rt.get_cn_mainboard() not in inl_occ.child[CN_MISC_PLACEHOLDERS].child:
+            raise Exception('Place a mainboard.')
+
         dir_dlg = con.ui.createFolderDialog()
         dir_dlg.title = 'Choose Output Folder'
         if dir_dlg.showDialog() != ac.DialogResults.DialogOK:
@@ -204,7 +208,6 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
         # m = {k1: {k2: matrix[k1][k2] for k2 in matrix[k1]} for k1 in matrix}
         # with open(CURRENT_DIR / 'matrix.pkl', 'wb') as f:
         #     pickle.dump(m, f)
-        mc = rt.get_mainboard_constants()
         mb_occ = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(rt.get_cn_mainboard())
         lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
         inv_lp_trans = get_layout_plane_transform(lp)
@@ -235,11 +238,13 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
         sk.deleteMe()
         keys_rc, entries_rc, route_rc = rt.generate_route(matrix, flat_cable_placements)
         img_row, img_col = rt.draw_wire(keys_rc, entries_rc, route_rc)
-        generated_snippet = rt.generate_keymap(keys_rc, mc.n_logical_rc)
+        generated_snippet, via_json = rt.generate_keymap(keys_rc, mc)
 
-        with open(output_dir_path / 'keymap.txt', 'w') as f:
+        with open(output_dir_path / 'qmk_keymap.txt', 'w') as f:
             f.write(generated_snippet)
+        with open(output_dir_path / 'via_keymap.json', 'w') as f:
+            f.write(via_json)
         img_row.save(str(output_dir_path / 'wiring_source.png'))
         img_col.save(str(output_dir_path / 'wiring_drain.png'))
 
-        con.ui.messageBox('QMK keymap and wiring diagrams has been generated.', 'P2PPCB')
+        con.ui.messageBox('QMK / VIA keymap and wiring diagrams has been generated.', 'P2PPCB')

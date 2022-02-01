@@ -12,7 +12,7 @@ ROW_CABLE.add_group(WireGroup(8, 10, 8, RC.Row, True))
 COL_CABLE = FlatCable(30, 1)
 COL_CABLE.add_group(WireGroup(0, 24, 0, RC.Col, False))
 COL_CABLE.add_group(WireGroup(24, 30, 24, RC.Col, True))
-CONSTANTS = MainboardConstants(WIRE_NAMES_RC, N_LOGICAL_RC, [ROW_CABLE, COL_CABLE], 'Alice.f3d')
+CONSTANTS = MainboardConstants(WIRE_NAMES_RC, N_LOGICAL_RC, [ROW_CABLE, COL_CABLE], 'Alice.f3d', '0x7970')
 
 
 def constants():

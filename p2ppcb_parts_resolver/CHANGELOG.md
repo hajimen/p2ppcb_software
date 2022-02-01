@@ -15,3 +15,8 @@
 ## Version 0.1.7 : 2022/1/20
 
 - The return type of `resolve_kle()` has been modified.
+
+
+## Version 0.1.8 : 2022/2/1
+
+- Now `OccurrenceParameter` holds `i_kle`.

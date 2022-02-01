@@ -109,7 +109,7 @@ class TestCmdCommon(unittest.TestCase):
         con.prepare_parameter_dict[PP_SURROGATE_KEY_ASSEMBLY_NAMES] = {}
         specs_ops_on_pn: SpecsOpsOnPn = {}
         specs_ops_on_pn['1u'] = [('1u', parts_resolver.OccurrenceParameter(
-            (0., 0.), (0., 0.), (1., 1.), 0., [''] * 12, CURRENT_DIR
+            (0., 0.), (0., 0.), (1., 1.), 0., [''] * 12, CURRENT_DIR, 0
         ))]
         pps_part = prepare_key_assembly(specs_ops_on_pn, get_part_info())
         self.assertEqual(pps_part[0].new_name, 'Cap DSA 1u Travel 3.2 millimeter_P')
@@ -363,13 +363,16 @@ class TestMatrixRoute(unittest.TestCase):
         from mainboard.Alice import constants
         with open(TEST_PKL_DIR / 'route.pkl', 'rb') as f:
             keys_rc, _, _ = pickle.load(f)
-        mc = constants()
-        generated_snippet = rt.generate_keymap(keys_rc, mc.n_logical_rc)
+        doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
+        mbc = constants()
+        generated_snippet, via_json = rt.generate_keymap(keys_rc, mbc)
         # with open((TEST_PKL_DIR / 'keymap.pkl'), 'wb') as f:
-        #     pickle.dump(generated_snippet, f)
+        #     pickle.dump((generated_snippet, via_json), f)
         with open((TEST_PKL_DIR / 'keymap.pkl'), 'rb') as f:
-            oracle = pickle.load(f)
-        self.assertEqual(generated_snippet, oracle)
+            oracle_snippet, oracle_via = pickle.load(f)
+        self.assertEqual(generated_snippet, oracle_snippet)
+        self.assertEqual(via_json, oracle_via)
+        doc.close(False)
 
 
 class TestEditFrame(unittest.TestCase):

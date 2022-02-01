@@ -1,4 +1,6 @@
+import base64
 import importlib
+import json
 from operator import attrgetter
 import re
 from itertools import product
@@ -6,6 +8,7 @@ from collections import defaultdict
 from enum import Enum, IntEnum, auto
 from dataclasses import dataclass, field
 import typing as ty
+import zlib
 
 import mip
 from PIL import Image, ImageDraw, ImageOps, ImageFont
@@ -69,6 +72,7 @@ class Key:
     i_col: int
     i_logical_row: int
     i_logical_col: int
+    i_kle: int
 
 
 @dataclass
@@ -255,7 +259,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                 raise Exception('Bad code.')
             k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), orientation, switch_path,
                     img,  # type: ignore
-                    code, i_pin_row, i_pin_col, i_logical_row, i_logical_col)
+                    code, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
             keys_row[i_logical_row].append(k)
             keys_col[i_logical_col].append(k)
 
@@ -420,28 +424,66 @@ def draw_wire(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], entries_rc: ty.D
     return _draw_selective(RC.Row, [RC.Col, RC.Row]), _draw_selective(RC.Col, [RC.Row, RC.Col])
 
 
-def generate_keymap(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], n_logical_rc: ty.Dict[RC, int]):
+def read_json_by_b64(json_b64: str):
+    content = zlib.decompress(base64.b64decode(json_b64))
+    return json.loads(content)
+
+
+def generate_keymap(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], mbc: 'MainboardConstants'):
+    con = get_context()
     matrix_code: ty.Dict[int, ty.Dict[int, str]] = defaultdict(dict)
     keys: ty.List[Key] = []
     for ks in keys_rc[RC.Row].values():
         keys.extend(ks)
+    keys = sorted(keys, key=attrgetter('i_kle'))
     for k in keys:
         matrix_code[k.i_logical_row][k.i_logical_col] = k.code
-    code_str = ''
-    for i_logical_row in range(n_logical_rc[RC.Row]):
-        code_str += '        {'
-        for i_logical_col in range(n_logical_rc[RC.Col]):
+
+    kle_json = []
+    i_kle = 0
+    for r in read_json_by_b64(con.child[CN_INTERNAL].comp_attr[AN_KLE_B64]):
+        nr = []
+        for e in r:
+            if isinstance(e, str):
+                k = keys[i_kle]
+                nr.append(f'{k.i_logical_row},{k.i_logical_col}')
+                i_kle += 1
+            elif isinstance(e, dict):
+                if 'a' in e:
+                    del e['a']
+                nr.append(e)
+            else:
+                nr.append(e)
+        kle_json.append(nr)
+    mbc = get_mainboard_constants()
+    via_dic = {
+        'name': con.des.parentDocument.name,
+        'vendorId': '0xFEED',  # https://github.com/tmk/tmk_keyboard/issues/150
+        'productId': mbc.product_id,
+        'lighting': 'none',
+        'matrix': {
+            'rows': mbc.n_logical_rc[RC.Row], 'cols': mbc.n_logical_rc[RC.Col]
+        },
+        'layouts': {
+            'keymap': kle_json
+        }
+    }
+    
+    qmk_str = ''
+    for i_logical_row in range(mbc.n_logical_rc[RC.Row]):
+        qmk_str += '        {'
+        for i_logical_col in range(mbc.n_logical_rc[RC.Col]):
             if i_logical_row not in matrix_code or i_logical_col not in matrix_code[i_logical_row]:
                 kc = 'KC_NO'
             elif matrix_code[i_logical_row][i_logical_col] is None:
                 kc = 'KC_NO'
             else:
                 kc = matrix_code[i_logical_row][i_logical_col]
-            code_str += (kc + ', ')
-        code_str += '},\n'
+            qmk_str += (kc + ', ')
+        qmk_str += '},\n'
     return '''const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = {
-''' + code_str + '    }\n};\n'
+''' + qmk_str + '    }\n};\n', json.dumps(via_dic, indent=2)
 
 
 @dataclass
@@ -450,6 +492,7 @@ class MainboardConstants:
     n_logical_rc: ty.Dict[RC, int]
     flat_cables: ty.List[FlatCable]
     f3d_name: str
+    product_id: str
 
 
 def get_mainboard_constants() -> MainboardConstants:

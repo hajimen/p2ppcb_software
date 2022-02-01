@@ -4,7 +4,7 @@
 
 DISCLAIMER: P2PPCB Composer F360 is extraordinarily slow for a large keyboard, so far.
 
-DISCLAIMER: So far, P2PPCB Composer F360 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug and find no choice but giving up the design.
+DISCLAIMER: So far, P2PPCB Composer F360 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug and waste much time to get around it.
 
 ## Requirements: Just designing a keyboard
 
@@ -22,6 +22,8 @@ F360 is a proprietary 3D CAD. Autodesk generously offers free plan for hobbyists
 - QMK firmware <https://qmk.fm/>
 
 You need your own firmware for your own design. P2PPCB Composer F360 helps you, but you need to be well informed about QMK.
+
+The official codebase lacks RP2040 (Raspberry Pi Pico's MPU) support yet, so you need to use a fork like this: <https://github.com/sekigon-gonnoc/qmk_firmware/tree/rp2040>.
 
 ## Requirements: Building your own design
 
@@ -165,7 +167,7 @@ After importing, surrogates are replaced by real objects.
 Prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
 
 ```
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install piprepo setuptools wheel
 mkdir repos
 cd repos
@@ -219,8 +221,10 @@ I don't know why. Autodesk doesn't expect such usage, I guess.
 In some cases, interference check doesn't work:
 <https://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251>
 
-In some cases, you cannot place a key. This is a dying declaration of the skeleton surface and/or the key angle surfaces:
-<https://forums.autodesk.com/t5/fusion-360-api-and-scripts/strange-behavior-of-occurrence-transform-when-it-was-assigned/m-p/10638077>
+In some cases, `importToTarget()` corrupts the imported component. See `p2ppcb_parts_depot.depot.prepare()`.
+The bug is erratic and not reproducible. I guess it has a deal with CPU usage.
+Once it occurs, `P2PPCB Cache` file is corrupted. Remove the file and try again.
+But it can be hard to recognize the phenomenon.
 
 ## Custom features
 

@@ -151,6 +151,7 @@ class OccurrenceParameter:
     angle: float  # clockwise
     legend: ty.List[str]
     image_file_path: pathlib.Path
+    i_kle: int
 
 
 class AlignTo(Enum):
@@ -465,7 +466,7 @@ class PartsInfo:
                     vertices.add((rvx, rvy))
             else:
                 vertices |= inner_vertices
-            op = OccurrenceParameter((center_xu, center_yu), image_center_offset_u, image_whu, angle, k.labels, image_path)
+            op = OccurrenceParameter((center_xu, center_yu), image_center_offset_u, image_whu, angle, k.labels, image_path, i)
             specifier = ' '.join(specs)
             specs_ops_on_pn[pattern_name].append((specifier, op))
         vs = np.array(list(vertices))
