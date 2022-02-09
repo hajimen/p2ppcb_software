@@ -10,7 +10,7 @@ CABLE = FlatCable(30, 0)
 CABLE.add_group(WireGroup(0, 8, 0, RC.Row, False))
 CABLE.add_group(WireGroup(8, 20, 0, RC.Col, False))
 CABLE.add_group(WireGroup(22, 24, 16, RC.Row, True))
-CABLE.add_group(WireGroup(24, 27, 12, RC.Col, True))
+CABLE.add_group(WireGroup(24, 27, 0, RC.Col, True))
 CABLE.add_group(WireGroup(28, 36, 8, RC.Row, False))
 CONSTANTS = MainboardConstants(WIRE_NAMES_RC, N_LOGICAL_RC, [CABLE], 'Charlotte.f3d', '0x9605')
 
