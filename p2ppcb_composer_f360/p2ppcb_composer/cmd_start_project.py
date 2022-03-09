@@ -133,7 +133,6 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
     def __init__(self) -> None:
         super().__init__()
         self.parts_cb: PartsCommandBlock
-        self.last_layout_plane: af.ConstructionPlane  # F360 bug workaround
 
     @property
     def cmd_name(self) -> str:
@@ -155,6 +154,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
                                  ac.MessageBoxButtonTypes.OKCancelButtonType) != ac.DialogResults.DialogOK:
                 self.run_execute = False
                 return
+            con.des.designType = af.DesignTypes.DirectDesignType
 
         skeleton_in = self.inputs.addSelectionInput(INP_ID_SKELETON_SURFACE_SEL, 'Skeleton Surface', 'Select an entity')
         skeleton_in.addSelectionFilter('SurfaceBodies')
@@ -241,7 +241,6 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
     def execute_common(self, event_args: CommandEventArgs) -> None:
         print('execute_common')
         con = get_context()
-        con.des.designType = af.DesignTypes.DirectDesignType
 
         if self.get_scaffold_in().value:
             options = [inp.listItems.item(1).name for inp in self.parts_cb.get_option_ins()]
@@ -250,12 +249,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         else:
             skeleton_in, layout_plane_in = self.get_selection_ins()
             skeleton_surface = af.BRepBody.cast(skeleton_in.selection(0).entity)
-            # F360 bug workaround
-            if layout_plane_in.selectionCount == 0:  # This shouldn't occur but occurs in execute, but not executePreview
-                layout_plane = self.last_layout_plane
-            else:
-                layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
-                self.last_layout_plane = layout_plane  # caching in executePreview
+            layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
             pitch = self.get_pitch_in().value
 
             options = self.parts_cb.get_selected_options()
