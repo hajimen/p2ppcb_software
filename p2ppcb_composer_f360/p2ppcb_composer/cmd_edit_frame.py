@@ -89,6 +89,10 @@ def generate_frame(profs: ty.List[af.Profile], before_frame_bodies: ty.List[af.B
         raise Exception('profs should have a profile at least.')
     con = get_context()
 
+    frame = con.comp.bRepBodies.itemByName(BN_FRAME)
+    if frame is not None:
+        frame.deleteMe()
+
     skeleton_surface = af.BRepBody.cast(con.attr_singleton[AN_SKELETON_SURFACE][1])
     col = CreateObjectCollectionT(af.BRepFace)
     for f in skeleton_surface.faces:
@@ -225,10 +229,6 @@ class GenerateFrameCommandHandler(CommandHandlerBase):
                 self.run_execute = False
                 con.ui.messageBox('There is unplaced key(s). Please fix it first.')
                 return
-
-        frame = con.comp.bRepBodies.itemByName(BN_FRAME)
-        if frame is not None:
-            frame.deleteMe()
 
         prof_in = self.inputs.addSelectionInput(INP_ID_BRIDGE_PROFILE_SEL, 'Bridge Profile', 'Select an entity')
         prof_in.addSelectionFilter('Profiles')
