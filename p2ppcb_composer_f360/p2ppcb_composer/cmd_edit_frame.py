@@ -1,4 +1,6 @@
 import typing as ty
+import pickle
+import base64
 from pint import Quantity
 import adsk.core as ac
 import adsk.fusion as af
@@ -22,6 +24,8 @@ BN_FRAME = 'Frame' + MAGIC
 BN_FOOT_BOSS = 'Foot Boss' + MAGIC
 BN_MAINBOARD_BOSS = 'Mainboard Boss' + MAGIC
 CNP_FOOT_LOCATORS = '_FL'
+
+AN_MB_LOCATION_INPUTS = 'mbLocationInputs'
 
 CHIPPING_BODY_THRESHOLD = 10. * (0.1 ** 3)  # 10 mm^3
 
@@ -424,18 +428,28 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         if_in = self.inputs.addBoolValueInput(INP_ID_CHECK_INTERFERENCE_BOOL, 'Check Interference', True)
         if_in.value = False
 
-        t = self.get_mainboard_transform()
-        self.move_comp_cb.start_transaction(t)
-
         inl_occ = con.child[CN_INTERNAL]
         mp_occ = inl_occ.child.get_real(CN_MISC_PLACEHOLDERS)
         cn_mainboard = get_cn_mainboard()
         if cn_mainboard in mp_occ.child:
             o = mp_occ.child[cn_mainboard]
+            if AN_MB_LOCATION_INPUTS in o.comp_attr:
+                locs = pickle.loads(base64.b64decode(o.comp_attr[AN_MB_LOCATION_INPUTS]))
+                for ci, v in zip(self.move_comp_cb.get_inputs(), locs[0]):
+                    ci.value = v
+                self.offset_cb.get_in().value = f'{locs[1] * 10} mm'
+                for li in list(layout_in.listItems):
+                    if li.name == locs[2]:
+                        li.isSelected = True
+                        break
+                flip_in.value = locs[3]
+            self.move_comp_cb.start_transaction(o.transform)
         else:
+            t = self.get_mainboard_transform()
+            self.move_comp_cb.start_transaction(t)
             mb_occ = inl_occ.child[CN_DEPOT_PARTS].child[cn_mainboard]
             o = mp_occ.child.add(mb_occ, t)
-        o.light_bulb = False
+            o.light_bulb = False
         for b in o.bodies_by_attr(AN_FILL):
             b.isLightBulbOn = True
 
@@ -488,7 +502,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
         if self.offset_cb.is_valid():
             if changed_input.id == INP_ID_MAINBOARD_LAYOUT_RADIO:
-                self.offset_cb.get_in().value = '0 mm'
+                self.offset_cb.get_in().value = '2 mm'
                 t = self.get_mainboard_transform()
                 self.move_comp_cb.start_transaction(t)
             elif changed_input.id == INP_ID_OFFSET_STR:
@@ -520,6 +534,12 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         print('notify_execute')
         o = self.execute_common(event_args)
+        o.comp_attr[AN_MB_LOCATION_INPUTS] = base64.b64encode(pickle.dumps([
+            [ci.value for ci in self.move_comp_cb.get_inputs()],
+            self.offset_cb.get_value(),
+            self.get_layout_in().selectedItem.name,
+            self.get_flip_in().value,
+        ])).decode()
         for b in o.bodies_by_attr(AN_FILL):
             b.isLightBulbOn = False
             nb = b.copyToComponent(get_context().comp)
