@@ -1,15 +1,13 @@
 [
-  [{ "x": 1, "a": 0 }, "\n\n\nHome\nKC_HOME"],
-  [{ "y": -0.75, "x": 2 }, "\n\n\nUp\nKC_PGUP\n\n\nPage"],
-  [{ "y": -0.75 }, "~\n`\n\n\nKC_GRAVE"],
-  [{ "y": -0.5, "x": 1 }, "\n\n\nEnd\nKC_END"],
-  [{ "y": -0.75, "x": 2 }, "\n\n\nDown\nKC_PGDOWN\n\n\nPage"],
-  [{ "y": -0.75 }, "\n\n\nDel\nKC_DELETE"],
-  [{ "y": -0.5, "x": 1 }, "\n\n\nShift\nOSM(MOD_RSFT)"],
-  [{ "y": -0.75, "x": 2 }, "\n\n\nCtrl\nOSM(MOD_RCTL)"],
-  [{ "y": -0.75 }, "\n\n\nAlt\nOSM(MOD_RALT)"],
-  [{ "y": -0.5, "x": 1, "a": 3 }, "↑\n\n\n\nKC_UP"],
-  [{ "x": 1 }, "↓\n\n\n\nKC_DOWN"],
-  [{ "y": -0.75, "x": 2 }, "→\n\n\n\nKC_RIGHT"],
-  [{ "y": -0.75 }, "←\n\n\n\nKC_LEFT"]
+[{x:1,a:0},"\n\n\nHome\nKC_HOME"],
+[{y:-0.75,x:2},"\n\n\nUp\nKC_PGUP\n\n\nPage"],
+[{y:-0.75},"~\n`\n\n\nKC_GRAVE"],
+[{y:-0.5,x:1},"\n\n\nEnd\nKC_END"],
+[{y:-0.75,x:2},"\n\n\nDown\nKC_PGDOWN\n\n\nPage"],
+[{y:-0.75},"\n\n\nDel\nKC_DELETE"],
+[{y:-0.25,x:2},"\n\n\nCtrl\nOSM(MOD_RCTL)"],
+[{y:-0.25,x:1,a:3},"↑\n\n\n\nKC_UP"],
+[{y:-0.75,x:2},"→\n\n\n\nKC_RIGHT"],
+[{y:-0.75},"←\n\n\n\nKC_LEFT"],
+[{y:-0.5,x:1},"↓\n\n\n\nKC_DOWN"]
 ]

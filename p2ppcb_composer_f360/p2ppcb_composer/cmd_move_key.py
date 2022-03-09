@@ -29,6 +29,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         super().__init__()
         self.move_comp_cb: MoveComponentCommandBlock
         self.check_interference_cb: CheckInterferenceCommandBlock
+        self.last_angle: af.BRepBody  # F360 bug workaround
 
     @property
     def cmd_name(self) -> str:
@@ -127,7 +128,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         self.move_comp_cb.b_notify_changed_input(changed_input)
 
     def execute_common(self, event_args: CommandEventArgs) -> ty.List[F3Occurrence]:
-        print('notify_execute_preview')
+        print('execute_common')
         con = get_context()
 
         locator_in, lp_in, angle_in = self.get_selection_ins()
@@ -153,7 +154,12 @@ class MoveKeyCommandHandler(CommandHandlerBase):
             self.move_comp_cb.b_notify_execute_preview(event_args, selected_locators)
 
             angle_ci = InputLocators(angle_in, AN_LOCATORS_ANGLE_TOKEN, af.BRepBody)
-            angle = af.BRepBody.cast(angle_in.selection(0).entity)
+            # F360 bug workaround
+            if angle_in.selectionCount == 0:  # This shouldn't occur but occurs in execute, but not executePreview
+                angle = self.last_angle
+            else:
+                angle = af.BRepBody.cast(angle_in.selection(0).entity)
+                self.last_angle = angle  # caching in executePreview
             token = angle_ci.get_locators_attr_value(selected_locators)
             if angle.entityToken != token:
                 angle_ci.set_locators_attr_value(selected_locators, angle.entityToken)

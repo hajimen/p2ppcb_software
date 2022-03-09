@@ -133,6 +133,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
     def __init__(self) -> None:
         super().__init__()
         self.parts_cb: PartsCommandBlock
+        self.last_layout_plane: af.ConstructionPlane  # F360 bug workaround
 
     @property
     def cmd_name(self) -> str:
@@ -238,7 +239,7 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         self.parts_cb.notify_validate(event_args)
 
     def execute_common(self, event_args: CommandEventArgs) -> None:
-        print('executePreview')
+        print('execute_common')
         con = get_context()
         con.des.designType = af.DesignTypes.DirectDesignType
 
@@ -249,7 +250,12 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         else:
             skeleton_in, layout_plane_in = self.get_selection_ins()
             skeleton_surface = af.BRepBody.cast(skeleton_in.selection(0).entity)
-            layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
+            # F360 bug workaround
+            if layout_plane_in.selectionCount == 0:  # This shouldn't occur but occurs in execute, but not executePreview
+                layout_plane = self.last_layout_plane
+            else:
+                layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
+                self.last_layout_plane = layout_plane  # caching in executePreview
             pitch = self.get_pitch_in().value
 
             options = self.parts_cb.get_selected_options()
