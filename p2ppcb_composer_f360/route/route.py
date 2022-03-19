@@ -372,7 +372,7 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
     font = ImageFont.truetype('verdana.ttf', FONT_SIZE)
 
     def _draw_selective(bold_rc: RC, rcs: ty.List[RC]):
-        img = Image.new('RGB', (int(size[0] * MAG) + MARGIN * 2, int(size[1] * MAG) + MARGIN * 2), (255, ) * 3)
+        img = Image.new('RGB', (int(size[0] * MAG) + MARGIN * 2, int(size[1] * MAG) + MARGIN * 2), (255, ) * 3)  # type: ignore
         keys: ty.List[Key] = []
         for ks in keys_rc[RC.Row].values():
             keys.extend(ks)
