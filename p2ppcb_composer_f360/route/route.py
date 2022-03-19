@@ -1,5 +1,6 @@
 import base64
 import importlib
+import json5
 import json
 from operator import attrgetter
 import re
@@ -48,6 +49,7 @@ class RC(IntEnum):
     Col = 1
 
 
+RC_CP = ty.Tuple[RC, int]
 WirePath = ty.Tuple[float, float, float]  # x, y, angle
 SwitchPath = ty.Dict[RC, ty.Dict[TerminalDirection, WirePath]]
 
@@ -73,6 +75,9 @@ class Key:
     i_logical_row: int
     i_logical_col: int
     i_kle: int
+
+
+KeysOnPinType = ty.Dict[ty.Tuple[int, int], ty.List[Key]]
 
 
 @dataclass
@@ -107,10 +112,10 @@ class FlatCable:
             if g.rc == rc:
                 for i in range(g.start, g.end):
                     pos.append((i * WIRE_PITCH, 0.))
-                    nps.append(i + 1)
+                    nps.append(i)
                     nls.append(g.logical_start + i - g.start)
         pos = np.array(pos)
-        entries: ty.List[Entry] = []
+        entries: ty.Dict[int, Entry] = defaultdict()
         rot = _get_rot(angle)
         start = np.array(start_xy)
         yu = np.array([0., 1.])
@@ -120,7 +125,7 @@ class FlatCable:
         for p, pn, ln in zip(pos, nps, nls):
             rp = (p @ rot) + start
             rp = np.array([rp[0], -rp[1]]) + np.array(center_xy)
-            entries.append(Entry(rp[0], rp[1], entry_angle, pn, ln))
+            entries[pn] = Entry(rp[0], rp[1], entry_angle, pn, ln)
         return entries
 
     def _get_group(self, wire_name: str, rc: RC):
@@ -206,8 +211,8 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
     kle_b64 = con.child[CN_INTERNAL].comp_attr[AN_KLE_B64]
     specs_ops_on_pn, min_xyu, max_xyu = load_kle_by_b64(kle_b64, pi)
     pitch = float(inl_occ.comp_attr[AN_KEY_PITCH])
-    keys_row: ty.Dict[int, ty.List[Key]] = defaultdict(list)
-    keys_col: ty.Dict[int, ty.List[Key]] = defaultdict(list)
+    keys_row: KeysOnPinType = defaultdict(list)
+    keys_col: KeysOnPinType = defaultdict(list)
     image_cache = {}
     for pattern_name, specs_ops in specs_ops_on_pn.items():
         for i, (specifier, op) in enumerate(specs_ops):
@@ -240,44 +245,44 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             row_name, col_name = reverse_matrix[kl_name]
             i_pin_row = None
             i_logical_row = None
-            cp_row = None
             i_pin_col = None
             i_logical_col = None
-            cp_col = None
-            for cp in cable_placements:
+            i_cp_row = -1
+            i_cp_col = -1
+            for i, cp in enumerate(cable_placements):
                 if i_pin_row is None:
                     i_pin_row = cp.cable.get_pin_number(row_name, RC.Row)
-                    cp_row = cp
+                    i_cp_row = i
                 if i_logical_row is None:
                     i_logical_row = cp.cable.get_logical_number(row_name, RC.Row)
                 if i_pin_col is None:
                     i_pin_col = cp.cable.get_pin_number(col_name, RC.Col)
-                    cp_col = cp
+                    i_cp_col = i
                 if i_logical_col is None:
                     i_logical_col = cp.cable.get_logical_number(col_name, RC.Col)
-            if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or cp_row is None or cp_col is None:
+            if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or i_cp_row == -1 or i_cp_col == -1:
                 raise Exception('Bad code.')
             k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), orientation, switch_path,
                     img,  # type: ignore
                     code, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
-            keys_row[i_logical_row].append(k)
-            keys_col[i_logical_col].append(k)
+            keys_row[i_cp_row, i_pin_row].append(k)
+            keys_col[i_cp_col, i_pin_col].append(k)
 
-    keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]] = {RC.Row: keys_row, RC.Col: keys_col}
-    route_rc: ty.Dict[RC, ty.Dict[int, Line]] = {RC.Col: {}, RC.Row: {}}
-    entries_rc: ty.Dict[RC, ty.List[Entry]] = {}
+    keys_rc: ty.Dict[RC, KeysOnPinType] = {RC.Row: keys_row, RC.Col: keys_col}
+    route_rccp: ty.Dict[RC_CP, ty.Dict[int, Line]] = defaultdict(dict)
+    entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]] = {}
     center_xy = ((min_xyu[0] + max_xyu[0]) * pitch / 2, (min_xyu[1] + max_xyu[1]) * pitch / 2)
-    for rc in RC:
-        entries = []
-        for cp in cable_placements:
-            entries += cp.cable.get_entries(cp.angle, cp.start, center_xy, rc)
-        entries = sorted(entries, key=attrgetter('logical_number'))
-        entries_rc[rc] = entries
-        for i_logical, entry in enumerate(entries):
-            if len(keys_rc[rc][i_logical]) == 0:
+    for rc, (i_cp, cp) in product(RC, enumerate(cable_placements)):
+        entries = cp.cable.get_entries(cp.angle, cp.start, center_xy, rc)
+        if len(entries) == 0:
+            continue
+        entries_rccp[rc, i_cp] = entries
+        for i_pin, entry in entries.items():
+            keys = keys_rc[rc][(i_cp, i_pin)]
+            if len(keys) == 0:
                 continue
-            dist_map = _make_dist_map(keys_rc[rc][i_logical], rc, entry)
-            N = len(keys_rc[rc][i_logical])
+            dist_map = _make_dist_map(keys, rc, entry)
+            N = len(keys)
             T = set(range(N))
             V: ty.Set[VertexType] = {(n, td) for n, td in product(range(N), TerminalDirection)}
             V_START = V | {START}
@@ -331,25 +336,27 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                     break
                 line.append(j)
                 i = (j[0], TerminalDirection.Left if j[1] == TerminalDirection.Right else TerminalDirection.Right)
-            route_rc[rc][i_logical] = line
+            route_rccp[rc, i_cp][i_pin] = line
 
-    return keys_rc, entries_rc, route_rc
+    return keys_rc, entries_rccp, route_rccp
 
 
-def draw_wire(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], entries_rc: ty.Dict[RC, ty.List[Entry]], route_rc: ty.Dict[RC, ty.Dict[int, Line]]):
+def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]], route_rccp: ty.Dict[RC_CP, ty.Dict[int, Line]]):
     MAG = 200
     MARGIN = 200
     FONT_SIZE = 30
     xs: ty.Set[float] = set()
     ys: ty.Set[float] = set()
     wires_pn_rc: ty.Dict[RC, ty.Dict[int, ty.List[ty.Tuple[ty.List[ty.Tuple[float, float]], int]]]] = {RC.Col: {}, RC.Row: {}}
-    for rc, eps in entries_rc.items():
-        for i_logical, line in route_rc[rc].items():
-            ep = eps[i_logical]
+    for (rc, i_cp), entries in entries_rccp.items():
+        if len(entries) == 0:
+            continue
+        for i_pin, line in route_rccp[rc, i_cp].items():
+            ep = entries[i_pin]
             orig_wire_path = (ep.x, ep.y, ep.angle)
             wires: ty.List[ty.Tuple[ty.List[ty.Tuple[float, float]], int]] = []
             for j in line:
-                keys = keys_rc[rc][i_logical]
+                keys = keys_rc[rc][i_cp, i_pin]
                 dest_wire_path = _get_absolute_wire_path(keys[j[0]], rc, j[1], False)
                 path_x, path_y, _, _, _ = dubins.dubins_path_planning(orig_wire_path[0], orig_wire_path[1], orig_wire_path[2], dest_wire_path[0], dest_wire_path[1], dest_wire_path[2], CURVATURE)
                 wires.append(([(x, y) for x, y in zip(path_x, path_y)], j[0]))
@@ -376,6 +383,7 @@ def draw_wire(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], entries_rc: ty.D
         draw = ImageDraw.Draw(img)
         for rc in rcs:
             for pn, wires in wires_pn_rc[rc].items():
+                pn += 1  # Wire number always starts from 1.
                 last_loc = None
                 for wire in wires:
                     color = rainbow_cable_colors[pn % 10]
@@ -396,6 +404,7 @@ def draw_wire(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], entries_rc: ty.D
             last_pn = -1
             last_printed = False
             for pn, wires in wires_pn_rc[rc].items():
+                pn += 1  # Wire number always starts from 1.
                 if last_pn == pn - 1 and pn > 8 and ((pn % 5) != 0 or last_printed):
                     last_pn = pn
                     last_printed = False
@@ -424,12 +433,12 @@ def draw_wire(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], entries_rc: ty.D
     return _draw_selective(RC.Row, [RC.Col, RC.Row]), _draw_selective(RC.Col, [RC.Row, RC.Col])
 
 
-def read_json_by_b64(json_b64: str):
+def read_json_by_b64(json_b64: str) -> ty.Any:
     content = zlib.decompress(base64.b64decode(json_b64))
-    return json.loads(content)
+    return json5.loads(content)
 
 
-def generate_keymap(keys_rc: ty.Dict[RC, ty.Dict[int, ty.List[Key]]], mbc: 'MainboardConstants'):
+def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstants'):
     con = get_context()
     matrix_code: ty.Dict[int, ty.Dict[int, str]] = defaultdict(dict)
     keys: ty.List[Key] = []
