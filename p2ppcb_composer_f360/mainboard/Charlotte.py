@@ -4,7 +4,7 @@ WIRE_NAMES_RC = {
     RC.Row: [f'S{i}' for i in range(16)] + ['LED_S0', 'LED_S1'],
     RC.Col: [f'D{i}' for i in range(12)] + [f'LED_D{i}' for i in range(3)]
 }
-N_LOGICAL_RC = {RC.Row: 18, RC.Col: 15}
+N_LOGICAL_RC = {RC.Row: 18, RC.Col: 12}
 
 CABLE = FlatCable(30, 0)
 CABLE.add_group(WireGroup(0, 8, 0, RC.Row, False))
