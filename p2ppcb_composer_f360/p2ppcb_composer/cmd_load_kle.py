@@ -116,6 +116,10 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
             self.run_execute = False
             con.ui.messageBox('Save this document first.')
             return
+        if CN_INTERNAL not in con.child:
+            self.run_execute = False
+            con.ui.messageBox('Start a P2PPCB project first.')
+            return
 
         file_dlg = con.ui.createFileDialog()
         file_dlg.isMultiSelectEnabled = False
