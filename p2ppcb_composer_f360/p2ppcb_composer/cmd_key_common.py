@@ -59,7 +59,7 @@ class PrepareKeyAssemblyParameter:
     kps: ty.List[PrepareKeyPlaceholderParameter]
 
 
-def _find_hit_point_face(hit_points, hit_faces, surface: af.BRepBody):
+def _find_hit_point_face(hit_points, hit_faces, surface: af.BRepBody) -> ty.Union[ty.Tuple[ac.Point3D, af.BRepFace], ty.Tuple[None, None]]:
     '''
     hit_points: ac.ObjectCollectionT[ac.Point3D]
     hit_faces: ac.ObjectCollectionT[af.BRepFace]
@@ -186,9 +186,6 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         ka_normal.transformBy(ka_trans)
         ka_normal.normalize()
 
-        rot = ac.Matrix3D.create()
-        rot.setToRotateTo(ZU_V3D, ka_normal)
-
         lp = af.ConstructionPlane.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_PLANE_TOKEN])[0])
         lp_inv_trans = get_layout_plane_transform(lp)
         if lp_inv_trans is None:
@@ -197,11 +194,13 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
 
         t = root_kl_trans.copy()
         t.transformBy(lp_inv_trans)
-        _, xv, yv, _ = t.getAsCoordinateSystem()
-        xv.transformBy(rot)
-        yv.transformBy(rot)
+        _, _, yv, _ = t.getAsCoordinateSystem()
         kp_trans = ac.Matrix3D.create()
-        kp_trans.setWithCoordinateSystem(center, xv, yv, ka_normal)
+        nxv = ka_normal.crossProduct(yv)
+        nxv.normalize()
+        nyv = ka_normal.crossProduct(nxv)
+        nyv.normalize()
+        kp_trans.setWithCoordinateSystem(center, nxv, nyv, ka_normal)
 
         kp_occ.transform = kp_trans
         kp_occ.light_bulb = True
