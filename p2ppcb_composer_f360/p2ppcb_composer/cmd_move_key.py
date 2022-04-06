@@ -2,8 +2,7 @@ import typing as ty
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 import adsk.fusion as af
-from f360_common import AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, get_context, CN_INTERNAL, \
-    key_placeholder_name, F3Occurrence
+from f360_common import get_context, CN_INTERNAL, F3Occurrence
 from p2ppcb_composer.cmd_common import get_cis, has_sel_in, AN_LOCATORS_PLANE_TOKEN, TOOLTIP_NOT_SELECTED, InputLocators, \
     get_selected_locators, locator_notify_pre_select, CommandHandlerBase, CheckInterferenceCommandBlock, MoveComponentCommandBlock
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, get_layout_plane_transform, place_key_placeholders
@@ -167,21 +166,22 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         self.check_interference_cb.b_notify_execute_preview(selected_locators)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        selected_locators = self.execute_common(event_args)
-        selected_kpns: ty.Set[str] = set()
-        for kl_occ in selected_locators:
-            pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
-            i = int(kl_occ.comp_attr[AN_LOCATORS_I])
-            selected_kpns.add(key_placeholder_name(i, pattern_name))
-        result = self.check_interference_cb.check_key_placeholders(selected_kpns)
-        if result is None:
-            return
-        hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body = result
-        for _, tb in cache_temp_body:
-            tb.deleteMe()
-        n_hit = len(hit_mev) + len(hit_hole) + len(hit_mf)
-        if n_hit > 0:
-            get_context().ui.messageBox(f'Warning: {n_hit} interference(s) exists among {len(hit_kpns)} key placeholder(s).')
+        _ = self.execute_common(event_args)
+        # Too slow
+        # selected_kpns: ty.Set[str] = set()
+        # for kl_occ in selected_locators:
+        #     pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
+        #     i = int(kl_occ.comp_attr[AN_LOCATORS_I])
+        #     selected_kpns.add(key_placeholder_name(i, pattern_name))
+        # result = self.check_interference_cb.check_key_placeholders(selected_kpns)
+        # if result is None:
+        #     return
+        # hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body = result
+        # for _, tb in cache_temp_body:
+        #     tb.deleteMe()
+        # n_hit = len(hit_mev) + len(hit_hole) + len(hit_mf)
+        # if n_hit > 0:
+        #     get_context().ui.messageBox(f'Warning: {n_hit} interference(s) exists among {len(hit_kpns)} key placeholder(s).')
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         print('destroy')

@@ -97,7 +97,7 @@ It makes a 3D printable solid body. Run **Save As Mesh**, choose STL and OK. Sen
 
 10. There is isolated thin wall? Oh...
 
-MJF cannot print isolated thin wall around under 0.8 mm. If it occurs, you need to remove them by F360's features.
+MJF cannot print isolated thin wall around under 0.8 mm. If it occurs, you need to remove them by F360's features by yourself.
 
 ## Bridge and fill/hole - MF/MEV method
 
@@ -229,7 +229,7 @@ But it can be hard to recognize the phenomenon.
 ## Custom features
 
 So far, P2PPCB Composer F360 doesn't support parametric modeling. I wish I could edit a skeleton surface and key angle surfaces by parametric modeling.
-Now (Nov. 2021) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
+Now (Apr. 2022) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
 I don't expect much, but I'll take a look when it turned into GA.
 
 ## Mac

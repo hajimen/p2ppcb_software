@@ -95,12 +95,7 @@ class SetAttributeCommandHandler(CommandHandlerBase):
             self.get_attr_value_in().value = attr_name
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        con = get_context()
         bodies, attr_name, attr_value = self.get_inputs()
-        attrs = con.des.findAttributes(ATTR_GROUP, attr_name)
-        for a in attrs:
-            if a.value == attr_value:
-                a.deleteMe()
         for b in bodies:
             for a in b.attributes:
                 a.deleteMe()

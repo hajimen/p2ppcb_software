@@ -66,7 +66,7 @@ def generate_scaffold():
     ex_in1.isSolid = False
     cm15 = ac.ValueInput.createByString("15 cm")
     ex_in1.setTwoSidesDistanceExtent(cm15, cm15)
-    skeleton_surface = extrudes.add(ex_in1).bodies.item(0)
+    skeleton_surface = extrudes.add(ex_in1).bodies[0]
     skeleton_surface.opacity = 0.2
 
     arc2 = arcs.addByThreePoints(
@@ -77,7 +77,7 @@ def generate_scaffold():
     ex_in2 = extrudes.createInput(profile2, af.FeatureOperations.NewBodyFeatureOperation)
     ex_in2.isSolid = False
     ex_in2.setTwoSidesDistanceExtent(cm15, cm15)
-    alternative_surface = extrudes.add(ex_in2).bodies.item(0)
+    alternative_surface = extrudes.add(ex_in2).bodies[0]
     alternative_surface.opacity = 0.2
     alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
 
@@ -160,14 +160,14 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         skeleton_in.addSelectionFilter('SurfaceBodies')
         skeleton_in.setSelectionLimits(1, 1)
         s = con.find_attrs(AN_SKELETON_SURFACE)
-        if len(s) == 1:
+        if len(s) == 1 and s[0].isValid and s[0].parent is not None:
             skeleton_in.addSelection(s[0].parent)
 
         layout_plane_in = self.inputs.addSelectionInput(INP_ID_MAIN_LAYOUT_PLANE_SEL, 'Main Layout Plane', 'Select an entity')
         layout_plane_in.addSelectionFilter('ConstructionPlanes')
         layout_plane_in.setSelectionLimits(1, 1)
         s = con.find_attrs(AN_MAIN_LAYOUT_PLANE)
-        if len(s) == 1:
+        if len(s) == 1 and s[0].isValid and s[0].parent is not None:
             layout_plane_in.addSelection(s[0].parent)
 
         attr: ty.MutableMapping[str, str] = con.child[CN_INTERNAL].comp_attr if CN_INTERNAL in con.child else {}
@@ -238,12 +238,12 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs):
         self.parts_cb.notify_validate(event_args)
 
-    def execute_common(self, event_args: CommandEventArgs) -> None:
+    def execute_common(self, event_args: CommandEventArgs, is_execute: bool) -> None:
         print('execute_common')
         con = get_context()
 
         if self.get_scaffold_in().value:
-            options = [inp.listItems.item(1).name for inp in self.parts_cb.get_option_ins()]
+            options = [inp.listItems[1].name for inp in self.parts_cb.get_option_ins()]
             pitch, offset, skeleton_surface, _, layout_plane = generate_scaffold()
             mb = mainboard.DEFAULT
         else:
@@ -256,6 +256,19 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
             offset = self.parts_cb.get_v_offset()
             if offset is None:
                 raise Exception('Bad code.')
+            if is_execute:
+                # Thicken test
+                try:
+                    col = CreateObjectCollectionT(af.BRepFace)
+                    for f in skeleton_surface.faces:
+                        col.add(f)
+                    thicken_fs = con.comp.features.thickenFeatures
+                    thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
+                    tf = thicken_fs.add(thicken_inp)
+                    tf.deleteMe()
+                except RuntimeError:
+                    raise Exception(f'F360 cannot thicken the skeleton surface. A skeleton surface must be applicable "Thicken" command by {-(0.3 + offset) * 10} mm thick.')
+
             mb = self.get_mainboard_in().selectedItem.name
 
         con.attr_singleton[AN_SKELETON_SURFACE] = ('noop', skeleton_surface)
@@ -269,10 +282,10 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
         inl_occ.comp_attr[AN_MAINBOARD] = mb
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        self.execute_common(event_args)
+        self.execute_common(event_args, False)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        self.execute_common(event_args)
+        self.execute_common(event_args, True)
         InitializeEventHandler()
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:

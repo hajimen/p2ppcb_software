@@ -6,12 +6,17 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
-from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, locator_notify_pre_select
+from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci
 from route import route as rt
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
 
+INP_ID_LEDKEY_BOOL = 'ledKey'
 INP_ID_ROW_COL_RADIO = 'rowCol'
 INP_ID_WIRE_NAME_DD = 'wireName'
+
+
+def is_led_name(name):
+    return name.startswith('LED')
 
 
 class AssignMatrixCommandHandler(CommandHandlerBase):
@@ -36,6 +41,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         locator_in.addSelectionFilter('Occurrences')
         locator_in.setSelectionLimits(0, 0)
 
+        _ = self.inputs.addBoolValueInput(INP_ID_LEDKEY_BOOL, 'LED key', True)
+
         rowcol_in = inputs.addRadioButtonGroupCommandInput(INP_ID_ROW_COL_RADIO, 'Source / Drain')
         rowcol_in.listItems.add('Source', True)
         rowcol_in.listItems.add('Drain', False)
@@ -44,11 +51,30 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         self.set_wire_in()
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
-        if active_input.id == INP_ID_KEY_LOCATOR_SEL:
-            locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
+        if active_input.id != INP_ID_KEY_LOCATOR_SEL:
+            return
+        e = af.Occurrence.cast(selection.entity)
+        if e is None:
+            event_args.isSelectable = False
+            return
+        ent = F3Occurrence(e)
+        if (not ent.has_parent) or ent.parent.name != CN_KEY_LOCATORS:
+            event_args.isSelectable = False
+            return
+        selected_locators = self.get_selected_locators()
+        if selected_locators.count == 0:
+            return
+        is_led = self.get_ledkey_in().value
+        for rc in rt.RC:
+            if ANS_RC_NAME[rc] in ent.comp_attr and is_led_name(ent.comp_attr[ANS_RC_NAME[rc]]) != is_led:
+                event_args.isSelectable = False
+                return
 
     def get_locator_in(self):
         return get_ci(self.inputs, INP_ID_KEY_LOCATOR_SEL, ac.SelectionCommandInput)
+
+    def get_ledkey_in(self):
+        return get_ci(self.inputs, INP_ID_LEDKEY_BOOL, ac.BoolValueCommandInput)
 
     def get_selected_locators(self):
         locator_in = self.get_locator_in()
@@ -63,37 +89,42 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
     def get_wire_in(self):
         return get_ci(self.inputs, INP_ID_WIRE_NAME_DD, ac.DropDownCommandInput)
 
-    def set_wire_in(self):
+    def set_wire_in(self, selected_locators_changed=False):
         wire_in = self.get_wire_in()
         wire_in.listItems.clear()
         wire_in.listItems.add('', True)
         rc = self.get_rc()
-        for wn in rt.get_mainboard_constants().wire_names_rc[rc]:
-            wire_in.listItems.add(wn, False)
+        ledkey_in = self.get_ledkey_in()
 
-        locator_in = self.get_locator_in()
-        if locator_in.selectionCount > 0:
-            selected_wn = ''
-            for kl_occ in self.get_selected_locators():
-                if ANS_RC_NAME[rc] in kl_occ.comp_attr:
-                    wn = kl_occ.comp_attr[ANS_RC_NAME[rc]]
-                    if selected_wn == '':
-                        selected_wn = wn
-                    elif selected_wn != wn:
-                        selected_wn = ''
-                        break
-                else:
+        selected_locators = self.get_selected_locators()
+        is_first_selected_locators = selected_locators_changed and selected_locators.count == 1
+        is_led = False if is_first_selected_locators else ledkey_in.value
+        selected_wn = ''
+        for kl_occ in selected_locators:
+            if ANS_RC_NAME[rc] in kl_occ.comp_attr:
+                wn = kl_occ.comp_attr[ANS_RC_NAME[rc]]
+                if selected_wn == '':
+                    selected_wn = wn
+                elif selected_wn != wn:
                     selected_wn = ''
                     break
-            for li in wire_in.listItems:
-                if li.name == selected_wn:
-                    li.isSelected = True
-                    break
+            else:
+                selected_wn = ''
+                break
+        is_led = is_led_name(selected_wn) if is_first_selected_locators else ledkey_in.value
+
+        for wn in rt.get_mainboard_constants().wire_names_rc[rc]:
+            if is_led_name(wn) == is_led:
+                wire_in.listItems.add(wn, wn == selected_wn)
+        if is_first_selected_locators:
+            self.get_ledkey_in().value = is_led
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         if changed_input.id == INP_ID_ROW_COL_RADIO:
             self.set_wire_in()
         elif changed_input.id == INP_ID_KEY_LOCATOR_SEL:
+            self.set_wire_in(True)
+        elif changed_input.id == INP_ID_LEDKEY_BOOL:
             self.set_wire_in()
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
@@ -126,15 +157,14 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                     event_args.areInputsValid = False
                     return
                 else:
-                    if r.startswith('LED') != c.startswith('LED'):
-                        event_args.areInputsValid = False
-                        return
                     matrix_hits[r][c] = kl_occ.name
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         rc = self.get_rc()
+        inv_rc = rt.RC.Col if rc == rt.RC.Row else rt.RC.Row
         wire_in = self.get_wire_in()
         wn = wire_in.selectedItem.name
+        is_led = self.get_ledkey_in().value
         ys = [-0.6, 0.4]
 
         bb = af.CustomGraphicsBillBoard.create(ORIGIN_P3D)
@@ -151,8 +181,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                 raise Exception('Bad code.')
 
         for kl_occ in self.get_selected_locators():
-            cg = kl_occ.comp.customGraphicsGroups.item(rc)
-            for cge in list([cg.item(i) for i in range(cg.count)]):
+            cg = kl_occ.comp.customGraphicsGroups[rc]
+            for cge in list(cg):
                 cge.deleteMe()
             m = ac.Matrix3D.create()
             m.setCell(0, 3, -0.7)
@@ -162,6 +192,12 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             cgt.billBoarding = bb
             cgt.color = text_color
             kl_occ.comp_attr[ANS_RC_NAME[rc]] = wn
+            if ANS_RC_NAME[inv_rc] in kl_occ.comp_attr:
+                if is_led_name(kl_occ.comp_attr[ANS_RC_NAME[inv_rc]]) != is_led:
+                    del kl_occ.comp_attr[ANS_RC_NAME[inv_rc]]
+                    cg = kl_occ.comp.customGraphicsGroups[inv_rc]
+                    for cge in list(cg):
+                        cge.deleteMe()
         event_args.isValidResult = True
 
 

@@ -66,9 +66,9 @@ class PreparePartParameter:
 
 def open_a360_file(folder: ac.DataFolder, name: str) -> ac.DataFile:
     for _ in range(5):
-        for ii in range(len(folder.dataFiles)):
+        for ii in range(folder.dataFiles.count):
             try:
-                f = folder.dataFiles.item(ii)
+                f = folder.dataFiles[ii]
                 adsk.doEvents()
             except Exception:
                 time.sleep(.4)
@@ -201,7 +201,7 @@ class PartsDepot:
         orig_doc = con.app.activeDocument
         admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
         try:
-            cf = open_a360_file(admin_folder, self.cache_docname)
+            _ = open_a360_file(admin_folder, self.cache_docname)
         except FileNotFoundError:
             doc: ac.Document = con.app.documents.add(ac.DocumentTypes.FusionDesignDocumentType)
             newdoc_con = get_context(af.Design.cast(doc.products[0]))
@@ -219,15 +219,20 @@ class PartsDepot:
 
             doc.saveAs(self.cache_docname, admin_folder, 'P2PPCB Cache', '')
             doc.close(False)
-            cf = open_a360_file(admin_folder, self.cache_docname)
-        try:
-            self.cache_doc = con.app.documents.open(cf, True)
-        except RuntimeError:
-            # simply retry
-            for _ in range(10):
-                time.sleep(.2)
-                adsk.doEvents()
-            self.cache_doc = con.app.documents.open(cf, True)
+        self.cache_doc = None
+        for _ in range(10):
+            try:
+                cf = open_a360_file(admin_folder, self.cache_docname)
+                self.cache_doc = con.app.documents.open(cf, True)
+            except RuntimeError:
+                # simply retry
+                for _ in range(10):
+                    time.sleep(.2)
+                    adsk.doEvents()
+                continue
+            break
+        if self.cache_doc is None:
+            raise Exception(f'Cannot open {self.cache_docname}. Internet connection or Autodesk A360 service may be too slow.')
         self.cache_doc_is_modified = False
         orig_doc.activate()
 

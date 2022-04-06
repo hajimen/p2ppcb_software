@@ -401,7 +401,7 @@ class TestEditFrame(unittest.TestCase):
         doc = open_test_document(TEST_F3D_DIR / 'generate_frame.f3d')
         con = get_context()
         before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
-        profs = [p for p in con.comp.sketches.item(1).profiles]
+        profs = [p for p in con.comp.sketches[1].profiles]
         generate_frame(profs, before_frame_bodies, 0.)
         img = capture_viewport()
         # img.save(TEST_PNG_DIR / 'generate_frame.png')

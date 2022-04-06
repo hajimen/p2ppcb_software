@@ -152,9 +152,9 @@ def delete_document(name: str):
     con = get_context()
     folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
     for _ in range(5):
-        for ii in range(len(folder.dataFiles)):
+        for ii in range(folder.dataFiles.count):
             try:
-                f = folder.dataFiles.item(ii)
+                f = folder.dataFiles[ii]
                 adsk.doEvents()
             except Exception:
                 time.sleep(.4)
