@@ -717,7 +717,7 @@ class MoveComponentCommandBlock:
         angle_in = ac.AngleValueCommandInput.cast(inputs.itemById(INP_ID_ROTATION_AV))
         x_in = ac.DistanceValueCommandInput.cast(inputs.itemById(INP_ID_X_DV))
         y_in = ac.DistanceValueCommandInput.cast(inputs.itemById(INP_ID_Y_DV))
-        return angle_in, x_in, y_in
+        return x_in, y_in, angle_in
 
     def start_transaction(self, transaction_trans: ac.Matrix3D):
         self.transaction_trans = transaction_trans
@@ -742,7 +742,7 @@ class MoveComponentCommandBlock:
         vy = ac.Vector3D.create(0, 1, 0)
         vy.transformBy(self.transaction_trans)
 
-        angle_in, x_in, y_in = self.get_inputs()
+        x_in, y_in, angle_in = self.get_inputs()
         cid = '' if changed_input is None else changed_input.id
         if cid != INP_ID_ROTATION_AV:
             o = origin.copy()
@@ -786,7 +786,7 @@ class MoveComponentCommandBlock:
         return mov
 
     def get_rot_mov_trans(self):
-        angle_input, x_input, y_input = self.get_inputs()
+        x_input, y_input, angle_input = self.get_inputs()
         if self.transaction_trans is not None:
             origin = ac.Point3D.create(0, 0, 0)
             origin.transformBy(self.transaction_trans)
