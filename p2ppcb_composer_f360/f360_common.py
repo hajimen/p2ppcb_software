@@ -291,7 +291,7 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
     def get(self, name: str, on_surrogate: ty.Callable = _DO_NOTHING) -> VirtualF3Occurrence:
         if name in self:
             return self[name]
-        o = self.new_surrogate(name, self.parent_occ)
+        o = self.new_surrogate(name)
         on_surrogate(o)
         return o
 
@@ -760,7 +760,7 @@ def get_ids(comp: af.Component) -> ty.Set[str]:
 
 
 @contextmanager
-def create_component(acc_comp: VirtualComponent, new_name: str, postfix: str = None):
+def create_component(acc_comp: VirtualComponent, new_name: str, postfix: ty.Optional[str] = None):
     if isinstance(acc_comp, SurrogateComponent):
         raise Exception("SurrogateComponent is not available.")
     container: ty.List[F3Occurrence] = []

@@ -22,6 +22,20 @@ def is_led_name(name):
 class AssignMatrixCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
+        self.text_color_rc = {
+            rt.RC.Row: af.CustomGraphicsSolidColorEffect.create(ac.Color.create(255, 0, 0, 255)),
+            rt.RC.Col: af.CustomGraphicsSolidColorEffect.create(ac.Color.create(0, 0, 255, 255)),
+        }
+        m = ac.Matrix3D.create()
+        m.setCell(0, 3, -0.7)
+        m.setCell(2, 3, 0.3)
+        mr = m.copy()
+        mr.setCell(1, 3, -0.6)
+        mc = m
+        mc.setCell(1, 3, 0.4)
+        self.m_rc = {rt.RC.Row: mr, rt.RC.Col: mc}
+        self.bb = af.CustomGraphicsBillBoard.create(ORIGIN_P3D)
+        self.bb.billBoardStyle = af.CustomGraphicsBillBoardStyles.ScreenBillBoardStyle
 
     @property
     def cmd_name(self) -> str:
@@ -49,6 +63,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
         _ = inputs.addDropDownCommandInput(INP_ID_WIRE_NAME_DD, 'Wire Name', ac.DropDownStyles.TextListDropDownStyle)
         self.set_wire_in()
+
+        self.show_billboard()
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id != INP_ID_KEY_LOCATOR_SEL:
@@ -159,46 +175,56 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                 else:
                     matrix_hits[r][c] = kl_occ.name
 
-    def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        rc = self.get_rc()
-        inv_rc = rt.RC.Col if rc == rt.RC.Row else rt.RC.Row
-        wire_in = self.get_wire_in()
-        wn = wire_in.selectedItem.name
-        is_led = self.get_ledkey_in().value
-        ys = [-0.6, 0.4]
+    def add_cg_text(self, kl_occ: F3Occurrence, cg: af.CustomGraphicsGroup, rc: rt.RC):
+        cgt = cg.addText(kl_occ.comp_attr[ANS_RC_NAME[rc]], 'Arial', 0.3, self.m_rc[rc])
+        cgt.billBoarding = self.bb
+        cgt.color = self.text_color_rc[rc]
 
-        bb = af.CustomGraphicsBillBoard.create(ORIGIN_P3D)
-        bb.billBoardStyle = af.CustomGraphicsBillBoardStyles.ScreenBillBoardStyle
-        text_color = af.CustomGraphicsSolidColorEffect.create(ac.Color.create(255, 0, 0, 255) if rc == 0 else ac.Color.create(0, 0, 255, 255))
-
-        for kl_occ in get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS].child.values():
-            if isinstance(kl_occ, F3Occurrence):
-                cgs = kl_occ.comp.customGraphicsGroups
-                if cgs.count == 0:
-                    cgs.add()
-                    cgs.add()
-            else:
+    def show_billboard(self):
+        key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
+        key_locators.light_bulb = True
+        for kl_occ in key_locators.child.values():
+            if not isinstance(kl_occ, F3Occurrence):
                 raise Exception('Bad code.')
+            cgs = kl_occ.comp.customGraphicsGroups
+            for irc in rt.RC:
+                cg = cgs.add()
+                if ANS_RC_NAME[irc] in kl_occ.comp_attr:
+                    self.add_cg_text(kl_occ, cg, irc)
 
+    def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
+        self.notify_execute_common(event_args)
+        rc = self.get_rc()
         for kl_occ in self.get_selected_locators():
             cg = kl_occ.comp.customGraphicsGroups[rc]
             for cge in list(cg):
                 cge.deleteMe()
-            m = ac.Matrix3D.create()
-            m.setCell(0, 3, -0.7)
-            m.setCell(1, 3, ys[rc])
-            m.setCell(2, 3, 0.3)
-            cgt = cg.addText(wn, 'Arial', 0.3, m)
-            cgt.billBoarding = bb
-            cgt.color = text_color
-            kl_occ.comp_attr[ANS_RC_NAME[rc]] = wn
+            if ANS_RC_NAME[rc] in kl_occ.comp_attr:
+                self.add_cg_text(kl_occ, cg, rc)
+
+    def notify_execute(self, event_args: CommandEventArgs) -> None:
+        self.notify_execute_common(event_args)
+
+    def notify_execute_common(self, event_args: CommandEventArgs) -> None:
+        rc = self.get_rc()
+        inv_rc = rt.RC.Col if rc == rt.RC.Row else rt.RC.Row
+        is_led = self.get_ledkey_in().value
+        for kl_occ in self.get_selected_locators():
+            kl_occ.comp_attr[ANS_RC_NAME[rc]] = self.get_wire_in().selectedItem.name
             if ANS_RC_NAME[inv_rc] in kl_occ.comp_attr:
                 if is_led_name(kl_occ.comp_attr[ANS_RC_NAME[inv_rc]]) != is_led:
                     del kl_occ.comp_attr[ANS_RC_NAME[inv_rc]]
-                    cg = kl_occ.comp.customGraphicsGroups[inv_rc]
-                    for cge in list(cg):
-                        cge.deleteMe()
-        event_args.isValidResult = True
+
+    def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
+        key_locators.light_bulb = False
+        for kl_occ in key_locators.child.values():
+            if not isinstance(kl_occ, F3Occurrence):
+                raise Exception('Bad code.')
+            for cg in list(kl_occ.comp.customGraphicsGroups):
+                for cge in list(cg):
+                    cge.deleteMe()
+                cg.deleteMe()
 
 
 class GenerateRouteCommandHandler(CommandHandlerBase):
