@@ -196,7 +196,7 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         t.transformBy(lp_inv_trans)
         _, _, yv, _ = t.getAsCoordinateSystem()
         kp_trans = ac.Matrix3D.create()
-        nxv = ka_normal.crossProduct(yv)
+        nxv = yv.crossProduct(ka_normal)
         nxv.normalize()
         nyv = ka_normal.crossProduct(nxv)
         nyv.normalize()

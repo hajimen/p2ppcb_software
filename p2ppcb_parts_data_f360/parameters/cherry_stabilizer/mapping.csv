@@ -1,3 +1,2 @@
 Specifier,filename,Parameter
-2\d*u,MX Cherry-style plate mount Stabilizer 2u.f3d,UseStabilizer
-.*,MX Cherry-style plate mount Stabilizer 6u.f3d,UseStabilizer
+.*,MX Cherry-style plate mount Stabilizer v16.f3d,ParameterA UseStabilizer

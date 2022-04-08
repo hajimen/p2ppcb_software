@@ -521,20 +521,6 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
 
     col = CreateObjectCollectionT(af.BRepBody)
     key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
-    for kpn, kp_occ in key_placeholders_occ.child.items():
-        for n, c_kp_occ in kp_occ.child.items():
-            if n.endswith(CNP_KEY_ASSEMBLY):
-                for pn, part_occ in c_kp_occ.child.items():
-                    cb = part_occ.bodies_by_attr(AN_TERRITORY)[0]
-                    col.add(_get_temp_body(cb, pn, [(AN_KP_NAME, kpn)]))
-    
-    if len(col) < 2:
-        for _, tb in cache_temp_body:
-            tb.deleteMe()
-        return
-
-    inf_in = con.des.createInterferenceInput(col)
-    inf_results = con.des.analyzeInterference(inf_in)
 
     def _get_names(entity):
         brep = af.BRepBody.cast(entity)
@@ -556,7 +542,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         inf_in = con.des.createInterferenceInput(col)
         inf_results = con.des.analyzeInterference(inf_in)
         if inf_results is None:
-            con.ui.messageBox('You came across a bug of Fusion 360. The interference check is invalid about MEV - MEV.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')
+            con.ui.messageBox(f'You came across a bug of Fusion 360. The interference check is invalid about MEV - MEV of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand\n{right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
             return []
         return list(inf_results)
 
@@ -572,7 +558,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
             inf_in = con.des.createInterferenceInput(col)
             inf_results = con.des.analyzeInterference(inf_in)
             if inf_results is None:
-                con.ui.messageBox('You came across a bug of Fusion 360. The interference check is invalid about MF - Hole.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')
+                con.ui.messageBox(f'You came across a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
                 continue
             ret.extend(inf_results)
         return ret
@@ -582,42 +568,56 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         yb = af.BRepBody.cast(ir.entityTwo)
         return (xb, yb) if _get_attr_value(xb, AN_LR) == AV_LEFT else (yb, xb)
 
+    selected_kp_territories: ty.List[af.BRepBody] = []
+    for kpn in selected_kpns:
+        kp_occ = key_placeholders_occ.child[kpn]
+        for n, c_kp_occ in kp_occ.child.items():
+            if n.endswith(CNP_KEY_ASSEMBLY):
+                for pn, part_occ in c_kp_occ.child.items():
+                    cb = part_occ.bodies_by_attr(AN_TERRITORY)[0]
+                    selected_kp_territories.append(_get_temp_body(cb, pn, [(AN_KP_NAME, kpn)]))
+
+    intersect_pairs: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
+    for kpn, kp_occ in key_placeholders_occ.child.items():
+        for n, c_kp_occ in kp_occ.child.items():
+            if n.endswith(CNP_KEY_ASSEMBLY):
+                for pn, part_occ in c_kp_occ.child.items():
+                    cb = part_occ.bodies_by_attr(AN_TERRITORY)[0]
+                    for st in selected_kp_territories:
+                        if _get_names(st.nativeObject)[0] == kpn:
+                            continue
+                        if st.boundingBox.intersects(cb.boundingBox):
+                            intersect_pairs.append((st, _get_temp_body(cb, pn, [(AN_KP_NAME, kpn)])))
+
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
     hit_mf: ty.List[af.BRepBody] = []
     hit_kpns: ty.Set[str] = set()
 
-    if inf_results is None:
-        con.ui.messageBox('You came across a bug of Fusion 360. Cannot check interference in this geometry.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')
-        return hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body
-
-    for ir in inf_results:
-        left_kpn, left_pn = _get_names(ir.entityOne)
-        right_kpn, right_pn = _get_names(ir.entityTwo)
-        if left_kpn not in selected_kpns and right_kpn not in selected_kpns:
-            continue
-        if left_kpn != right_kpn:
-            left_part_occ = _get_part_occ(left_kpn, left_pn)
-            right_part_occ = _get_part_occ(right_kpn, right_pn)
-            hit = False
-            if category_enables[AN_MEV]:
-                for ir in _check_mev_mev(left_part_occ, right_part_occ):
-                    hit = True
-                    hit_mev.extend(_get_lb_rb(ir))
-            if category_enables[AN_MF] or category_enables[AN_HOLE]:
-                for ir in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
-                    hit = True
-                    lb, rb = _get_lb_rb(ir)
-                    if category_enables[AN_MF]:
-                        hit_mf.append(lb)
-                    if _get_attr_value(rb, AN_CATEGORY_NAME) != AN_HOLE:
-                        rpn = _get_attr_value(rb, AN_PART_NAME)[:len(CNP_PARTS)]
-                        raise Exception(f'The part data is corrupted. Two MF bodies are interferencing. The part name: {rpn}')
-                    if category_enables[AN_HOLE]:
-                        hit_hole.append(rb)
-            if hit:
-                hit_kpns.add(left_kpn)
-                hit_kpns.add(right_kpn)
+    for left_tb, right_tb in intersect_pairs:
+        left_kpn, left_pn = _get_names(left_tb.nativeObject)
+        right_kpn, right_pn = _get_names(right_tb.nativeObject)
+        left_part_occ = _get_part_occ(left_kpn, left_pn)
+        right_part_occ = _get_part_occ(right_kpn, right_pn)
+        hit = False
+        if category_enables[AN_MEV]:
+            for ir in _check_mev_mev(left_part_occ, right_part_occ):
+                hit = True
+                hit_mev.extend(_get_lb_rb(ir))
+        if category_enables[AN_MF] or category_enables[AN_HOLE]:
+            for ir in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
+                hit = True
+                lb, rb = _get_lb_rb(ir)
+                if category_enables[AN_MF]:
+                    hit_mf.append(lb)
+                if _get_attr_value(rb, AN_CATEGORY_NAME) != AN_HOLE:
+                    rpn = _get_attr_value(rb, AN_PART_NAME)[:len(CNP_PARTS)]
+                    raise Exception(f'The part data is corrupted. Two MF bodies are interferencing. The part name: {rpn}')
+                if category_enables[AN_HOLE]:
+                    hit_hole.append(rb)
+        if hit:
+            hit_kpns.add(left_kpn)
+            hit_kpns.add(right_kpn)
 
     return hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body
 

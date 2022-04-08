@@ -258,16 +258,39 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
                 raise Exception('Bad code.')
             if is_execute:
                 # Thicken test
+                frame_offset = 0.5
                 try:
                     col = CreateObjectCollectionT(af.BRepFace)
                     for f in skeleton_surface.faces:
                         col.add(f)
                     thicken_fs = con.comp.features.thickenFeatures
-                    thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
+                    thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + frame_offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
                     tf = thicken_fs.add(thicken_inp)
-                    tf.deleteMe()
+                    try:
+                        combines = con.root_comp.features.combineFeatures
+                        thicken_inp2 = thicken_fs.createInput(col, ac.ValueInput.createByReal(-frame_offset), False, af.FeatureOperations.NewBodyFeatureOperation, False)
+                        tf2 = thicken_fs.add(thicken_inp2)
+                        target_body = tf.bodies[0].copyToComponent(con.comp)
+                        cut_body = tf2.bodies[0].copyToComponent(con.comp)
+                        try:
+                            col3 = CreateObjectCollectionT(af.BRepBody)
+                            col3.add(cut_body)
+                            co_in2 = combines.createInput(target_body, col3)
+                            co_in2.operation = af.FeatureOperations.CutFeatureOperation
+                            co_in2.isKeepToolBodies = True
+                            combines.add(co_in2)
+                        finally:
+                            if cut_body.isValid:
+                                cut_body.deleteMe()
+                            if target_body.isValid:
+                                target_body.deleteMe()
+                            if tf2.isValid:
+                                tf2.deleteMe()
+                    finally:
+                        if tf.isValid:
+                            tf.deleteMe()
                 except RuntimeError:
-                    raise Exception(f'F360 cannot thicken the skeleton surface. A skeleton surface must be applicable "Thicken" command by {-(0.3 + offset) * 10} mm thick.')
+                    raise Exception(f'F360 cannot thicken the skeleton surface, or cannot cut the thicken body. A skeleton surface must be applicable "Thicken" command by {-(0.3 + frame_offset) * 10} mm thick. Therefore the thicken body must be cuttable by {-frame_offset * 10} mm thicken body.')
 
             mb = self.get_mainboard_in().selectedItem.name
 
