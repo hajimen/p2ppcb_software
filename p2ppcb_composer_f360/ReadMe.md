@@ -151,6 +151,8 @@ F360 script in `composer_test` does unit tests. Please carefully look at `sys.pa
 
 The unit tests don't have good granularity. In reality, they are just regression tests (in preparation for F360's update) and command launchers for debugging.
 
+`test_generate_route` is quite slow while VSCode debugger is attached. It comes from cefpython3's behavior under F360 + VSCode debugger. I don't know why.
+
 ## Lazy binding by surrogate
 
 F360 command cannot import F360 components during from the end of a create event to the end of an execute event. 
