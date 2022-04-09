@@ -15,7 +15,7 @@ from reimport import reimport
 
 reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.depot',
           'composer_test.test_base', 'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
-          'p2ppcb_composer.cmd_start_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
+          'p2ppcb_composer.cmd_init_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
           'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar', 'composer_test.test_cmd', ], ['mainboard'])
 
@@ -33,8 +33,8 @@ def load_automated_tests(test_suite: unittest.TestSuite):
     test_suite.addTest(TestCmdCommon('test_prepare_key_assembly'))
     test_suite.addTest(TestCmdCommon('test_check_intra_key_assembly_interference'))
 
-    from composer_test.test_cmd import TestStartProject
-    test_suite.addTest(TestStartProject('test_initialize'))
+    from composer_test.test_cmd import TestInitProject
+    test_suite.addTest(TestInitProject('test_initialize'))
 
     from composer_test.test_cmd import TestLoadKle
     test_suite.addTest(TestLoadKle('test_place_locators'))
@@ -49,8 +49,8 @@ def load_manual_tests(test_suite: unittest.TestSuite):
     '''
     These tests require manual image comparison.
     '''
-    from composer_test.test_cmd import TestStartProject
-    test_suite.addTest(TestStartProject('test_generate_scaffold'))
+    from composer_test.test_cmd import TestInitProject
+    test_suite.addTest(TestInitProject('test_generate_scaffold'))
 
     from composer_test.test_cmd import TestMoveKey
     test_suite.addTest(TestMoveKey('test_cmd'))
@@ -85,8 +85,8 @@ def run(context):
     # from composer_test.test_cmd import TestCmdCommon
     # test_suite.addTest(TestTestBase('test_cmd_interactive'))
 
-    # from composer_test.test_cmd import TestStartProject
-    # test_suite.addTest(TestStartProject('test_cmd_interactive'))
+    # from composer_test.test_cmd import TestInitProject
+    # test_suite.addTest(TestInitProject('test_cmd_interactive'))
 
     # from composer_test.test_cmd import TestLoadKle
     # test_suite.addTest(TestLoadKle('test_cmd_interactive'))

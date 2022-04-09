@@ -9,7 +9,7 @@ if str(CURRENT_DIR) not in sys.path:
 from reimport import reimport
 reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.depot',
           'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
-          'p2ppcb_composer.cmd_start_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
+          'p2ppcb_composer.cmd_init_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
           'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar'], ['mainboard'])
 from f360_common import catch_exception

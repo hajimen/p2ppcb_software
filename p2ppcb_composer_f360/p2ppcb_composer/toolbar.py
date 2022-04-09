@@ -1,7 +1,7 @@
 import typing as ty
 from f360_common import get_context
 from p2ppcb_composer.cmd_common import CommandHandlerBase
-from p2ppcb_composer.cmd_start_project import StartP2ppcbProjectCommandHandler
+from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
 from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler
 from p2ppcb_composer.cmd_move_key import MoveKeyCommandHandler
 from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler, CheckKeyAssemblyCommandHandler
@@ -13,7 +13,7 @@ from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
 TBT_ID_P2PPCB = 'p2ppcbToolbarTab'
 
 PANEL_CLASSES: ty.List[ty.Tuple[str, str, ty.List[ty.Tuple[ty.Type, bool]]]] = [
-    ('p2ppcbInitializeToolbarPanel', 'Initialize', [(StartP2ppcbProjectCommandHandler, True), (LoadKleFileCommandHandler, True)]),
+    ('p2ppcbInitializeToolbarPanel', 'Initialize', [(InitializeP2ppcbProjectCommandHandler, True), (LoadKleFileCommandHandler, True)]),
     ('p2ppcbEditKeyToolbarPanel', 'Edit Key', [(MoveKeyCommandHandler, True), (ChangeKeyDescsCommandHandler, True)]),
     ('p2ppcbMatrixToolbarPanel', 'Matrix', [(AssignMatrixCommandHandler, True), (GenerateRouteCommandHandler, True)]),
     ('p2ppcbFillHoleToolbarPanel', 'Fill/Hole', [(FillFrameCommandHandler, True), (HolePartsCommandHandler, True)]),

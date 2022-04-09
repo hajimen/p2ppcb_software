@@ -179,16 +179,16 @@ class TestCmdCommon(unittest.TestCase):
         delete_document(cache_docname)
 
 
-class TestStartProject(unittest.TestCase):
+class TestInitProject(unittest.TestCase):
     def test_cmd_interactive(self):
-        from p2ppcb_composer.cmd_start_project import StartP2ppcbProjectCommandHandler
-        execute_command(StartP2ppcbProjectCommandHandler)
+        from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
+        execute_command(InitializeP2ppcbProjectCommandHandler)
         adsk.autoTerminate(False)
     
     def test_initialize(self):
         doc = new_document()
         con = get_context()
-        from p2ppcb_composer.cmd_start_project import initialize
+        from p2ppcb_composer.cmd_init_project import initialize
         inl_occ = con.child.get_real(CN_INTERNAL)
         inl_occ.comp_attr[AN_MAINBOARD] = 'Alice'
         initialize()
@@ -213,7 +213,7 @@ class TestStartProject(unittest.TestCase):
 
     def test_generate_scaffold(self):
         doc = new_document()
-        from p2ppcb_composer.cmd_start_project import generate_scaffold
+        from p2ppcb_composer.cmd_init_project import generate_scaffold
         pitch, offset, skeleton_surface, alternative_surface, layout_plane = generate_scaffold()
         self.assertEqual(pitch, 1.9)
         self.assertEqual(offset, 0.)

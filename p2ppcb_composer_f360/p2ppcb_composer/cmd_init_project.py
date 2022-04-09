@@ -129,7 +129,7 @@ class InitializeEventHandler(OnceEventHandler):
         initialize()
 
 
-class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
+class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
     def __init__(self) -> None:
         super().__init__()
         self.parts_cb: PartsCommandBlock
