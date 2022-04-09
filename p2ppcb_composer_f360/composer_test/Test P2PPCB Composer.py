@@ -59,7 +59,7 @@ def load_manual_tests(test_suite: unittest.TestSuite):
     test_suite.addTest(TestChangeKeyDescs('test_cmd'))
 
     from composer_test.test_cmd import TestEditFrame
-    test_suite.addTest(TestEditFrame('test_generate_frame'))
+    test_suite.addTest(TestEditFrame('test_fill'))
 
 
 def load_notorious_tests(test_suite: unittest.TestSuite):
@@ -103,10 +103,10 @@ def run(context):
     # test_suite.addTest(TestMatrixRoute('test_cmd_interactive_generate_route'))
 
     # from composer_test.test_cmd import TestEditFrame
-    # test_suite.addTest(TestEditFrame('test_cmd_interactive_generate_frame'))
+    # test_suite.addTest(TestEditFrame('test_cmd_interactive_fill'))
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_place_mb'))
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_place_foot'))
-    # test_suite.addTest(TestEditFrame('test_cmd_interactive_finish'))
+    # test_suite.addTest(TestEditFrame('test_cmd_interactive_hole'))
 
     # from composer_test.test_cmd import TestSetAttribute
     # test_suite.addTest(TestSetAttribute('test_cmd_interactive'))

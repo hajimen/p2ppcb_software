@@ -6,18 +6,19 @@ from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler
 from p2ppcb_composer.cmd_move_key import MoveKeyCommandHandler
 from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler, CheckKeyAssemblyCommandHandler
 from p2ppcb_composer.cmd_matrix_route import AssignMatrixCommandHandler, GenerateRouteCommandHandler
-from p2ppcb_composer.cmd_edit_frame import GenerateFrameCommandHandler, PlaceMainboardCommandHandler, PlaceFootCommandHandler, FinishP2ppcbProjectCommandHandler
+from p2ppcb_composer.cmd_edit_frame import FillFrameCommandHandler, PlaceMainboardCommandHandler, PlaceFootCommandHandler, HolePartsCommandHandler
 from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
 
 
 TBT_ID_P2PPCB = 'p2ppcbToolbarTab'
 
 PANEL_CLASSES: ty.List[ty.Tuple[str, str, ty.List[ty.Tuple[ty.Type, bool]]]] = [
-    ('p2ppcbStartToolbarPanel', 'Start/Finish', [(StartP2ppcbProjectCommandHandler, True), (LoadKleFileCommandHandler, True), (FinishP2ppcbProjectCommandHandler, True)]),
-    ('p2ppcbEditKeyToolbarPanel', 'Edit Key', [(MoveKeyCommandHandler, True), (ChangeKeyDescsCommandHandler, True), (AssignMatrixCommandHandler, True)]),
-    ('p2ppcbGenerateToolbarPanel', 'Generate', [(GenerateRouteCommandHandler, True), (GenerateFrameCommandHandler, True)]),
-    ('p2ppcbEditFrameToolbarPanel', 'Edit Frame', [(PlaceMainboardCommandHandler, True), (PlaceFootCommandHandler, True)]),
-    ('p2ppcbPartsToolbarPanel', 'Parts', [(SetAttributeCommandHandler, True), (CheckKeyAssemblyCommandHandler, True)]),
+    ('p2ppcbInitializeToolbarPanel', 'Initialize', [(StartP2ppcbProjectCommandHandler, True), (LoadKleFileCommandHandler, True)]),
+    ('p2ppcbEditKeyToolbarPanel', 'Edit Key', [(MoveKeyCommandHandler, True), (ChangeKeyDescsCommandHandler, True)]),
+    ('p2ppcbMatrixToolbarPanel', 'Matrix', [(AssignMatrixCommandHandler, True), (GenerateRouteCommandHandler, True)]),
+    ('p2ppcbFillHoleToolbarPanel', 'Fill/Hole', [(FillFrameCommandHandler, True), (HolePartsCommandHandler, True)]),
+    ('p2ppcbPlacePartsToolbarPanel', 'Place Parts', [(PlaceMainboardCommandHandler, True), (PlaceFootCommandHandler, True)]),
+    ('p2ppcbPartsEditToolbarPanel', 'Parts Edit', [(SetAttributeCommandHandler, True), (CheckKeyAssemblyCommandHandler, True)]),
 ]
 
 HANDLERS = []

@@ -199,7 +199,7 @@ def get_frame(func: ty.Optional[ty.Callable] = None):
     return frame
 
 
-class GenerateFrameCommandHandler(CommandHandlerBase):
+class FillFrameCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
         self.offset_cb: OffsetCommandBlock
@@ -207,15 +207,15 @@ class GenerateFrameCommandHandler(CommandHandlerBase):
 
     @property
     def cmd_name(self) -> str:
-        return 'Generate Frame'
+        return 'Fill Frame'
 
     @property
     def tooltip(self) -> str:
-        return 'Generates a frame body in the root component. This command just does fill operation of keys. Hole operation should be done by Finish command. Interference check may require tens of seconds.'
+        return 'Fills a frame body in the root component. Interference check may require tens of seconds.'
 
     @property
     def resource_folder(self) -> str:
-        return 'Resources/generate_frame'
+        return 'Resources/fill'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         con = get_context()
@@ -766,7 +766,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
             b.isLightBulbOn = False
 
 
-def finish_frame(frame: af.BRepBody):
+def hole_all_parts(frame: af.BRepBody):
     con = get_context()
     hole_body_col = collect_body_from_key(AN_HOLE)
     fill_body_col = CreateObjectCollectionT(af.BRepBody)
@@ -821,21 +821,21 @@ def finish_frame(frame: af.BRepBody):
     inl_occ.light_bulb = False
 
 
-class FinishP2ppcbProjectCommandHandler(CommandHandlerBase):
+class HolePartsCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
 
     @property
     def cmd_name(self) -> str:
-        return 'Finish'
+        return 'Hole'
 
     @property
     def tooltip(self) -> str:
-        return 'Finishes a P2PPCB project. This command executes hole operation of all parts. You can print the frame body after this command.'
+        return 'Holes all parts, including the mainboard and feet. You can print the frame body after this command.'
 
     @property
     def resource_folder(self) -> str:
-        return 'Resources/finish'
+        return 'Resources/hole'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         frame_in = self.inputs.addSelectionInput(INP_ID_FRAME_BODY_SEL, 'Frame Body', 'Select an entity')
@@ -853,7 +853,7 @@ class FinishP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     def execute_common(self, event_args: CommandEventArgs):
         frame = af.BRepBody.cast(self.get_frame_in().selection(0).entity)
-        finish_frame(frame)
+        hole_all_parts(frame)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         print('executePreview')

@@ -376,9 +376,9 @@ class TestMatrixRoute(unittest.TestCase):
 
 
 class TestEditFrame(unittest.TestCase):
-    def test_cmd_interactive_generate_frame(self):
-        from p2ppcb_composer.cmd_edit_frame import GenerateFrameCommandHandler
-        execute_command(GenerateFrameCommandHandler)
+    def test_cmd_interactive_fill(self):
+        from p2ppcb_composer.cmd_edit_frame import FillFrameCommandHandler
+        execute_command(FillFrameCommandHandler)
         adsk.autoTerminate(False)
 
     def test_cmd_interactive_place_mb(self):
@@ -391,12 +391,12 @@ class TestEditFrame(unittest.TestCase):
         execute_command(PlaceFootCommandHandler)
         adsk.autoTerminate(False)
 
-    def test_cmd_interactive_finish(self):
-        from p2ppcb_composer.cmd_edit_frame import FinishP2ppcbProjectCommandHandler
-        execute_command(FinishP2ppcbProjectCommandHandler)
+    def test_cmd_interactive_hole(self):
+        from p2ppcb_composer.cmd_edit_frame import HolePartsCommandHandler
+        execute_command(HolePartsCommandHandler)
         adsk.autoTerminate(False)
 
-    def test_generate_frame(self):
+    def test_fill(self):
         from p2ppcb_composer.cmd_edit_frame import generate_frame
         doc = open_test_document(TEST_F3D_DIR / 'generate_frame.f3d')
         con = get_context()

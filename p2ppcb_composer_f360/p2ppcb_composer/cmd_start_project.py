@@ -136,15 +136,15 @@ class StartP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     @property
     def cmd_name(self) -> str:
-        return 'Start'
+        return 'Initialize'
 
     @property
     def tooltip(self) -> str:
-        return 'Starts a P2PPCB Project. It initializes a file and registers settings for a P2PPCB project.'
+        return 'Initializes a P2PPCB Project. It registers settings for a P2PPCB project. You can run this command twice or more.'
 
     @property
     def resource_folder(self) -> str:
-        return 'Resources/start'
+        return 'Resources/initialize'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         con = get_context()
