@@ -78,7 +78,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             event_args.isSelectable = False
             return
         selected_locators = self.get_selected_locators()
-        if selected_locators.count == 0:
+        if len(selected_locators) <= 1:
             return
         is_led = self.get_ledkey_in().value
         for rc in rt.RC:
@@ -108,11 +108,20 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
     def set_wire_in(self, selected_locators_changed=False):
         wire_in = self.get_wire_in()
         wire_in.listItems.clear()
-        wire_in.listItems.add('', True)
+        rowcol_in = self.get_rowcol_in()
         rc = self.get_rc()
         ledkey_in = self.get_ledkey_in()
 
         selected_locators = self.get_selected_locators()
+        if len(selected_locators) == 0:
+            wire_in.isVisible = False
+            ledkey_in.isVisible = False
+            rowcol_in.isVisible = False
+            return
+        wire_in.isVisible = True
+        ledkey_in.isVisible = True
+        rowcol_in.isVisible = True
+        wire_in.listItems.add('', True)
         is_first_selected_locators = selected_locators_changed and selected_locators.count == 1
         is_led = False if is_first_selected_locators else ledkey_in.value
         selected_wn = ''
@@ -147,7 +156,6 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         print('notify_validate')
         locator_in = self.get_locator_in()
         wire_in = self.get_wire_in()
-        wn = wire_in.selectedItem.name
         rc = self.get_rc()
         selected_locators = self.get_selected_locators()
 
@@ -163,6 +171,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
                 matrix_hits[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
         not_rc = 1 if rc == 0 else 0
+        wn = wire_in.selectedItem.name
         for kl_occ in selected_locators:
             if ANS_RC_NAME[not_rc] in kl_occ.comp_attr:
                 r = wn
