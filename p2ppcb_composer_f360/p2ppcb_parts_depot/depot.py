@@ -219,11 +219,11 @@ class PartsDepot:
 
             doc.saveAs(self.cache_docname, admin_folder, 'P2PPCB Cache', '')
             doc.close(False)
-        self.cache_doc = None
+        cache_doc = None
         for _ in range(10):
             try:
                 cf = open_a360_file(admin_folder, self.cache_docname)
-                self.cache_doc = con.app.documents.open(cf, True)
+                cache_doc = con.app.documents.open(cf, True)
             except RuntimeError:
                 # simply retry
                 for _ in range(10):
@@ -231,8 +231,9 @@ class PartsDepot:
                     adsk.doEvents()
                 continue
             break
-        if self.cache_doc is None:
+        if cache_doc is None:
             raise Exception(f'Cannot open {self.cache_docname}. Internet connection or Autodesk A360 service may be too slow.')
+        self.cache_doc = cache_doc
         self.cache_doc_is_modified = False
         orig_doc.activate()
 
@@ -365,18 +366,14 @@ class PartsDepot:
                         raise Exception(f'F3D file import failed: {pp.part_source_filename}')
                 comp = container.pop().comp
                 for k, v in pp.model_parameters.items():
-                    hit = False
                     for mp in comp.modelParameters:
                         if mp.name == k or mp.name.startswith(k + '_'):
-                            hit = True
                             if v.is_compatible_with('rad'):
                                 mp.value = v.m_as('rad')
                             elif v.is_compatible_with('cm'):
                                 mp.value = v.m_as('cm')
                             else:
                                 raise Exception(f'Unknown dimension in part info: {str(v)}')
-                    if not hit:
-                        raise Exception(f"{pp.part_source_filename} don't have model parameter {k}.")
                 if pp.cap_placeholder_parameters is not None:
                     for b in comp.bRepBodies:
                         a = b.attributes.itemByName(ATTR_GROUP, 'Placeholder')

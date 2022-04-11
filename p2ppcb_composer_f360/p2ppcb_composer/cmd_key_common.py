@@ -17,11 +17,12 @@ from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, A
     FourOrientation, TwoOrientation, YU_V3D, ZU_V3D, key_assembly_name, \
     key_placeholder_name, pcb_name, stabilizer_name, switch_name, ANS_HOLE_MEV_MF, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
-from p2ppcb_composer.cmd_common import AN_LOCATORS_PLANE_TOKEN, AN_SKELETON_SURFACE, check_layout_plane
+from p2ppcb_composer.cmd_common import AN_LOCATORS_PLANE_TOKEN, check_layout_plane
 
 INP_ID_LAYOUT_PLANE_SEL = 'layoutPlane'
 INP_ID_KEY_LOCATOR_SEL = 'keyLocator'
 
+AN_LOCATORS_SKELETON_TOKEN = 'skeletonSurfaceToken'
 AN_LOCATORS_ANGLE_TOKEN = 'angleSurfaceToken'
 
 # PP: Prepare Parameter
@@ -91,11 +92,6 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
 
     pp_ka_on_so: ty.Dict[str, PrepareKeyAssemblyParameter] = con.prepare_parameter_dict[PP_KEY_ASSEMBLY_ON_SO]
     pp_ka_on_so.clear()
-    skeleton_surface = af.BRepBody.cast(con.attr_singleton[AN_SKELETON_SURFACE][1])
-    ss_comp = skeleton_surface.parentComponent
-    ss_trans = _get_proxy_transform(skeleton_surface.assemblyContext)
-    ss_inv_trans = ss_trans.copy()
-    ss_inv_trans.invert()
 
     inl_occ = con.child[CN_INTERNAL]
     locators_occ = inl_occ.child[CN_KEY_LOCATORS]
@@ -147,6 +143,12 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         else:
             kp_occ = key_placeholders_occ.child.get(kn, on_surrogate=_on_surrogate_kp)
         kp_occ.light_bulb = False
+
+        skeleton_surface = af.BRepBody.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_SKELETON_TOKEN])[0])
+        ss_comp = skeleton_surface.parentComponent
+        ss_trans = _get_proxy_transform(skeleton_surface.assemblyContext)
+        ss_inv_trans = ss_trans.copy()
+        ss_inv_trans.invert()
 
         zv = ac.Vector3D.create(0., 0., -1.)
         root_kl_trans = kl_occ.transform.copy()

@@ -5,12 +5,12 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
 from f360_common import CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, CreateObjectCollectionT, \
     AN_KEY_PITCH, create_component, get_context, AN_PARTS_DATA_PATH
-from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, \
-    has_sel_in, get_cis, PartsCommandBlock, AN_SKELETON_SURFACE, CommandHandlerBase, check_layout_plane
+from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
+    has_sel_in, get_cis, PartsCommandBlock, AN_MAIN_SURFACE, CommandHandlerBase, check_layout_plane
 import mainboard
 from route.route import get_cn_mainboard, get_mainboard_constants
 
-INP_ID_SKELETON_SURFACE_SEL = 'skeletonSurface'
+INP_ID_MAIN_SURFACE_SEL = 'mainSurface'
 INP_ID_MAIN_LAYOUT_PLANE_SEL = 'layoutPlane'
 INP_ID_KEY_PITCH_VAL = 'keyPitch'
 INP_ID_MAINBOARD = 'mainboard'
@@ -156,12 +156,12 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
                 return
             con.des.designType = af.DesignTypes.DirectDesignType
 
-        skeleton_in = self.inputs.addSelectionInput(INP_ID_SKELETON_SURFACE_SEL, 'Skeleton Surface', 'Select an entity')
-        skeleton_in.addSelectionFilter('SurfaceBodies')
-        skeleton_in.setSelectionLimits(1, 1)
-        s = con.find_attrs(AN_SKELETON_SURFACE)
+        main_in = self.inputs.addSelectionInput(INP_ID_MAIN_SURFACE_SEL, 'Main Surface', 'Select an entity')
+        main_in.addSelectionFilter('SurfaceBodies')
+        main_in.setSelectionLimits(1, 1)
+        s = con.find_attrs(AN_MAIN_SURFACE)
         if len(s) == 1 and s[0].isValid and s[0].parent is not None:
-            skeleton_in.addSelection(s[0].parent)
+            main_in.addSelection(s[0].parent)
 
         layout_plane_in = self.inputs.addSelectionInput(INP_ID_MAIN_LAYOUT_PLANE_SEL, 'Main Layout Plane', 'Select an entity')
         layout_plane_in.addSelectionFilter('ConstructionPlanes')
@@ -199,11 +199,11 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
         scaffold_in = self.inputs.addBoolValueInput(INP_ID_SCAFFOLD_BOOL, 'Generate a scaffold set', True)
         scaffold_in.tooltip = 'Start with a scaffold set instead of your original set.'
-        if skeleton_in.selectionCount > 0 and layout_plane_in.selectionCount > 0 and all([inp.selectedItem.name != '' for inp in self.parts_cb.get_option_ins()]):
+        if all_has_sel_ins([main_in, layout_plane_in]) and all([inp.selectedItem.name != '' for inp in self.parts_cb.get_option_ins()]):
             scaffold_in.isVisible = False
 
     def get_selection_ins(self) -> ty.Tuple[ac.SelectionCommandInput, ...]:
-        return get_cis(self.inputs, [INP_ID_SKELETON_SURFACE_SEL, INP_ID_MAIN_LAYOUT_PLANE_SEL], ac.SelectionCommandInput)
+        return get_cis(self.inputs, [INP_ID_MAIN_SURFACE_SEL, INP_ID_MAIN_LAYOUT_PLANE_SEL], ac.SelectionCommandInput)
 
     def get_scaffold_in(self):
         return ac.BoolValueCommandInput.cast(self.inputs.itemById(INP_ID_SCAFFOLD_BOOL))
@@ -244,11 +244,11 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
         if self.get_scaffold_in().value:
             options = [inp.listItems[1].name for inp in self.parts_cb.get_option_ins()]
-            pitch, offset, skeleton_surface, _, layout_plane = generate_scaffold()
+            pitch, offset, main_surface, _, layout_plane = generate_scaffold()
             mb = mainboard.DEFAULT
         else:
-            skeleton_in, layout_plane_in = self.get_selection_ins()
-            skeleton_surface = af.BRepBody.cast(skeleton_in.selection(0).entity)
+            main_in, layout_plane_in = self.get_selection_ins()
+            main_surface = af.BRepBody.cast(main_in.selection(0).entity)
             layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
             pitch = self.get_pitch_in().value
 
@@ -256,45 +256,9 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             offset = self.parts_cb.get_v_offset()
             if offset is None:
                 raise Exception('Bad code.')
-            if is_execute:
-                # Thicken test
-                frame_offset = 0.5
-                try:
-                    col = CreateObjectCollectionT(af.BRepFace)
-                    for f in skeleton_surface.faces:
-                        col.add(f)
-                    thicken_fs = con.comp.features.thickenFeatures
-                    thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + frame_offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
-                    tf = thicken_fs.add(thicken_inp)
-                    try:
-                        combines = con.root_comp.features.combineFeatures
-                        thicken_inp2 = thicken_fs.createInput(col, ac.ValueInput.createByReal(-frame_offset), False, af.FeatureOperations.NewBodyFeatureOperation, False)
-                        tf2 = thicken_fs.add(thicken_inp2)
-                        target_body = tf.bodies[0].copyToComponent(con.comp)
-                        cut_body = tf2.bodies[0].copyToComponent(con.comp)
-                        try:
-                            col3 = CreateObjectCollectionT(af.BRepBody)
-                            col3.add(cut_body)
-                            co_in2 = combines.createInput(target_body, col3)
-                            co_in2.operation = af.FeatureOperations.CutFeatureOperation
-                            co_in2.isKeepToolBodies = True
-                            combines.add(co_in2)
-                        finally:
-                            if cut_body.isValid:
-                                cut_body.deleteMe()
-                            if target_body.isValid:
-                                target_body.deleteMe()
-                            if tf2.isValid:
-                                tf2.deleteMe()
-                    finally:
-                        if tf.isValid:
-                            tf.deleteMe()
-                except RuntimeError:
-                    raise Exception(f'F360 cannot thicken the skeleton surface, or cannot cut the thicken body. A skeleton surface must be applicable "Thicken" command by {-(0.3 + frame_offset) * 10} mm thick. Therefore the thicken body must be cuttable by {-frame_offset * 10} mm thicken body.')
-
             mb = self.get_mainboard_in().selectedItem.name
 
-        con.attr_singleton[AN_SKELETON_SURFACE] = ('noop', skeleton_surface)
+        con.attr_singleton[AN_MAIN_SURFACE] = ('noop', main_surface)
         con.attr_singleton[AN_MAIN_LAYOUT_PLANE] = ('noop', layout_plane)
         inl_occ = con.child.get_real(CN_INTERNAL)
         inl_occ.comp_attr[AN_KEY_PITCH] = str(pitch)

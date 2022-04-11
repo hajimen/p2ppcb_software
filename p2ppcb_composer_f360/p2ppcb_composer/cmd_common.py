@@ -15,7 +15,7 @@ from pint import Quantity
 
 
 AN_LOCATORS_PLANE_TOKEN = 'locatorsPlaneToken'
-AN_SKELETON_SURFACE = 'skeletonSurface'
+AN_MAIN_SURFACE = 'mainSurface'
 AN_MAINBOARD = 'mainboard'
 AN_MAIN_KEY_ANGLE_SURFACE = 'mainKeyAngleSurface'
 AN_MAIN_LAYOUT_PLANE = 'mainLayoutPlane'
@@ -299,6 +299,10 @@ def get_cis(inputs: CommandInputs, ins_id: ty.List[str], cls: ty.Type):
 
 def has_sel_in(sel_in: ac.SelectionCommandInput):
     return sel_in.selectionCount > 0 and sel_in.selection(0).entity is not None
+
+
+def all_has_sel_ins(sel_ins: ty.Iterable[ac.SelectionCommandInput]):
+    return all([has_sel_in(sel_in) for sel_in in sel_ins])
 
 
 class PartsCommandBlock:

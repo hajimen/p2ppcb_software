@@ -397,15 +397,16 @@ class TestEditFrame(unittest.TestCase):
         adsk.autoTerminate(False)
 
     def test_fill(self):
-        from p2ppcb_composer.cmd_edit_frame import generate_frame
-        doc = open_test_document(TEST_F3D_DIR / 'generate_frame.f3d')
+        from p2ppcb_composer.cmd_edit_frame import fill_frame
+        doc = open_test_document(TEST_F3D_DIR / 'fill_frame.f3d')
         con = get_context()
         before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
         profs = [p for p in con.comp.sketches[1].profiles]
-        generate_frame(profs, before_frame_bodies, 0.)
+        fill_frame(True, profs, before_frame_bodies, 0.8)
+        con.child[CN_INTERNAL].light_bulb = False
         img = capture_viewport()
-        # img.save(TEST_PNG_DIR / 'generate_frame.png')
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'generate_frame.png'))
+        # img.save(TEST_PNG_DIR / 'fill_frame.png')
+        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'fill_frame.png'))
         doc.close(False)
 
 

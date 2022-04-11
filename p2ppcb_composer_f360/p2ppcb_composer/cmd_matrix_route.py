@@ -6,7 +6,7 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
-from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci
+from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, has_sel_in
 from route import route as rt
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
 
@@ -159,7 +159,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         rc = self.get_rc()
         selected_locators = self.get_selected_locators()
 
-        if locator_in.selectionCount == 0:
+        if has_sel_in(locator_in):
             event_args.areInputsValid = False
             return
         if wire_in.selectedItem.name == '':

@@ -1,6 +1,8 @@
+from operator import attrgetter
 import typing as ty
 import pickle
 import base64
+from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN
 from pint import Quantity
 import adsk.core as ac
 import adsk.fusion as af
@@ -8,9 +10,10 @@ from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEve
 from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER
-from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, AN_SKELETON_SURFACE, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
+from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
 from route.route import get_cn_mainboard
 
+INP_ID_GENERATE_BRIDGE_BOOL = 'generateBridge'
 INP_ID_BRIDGE_PROFILE_SEL = 'bridgeProfile'
 INP_ID_MAINBOARD_LAYOUT_RADIO = 'maiboardLayout'
 INP_ID_FLIP_BOOL = 'flip'
@@ -84,107 +87,124 @@ def collect_body_from_key(an: str):
     return ret
 
 
-def generate_frame(profs: ty.List[af.Profile], before_frame_bodies: ty.List[af.BRepBody], offset: float):
-    if len(profs) == 0:
-        raise Exception('profs should have a profile at least.')
+def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_frame_bodies: ty.List[af.BRepBody], offset: float):
     con = get_context()
 
-    frame = con.comp.bRepBodies.itemByName(BN_FRAME)
-    if frame is not None:
-        frame.deleteMe()
-
-    skeleton_surface = af.BRepBody.cast(con.attr_singleton[AN_SKELETON_SURFACE][1])
-    col = CreateObjectCollectionT(af.BRepFace)
-    for f in skeleton_surface.faces:
-        col.add(f)
-    thicken_fs = con.comp.features.thickenFeatures
-    thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
-    tf = thicken_fs.add(thicken_inp)
+    for b in con.comp.bRepBodies:
+        if b.name.startswith(BN_FRAME):
+            b.deleteMe()
 
     combines = con.root_comp.features.combineFeatures
-    if offset > 0.:
-        thicken_inp2 = thicken_fs.createInput(col, ac.ValueInput.createByReal(-offset), False, af.FeatureOperations.NewBodyFeatureOperation, False)
-        tf2 = thicken_fs.add(thicken_inp2)
-        col3 = CreateObjectCollectionT(af.BRepBody)
-        col3.add(tf2.bodies[0])
-        co_in2 = combines.createInput(tf.bodies[0], col3)
-        co_in2.operation = af.FeatureOperations.CutFeatureOperation
-        co_in2.isKeepToolBodies = False
-        _ = combines.add(co_in2)
+    thicken_fs = con.comp.features.thickenFeatures
+    col = CreateObjectCollectionT(af.BRepFace)
+    ss_bodies: ty.List[af.BRepBody] = []
+    if is_generate_bridge:
+        if len(profs) == 0:
+            raise Exception('profs should have a profile at least.')
 
-    extrudes = con.root_comp.features.extrudeFeatures
-    col2 = CreateObjectCollectionT(af.BRepBody)
-    for prof in profs:
-        ex_in = extrudes.createInput(prof, af.FeatureOperations.NewBodyFeatureOperation)
-        ex_in.isSolid = True
-        ex_in.setSymmetricExtent(ac.ValueInput.createByString('1 m'), False)
-        ex = extrudes.add(ex_in)
-        col2.add(ex.bodies[0])
+        extrudes = con.root_comp.features.extrudeFeatures
+        col2 = CreateObjectCollectionT(af.BRepBody)
+        for prof in profs:
+            ex_in = extrudes.createInput(prof, af.FeatureOperations.NewBodyFeatureOperation)
+            ex_in.isSolid = True
+            ex_in.setSymmetricExtent(ac.ValueInput.createByString('1 m'), False)
+            ex = extrudes.add(ex_in)
+            col2.add(ex.bodies[0])
 
-    co_in = combines.createInput(tf.bodies[0], col2)
-    co_in.operation = af.FeatureOperations.IntersectFeatureOperation
-    co_in.isKeepToolBodies = False
+        before_bridge_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
 
-    before_prof_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
-    _ = combines.add(co_in)
-    after_prof_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
-    ss_bodies: ty.List[af.BRepBody] = [tf.bodies[0]]
-    for b in after_prof_bodies:
-        hit = False
-        for ib in before_prof_bodies:
-            if b == ib:
-                hit = True
-                break
-        if not hit:
-            ss_bodies.append(b)
+        for st in set([a.value for a in con.find_attrs(AN_LOCATORS_SKELETON_TOKEN)]):
+            sss = con.find_by_token(st)
+            if len(sss) == 0:
+                raise Exception('Skeleton Surface has been deleted after it was specified.')
+            skeleton_surface = af.BRepBody.cast(sss[0])
+            col.clear()
+            for f in skeleton_surface.faces:
+                col.add(f)
+            thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
+            tf = thicken_fs.add(thicken_inp)
+
+            if offset > 0.:
+                thicken_inp2 = thicken_fs.createInput(col, ac.ValueInput.createByReal(-offset), False, af.FeatureOperations.NewBodyFeatureOperation, False)
+                tf2 = thicken_fs.add(thicken_inp2)
+                col3 = CreateObjectCollectionT(af.BRepBody)
+                col3.add(tf2.bodies[0])
+                co_in2 = combines.createInput(tf.bodies[0], col3)
+                co_in2.operation = af.FeatureOperations.CutFeatureOperation
+                co_in2.isKeepToolBodies = False
+                _ = combines.add(co_in2)
+
+            co_in = combines.createInput(tf.bodies[0], col2)
+            co_in.operation = af.FeatureOperations.IntersectFeatureOperation
+            co_in.isKeepToolBodies = True
+            _ = combines.add(co_in)
+
+        after_bridge_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
+        for b in after_bridge_bodies:
+            if b not in before_bridge_bodies:
+                ss_bodies.append(b)
+        
+        for b in list(col2):
+            b.deleteMe()
 
     fill_body_col = collect_body_from_key(AN_FILL)
+    if fill_body_col.count == 0:
+        raise Exception('There is no key.')
 
-    ss_body = ss_bodies[0]
-    for b in ss_bodies[1:]:
-        fill_body_col.add(b)
-    co_in3 = combines.createInput(ss_body, fill_body_col)
-    co_in3.operation = af.FeatureOperations.JoinFeatureOperation
-    co_in3.isKeepToolBodies = False
-    _ = combines.add(co_in3)
+    if is_generate_bridge:
+        if len(ss_bodies) == 0:
+            raise Exception('Cannot generate a bridge.')
+        base_body = ss_bodies.pop(0)
+        for b in ss_bodies:
+            fill_body_col.add(b)
+    else:
+        base_body = fill_body_col[0]
+        fill_body_col.removeByIndex(0)
 
-    after_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
+    if fill_body_col.count > 0:
+        co_in3 = combines.createInput(base_body, fill_body_col)
+        co_in3.operation = af.FeatureOperations.JoinFeatureOperation
+        co_in3.isKeepToolBodies = False
+        _ = combines.add(co_in3)
+
     fbs: ty.List[af.BRepBody] = []
-    for ab in after_frame_bodies:
-        hit = False
-        for bb in before_frame_bodies:
-            if ab == bb:
-                hit = True
-                break
-        if not hit:
-            fbs.append(ab)
-    for b in list(fbs):
+    for b in con.comp.bRepBodies:
+        if not b.isSolid:
+            continue
         if b.volume < CHIPPING_BODY_THRESHOLD:  # Chippings often occurs and should be ignored.
-            fbs.remove(b)
             b.deleteMe()
-    if len(fbs) != 1:
+            continue
+        if b not in before_frame_bodies:
+            fbs.append(b)
+
+    if len(fbs) == 0:
+        con.ui.messageBox('Bad code or bad parts data.')
+        return
+    elif len(fbs) == 1:
+        frame_body = fbs[0]
+        frame_body.name = BN_FRAME
+    else:
         con.ui.messageBox('Separated frames has been generated.')
-    max_volume = fbs[0].volume
-    max_volume_body = fbs[0]
-    for fb in fbs[1:]:
-        if fb.volume > max_volume:
-            max_volume = fb.volume
-            max_volume_body = fb
-    frame_body = max_volume_body
-    frame_body.name = BN_FRAME
+        fbs = sorted(fbs, key=attrgetter('volume'), reverse=True)
+        for i, b in enumerate(fbs):
+            b.name = BN_FRAME + f' {i}'
+
+    def get_minpoint(xyz: str):
+        return min(fbs, key=attrgetter('boundingBox.minPoint.' + xyz)).boundingBox.minPoint
+
+    def get_maxpoint(xyz: str):
+        return max(fbs, key=attrgetter('boundingBox.maxPoint.' + xyz)).boundingBox.maxPoint
 
     planes = con.comp.constructionPlanes
     plane_in = planes.createInput()
-    plane_z = frame_body.boundingBox.minPoint.z - MIN_FLOOR_HEIGHT
+    plane_z = get_minpoint('z').z - MIN_FLOOR_HEIGHT
     plane_in.setByOffset(con.comp.xYConstructionPlane, ac.ValueInput.createByReal(plane_z))
     floor_plane = planes.add(plane_in)
     floor_plane.name = 'Internal Floor'
     plane_z = floor_plane.geometry.origin.z  # F360's bug workaround
 
-    min_point3d = frame_body.boundingBox.minPoint
-    min_point_xy = ac.Point3D.create(min_point3d.x, min_point3d.y, plane_z)
-    max_point3d = frame_body.boundingBox.maxPoint
-    max_point_xy = ac.Point3D.create(max_point3d.x, max_point3d.y, plane_z)
+    min_point_xy = ac.Point3D.create(get_minpoint('x').x, get_minpoint('y').y, plane_z)
+    max_point_xy = ac.Point3D.create(get_maxpoint('x').x, get_maxpoint('y').y, plane_z)
     _, min_p = floor_plane.geometry.evaluator.getParameterAtPoint(min_point_xy)
     _, max_p = floor_plane.geometry.evaluator.getParameterAtPoint(max_point_xy)
     floor_plane.displayBounds = ac.BoundingBox2D.create(min_p, max_p)
@@ -230,9 +250,12 @@ class FillFrameCommandHandler(CommandHandlerBase):
                 con.ui.messageBox('There is unplaced key(s). Please fix it first.')
                 return
 
+        bridge_in = self.inputs.addBoolValueInput(INP_ID_GENERATE_BRIDGE_BOOL, 'Generate Bridge', True)
+        bridge_in.value = True
+
         prof_in = self.inputs.addSelectionInput(INP_ID_BRIDGE_PROFILE_SEL, 'Bridge Profile', 'Select an entity')
         prof_in.addSelectionFilter('Profiles')
-        prof_in.setSelectionLimits(1, 0)
+        prof_in.setSelectionLimits(0, 0)
 
         self.offset_cb = OffsetCommandBlock(self)
         self.offset_cb.b_notify_create('Bridge Offset', '5 mm')
@@ -244,20 +267,31 @@ class FillFrameCommandHandler(CommandHandlerBase):
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         print('inputChanged')
         prof_in = self.get_sel_in()
+        bridge_in = self.get_bridge_in()
         has_sel = has_sel_in(prof_in)
         if changed_input.id == INP_ID_BRIDGE_PROFILE_SEL:
             self.offset_cb.show(has_sel)
             self.check_interference_cb.get_checkbox_ins()[0].isVisible = has_sel
+        elif changed_input.id == INP_ID_GENERATE_BRIDGE_BOOL:
+            is_gb = bridge_in.value
+            prof_in.isVisible = is_gb
+            self.offset_cb.show(is_gb)
         self.check_interference_cb.notify_input_changed(event_args, changed_input)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
         print('notify_validate')
         prof_in = self.get_sel_in()
+        bridge_in = self.get_bridge_in()
         if has_sel_in(prof_in):
             self.offset_cb.b_notify_validate(event_args)
+        elif bridge_in.value:
+            event_args.areInputsValid = False
 
     def get_sel_in(self):
         return get_ci(self.inputs, INP_ID_BRIDGE_PROFILE_SEL, ac.SelectionCommandInput)
+
+    def get_bridge_in(self):
+        return get_ci(self.inputs, INP_ID_GENERATE_BRIDGE_BOOL, ac.BoolValueCommandInput)
 
     def execute_common(self, event_args: CommandEventArgs) -> None:
         sel_in = self.get_sel_in()
@@ -266,7 +300,7 @@ class FillFrameCommandHandler(CommandHandlerBase):
         before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
         offset = self.offset_cb.get_value()
 
-        generate_frame(profs, before_frame_bodies, offset)
+        fill_frame(self.get_bridge_in().value, profs, before_frame_bodies, offset)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         print('executePreview')

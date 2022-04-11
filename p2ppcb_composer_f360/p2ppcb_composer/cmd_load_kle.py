@@ -16,9 +16,9 @@ from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
     AN_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
-from p2ppcb_composer.cmd_common import AN_SKELETON_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
+from p2ppcb_composer.cmd_common import AN_MAIN_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
     CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION
-from p2ppcb_composer.cmd_key_common import place_key_placeholders, prepare_key_assembly, prepare_parts_sync, get_layout_plane_transform, \
+from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, place_key_placeholders, prepare_key_assembly, prepare_parts_sync, get_layout_plane_transform, \
     INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, PP_KEY_LOCATORS_ON_SPECIFIER
 
 
@@ -27,7 +27,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
     inl_occ = con.child[CN_INTERNAL]
 
     pp_kl_on_specifier: ty.Dict[str, parts_depot.PrepareKeyLocatorParameter] = con.prepare_parameter_dict[PP_KEY_LOCATORS_ON_SPECIFIER]
-    skeleton_surface = af.BRepBody.cast(con.attr_singleton[AN_SKELETON_SURFACE][1])
+    main_surface = af.BRepBody.cast(con.attr_singleton[AN_MAIN_SURFACE][1])
     lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
     lp_trans = get_layout_plane_transform(lp)
     options = [inl_occ.comp_attr[an] for an in ANS_MAIN_OPTION]
@@ -54,7 +54,8 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                 for d, an in zip(options, ANS_OPTION):
                     o.comp_attr[an] = d
                 o.comp_attr[AN_KEY_V_OFFSET] = offset_str
-                o.comp_attr[AN_LOCATORS_ANGLE_TOKEN] = skeleton_surface.entityToken
+                o.comp_attr[AN_LOCATORS_SKELETON_TOKEN] = main_surface.entityToken
+                o.comp_attr[AN_LOCATORS_ANGLE_TOKEN] = main_surface.entityToken
                 o.comp_attr[AN_LOCATORS_PLANE_TOKEN] = lp.entityToken
 
                 if specifier in pp_kl_on_specifier:
