@@ -3,6 +3,7 @@
 Dubins path planner sample code
 
 author Atsushi Sakai(@Atsushi_twi)
+modified by Hajime Nakazato
 
 """
 import typing as ty
@@ -67,7 +68,7 @@ def pi_2_pi(angle) -> float:
     return (angle + math.pi) % (2 * math.pi) - math.pi
 
 
-def left_straight_left(alpha, beta, d):
+def left_straight_left(alpha: float, beta: float, d: float):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -79,7 +80,7 @@ def left_straight_left(alpha, beta, d):
     mode = ["L", "S", "L"]
     p_squared = 2 + (d * d) - (2 * c_ab) + (2 * d * (sa - sb))
     if p_squared < 0:
-        return None, None, None, mode
+        return None
     tmp1 = math.atan2((cb - ca), tmp0)
     t = mod2pi(-alpha + tmp1)
     p = math.sqrt(p_squared)
@@ -88,7 +89,7 @@ def left_straight_left(alpha, beta, d):
     return t, p, q, mode
 
 
-def right_straight_right(alpha, beta, d):
+def right_straight_right(alpha: float, beta: float, d: float):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -99,7 +100,7 @@ def right_straight_right(alpha, beta, d):
     mode = ["R", "S", "R"]
     p_squared = 2 + (d * d) - (2 * c_ab) + (2 * d * (sb - sa))
     if p_squared < 0:
-        return None, None, None, mode
+        return None
     tmp1 = math.atan2((ca - cb), tmp0)
     t = mod2pi(alpha - tmp1)
     p = math.sqrt(p_squared)
@@ -108,7 +109,7 @@ def right_straight_right(alpha, beta, d):
     return t, p, q, mode
 
 
-def left_straight_right(alpha, beta, d):
+def left_straight_right(alpha: float, beta: float, d: float):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -118,7 +119,7 @@ def left_straight_right(alpha, beta, d):
     p_squared = -2 + (d * d) + (2 * c_ab) + (2 * d * (sa + sb))
     mode = ["L", "S", "R"]
     if p_squared < 0:
-        return None, None, None, mode
+        return None
     p = math.sqrt(p_squared)
     tmp2 = math.atan2((-ca - cb), (d + sa + sb)) - math.atan2(-2.0, p)
     t = mod2pi(-alpha + tmp2)
@@ -127,7 +128,7 @@ def left_straight_right(alpha, beta, d):
     return t, p, q, mode
 
 
-def right_straight_left(alpha, beta, d):
+def right_straight_left(alpha: float, beta: float, d: float):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -137,7 +138,7 @@ def right_straight_left(alpha, beta, d):
     p_squared = (d * d) - 2 + (2 * c_ab) - (2 * d * (sa + sb))
     mode = ["R", "S", "L"]
     if p_squared < 0:
-        return None, None, None, mode
+        return None
     p = math.sqrt(p_squared)
     tmp2 = math.atan2((ca + cb), (d - sa - sb)) - math.atan2(2.0, p)
     t = mod2pi(alpha - tmp2)
@@ -146,7 +147,7 @@ def right_straight_left(alpha, beta, d):
     return t, p, q, mode
 
 
-def right_left_right(alpha, beta, d):
+def right_left_right(alpha: float, beta: float, d: float):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -156,7 +157,7 @@ def right_left_right(alpha, beta, d):
     mode = ["R", "L", "R"]
     tmp_rlr = (6.0 - d * d + 2.0 * c_ab + 2.0 * d * (sa - sb)) / 8.0
     if abs(tmp_rlr) > 1.0:
-        return None, None, None, mode
+        return None
 
     p = mod2pi(2 * math.pi - math.acos(tmp_rlr))
     t = mod2pi(alpha - math.atan2(ca - cb, d - sa + sb) + mod2pi(p / 2.0))
@@ -164,7 +165,7 @@ def right_left_right(alpha, beta, d):
     return t, p, q, mode
 
 
-def left_right_left(alpha, beta, d):
+def left_right_left(alpha: float, beta: float, d: float):
     sa = math.sin(alpha)
     sb = math.sin(beta)
     ca = math.cos(alpha)
@@ -174,7 +175,7 @@ def left_right_left(alpha, beta, d):
     mode = ["L", "R", "L"]
     tmp_lrl = (6.0 - d * d + 2.0 * c_ab + 2.0 * d * (- sa + sb)) / 8.0
     if abs(tmp_lrl) > 1:
-        return None, None, None, mode
+        return None
     p = mod2pi(2 * math.pi - math.acos(tmp_lrl))
     t = mod2pi(-alpha - math.atan2(ca - cb, d + sa - sb) + p / 2.0)
     q = mod2pi(mod2pi(beta) - alpha - t + mod2pi(p))
@@ -205,9 +206,10 @@ def dubins_path_planning_from_origin(end_x, end_y, end_yaw, curvature: float,
         p: float
         q: float
         mode: ty.List[str]
-        t, p, q, mode = planner(alpha, beta, d)
-        if t is None:
+        ret = planner(alpha, beta, d)
+        if ret is None:
             continue
+        t, p, q, mode = ret
 
         cost = (abs(t) + abs(p) + abs(q))
         if best_cost > cost:
@@ -330,7 +332,7 @@ def generate_local_course(total_length, lengths, modes, max_curvature,
 
 def plot_arrow(x, y, yaw, length=1.0, width=0.5, fc="r",
                ec="k"):  # pragma: no cover
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # type: ignore
     if not isinstance(x, float):
         for (i_x, i_y, i_yaw) in zip(x, y, yaw):
             plot_arrow(i_x, i_y, i_yaw)
@@ -341,7 +343,7 @@ def plot_arrow(x, y, yaw, length=1.0, width=0.5, fc="r",
 
 
 def main():
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # type: ignore
     print("Dubins path planner sample start!!")
 
     start_x = 1.0  # [m]

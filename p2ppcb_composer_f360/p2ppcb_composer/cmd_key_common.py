@@ -10,7 +10,7 @@ import adsk.fusion as af
 from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, ANS_OPTION, \
     ATTR_GROUP, CN_DEPOT_CAP_PLACEHOLDER, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, \
-    CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, CreateObjectCollectionT, \
+    CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, BadCodeException, CreateObjectCollectionT, \
     F3Occurrence, SpecsOpsOnPn, SurrogateF3Occurrence, VirtualF3Occurrence, cap_name, \
     cap_placeholder_name, capture_position, \
     get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, XU_V3D, \
@@ -191,7 +191,7 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         lp = af.ConstructionPlane.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_PLANE_TOKEN])[0])
         lp_inv_trans = get_layout_plane_transform(lp)
         if lp_inv_trans is None:
-            raise Exception('Bad code.')
+            raise BadCodeException()
         lp_inv_trans.invert()
 
         t = root_kl_trans.copy()
@@ -328,7 +328,7 @@ def prepare_key_assembly(
                         pp_cap = new_pp_cap
                         pps_part.append(pp_cap)
                     if pp_cap.cap_placeholder_parameters is None:
-                        raise Exception('Bad code.')
+                        raise BadCodeException()
                     pp_cap.cap_placeholder_parameters.names_images.extend([
                         (
                             cap_placeholder_name(kp.i, cap_desc, specifier, kp.legend),
@@ -393,7 +393,7 @@ def prepare_key_assembly(
             kpn = key_placeholder_name(kp.i, pattern_name)
             surrogate_kp_occ = key_placeholders_occ.child[kpn]
             if not isinstance(surrogate_kp_occ, SurrogateF3Occurrence):
-                raise Exception(f'Bad code. Key Placeholder name: {kpn} should be a surrogate.')
+                raise BadCodeException(f'Key Placeholder name: {kpn} should be a surrogate.')
             surrogate_kp_occ.replace(on_create=_on_create_kp)
 
     pp_ka_on_so.clear()
@@ -407,7 +407,7 @@ def _check_intra_key_assembly_interference(ka_occ_list: ty.List[VirtualF3Occurre
     def _get_original_body_name(b: af.BRepBody):
         bn = b.attributes.itemByName(ATTR_GROUP, AN_ORIGINAL_BODY_NAME)
         if bn is None:
-            raise Exception('Bad code.')
+            raise BadCodeException()
         return bn.value
 
     error_messages: ty.List[str] = []
@@ -520,6 +520,7 @@ def fill_surrogate():
     ka_occ_list = [depot_key_assembly_occ.child[kan] for kan in pp_surrogate_ka_names]
     error_messages = _check_intra_key_assembly_interference(ka_occ_list)
     for msg in error_messages:
+        print(msg)
         con.ui.messageBox(msg)
     pp_surrogate_ka_names.clear()
 

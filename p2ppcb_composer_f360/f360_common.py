@@ -14,7 +14,6 @@ import p2ppcb_parts_resolver.resolver as parts_resolver
 from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
 import adsk.core as ac
 import adsk.fusion as af
-import adsk
 
 MIN_FLOOR_HEIGHT = 0.2
 
@@ -177,7 +176,7 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
         if self.parent_occ is None:
             return o
         elif isinstance(self.parent_occ, SurrogateF3Occurrence):
-            raise Exception("Bad code.")
+            raise BadCodeException()
         return o.createForAssemblyContext(self.parent_occ.raw_occ)
 
     def __getitem__(self, name: str) -> VirtualF3Occurrence:
@@ -224,12 +223,12 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
 
     def new_real(self, name: str, overwrite=False, transform: ac.Matrix3D = EYE_M3D):
         if self.parent_comp is None:
-            raise Exception('The parent is a surrogate.')
+            raise BadCodeException('The parent is a surrogate.')
         if name in self:
             if overwrite:
                 del self[name]
             else:
-                raise Exception(f'{name} already exists.')
+                raise BadCodeException(f'{name} already exists.')
         capture_position()
         o = self.parent_comp.occurrences.addNewComponent(transform)
         o = self._proxy_if_required(o)
@@ -240,12 +239,12 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
 
     def new_surrogate(self, name: str, overwrite=False, transform: ac.Matrix3D = EYE_M3D, comp: ty.Optional[VirtualComponent] = None):
         if self.parent_occ is None:
-            raise Exception('Impossible case. Bad code somewhere.')
+            raise BadCodeException('Impossible case.')
         if name in self:
             if overwrite:
                 del self[name]
             else:
-                raise Exception(f'{name} already exists.')
+                raise BadCodeException(f'{name} already exists.')
         o = SurrogateF3Occurrence(name, self.parent_occ, transform, comp)
         self.surrogate_occs.append(o)
         return o
@@ -266,7 +265,7 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
             return occ
         else:
             if self.parent_occ is None:
-                raise Exception('add() with SurrogateF3Occurrence is not available to root component.')
+                raise BadCodeException('add() with SurrogateF3Occurrence is not available to root component.')
             o = self.parent_occ.child.new_surrogate(f3occ.name, transform=transform, comp=f3occ.comp)
             on_surrogate(o)
             return o
@@ -277,11 +276,11 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
         on_create: Call when created.
         '''
         if self.parent_comp is None:
-            raise Exception('The parent occ is a surrogate.')
+            raise BadCodeException('The parent occ is a surrogate.')
         if name in self:
             o = self[name]
             if not isinstance(o, F3Occurrence):
-                raise Exception('There is a surrogate of the name.')
+                raise BadCodeException('There is a surrogate of the name.')
         else:
             o = self.new_real(name)
             if on_create is not None:
@@ -320,7 +319,7 @@ class SurrogateComponent:
 
     @property
     def bRepBodies(self) -> af.BRepBodies:
-        raise Exception('Bad code. This is a surrogate.')
+        raise BadCodeException('This is a surrogate.')
 
 
 class SurrogateF3Occurrence:
@@ -331,7 +330,7 @@ class SurrogateF3Occurrence:
             self.comp_attr: ty.Union[F3AttributeDict, ty.MutableMapping[str, str]] = _comp.attr
         else:
             if name != comp.name:
-                raise Exception(f'Bad code. arg name: {name}  comp name: {comp.name}')
+                raise BadCodeException(f'arg name: {name}  comp name: {comp.name}')
             self.comp: VirtualComponent = comp
             if isinstance(comp, SurrogateComponent):
                 _attr = comp.attr
@@ -348,11 +347,11 @@ class SurrogateF3Occurrence:
         self.rigid_in_replace = False
 
     def bodies_by_attr(self, attr_name: str, attr_value: ty.Optional[str] = None):
-        raise Exception('This is a surrogate.')
+        raise BadCodeException('This is a surrogate.')
 
     @property
     def raw_occ(self) -> af.Occurrence:
-        raise Exception('This is a surrogate.')
+        raise BadCodeException('This is a surrogate.')
 
     @property
     def transform(self):
@@ -365,12 +364,12 @@ class SurrogateF3Occurrence:
     def replace(self, on_create: ty.Callable = _DO_NOTHING, real_occ: ty.Optional['F3Occurrence'] = None):
         con = get_context()
         if not isinstance(self.parent, F3Occurrence):
-            raise Exception('The parent is a surrogate.')
+            raise BadCodeException('The parent is a surrogate.')
         self.parent.child.surrogate_occs.remove(self)
 
         if real_occ is not None:
             if real_occ.name != self.name:
-                raise Exception('The move_comp.name should be the same with self.name.')
+                raise BadCodeException('The move_comp.name should be the same with self.name.')
             new_occ = real_occ.move_to(self.parent, self.name)
         elif isinstance(self.comp, SurrogateComponent):
             new_comp = None
@@ -383,7 +382,7 @@ class SurrogateF3Occurrence:
                 raw_occ = self.parent.raw_occ.component.occurrences.addNewComponent(EYE_M3D)
                 raw_occ.component.name = self.name
                 if raw_occ.component.name != self.name:
-                    raise Exception(f'Name collision: {self.name} already exists.')
+                    raise BadCodeException(f'Name collision: {self.name} already exists.')
             else:
                 raw_occ = self.parent.raw_occ.component.occurrences.addExistingComponent(new_comp, EYE_M3D)
             raw_occ = raw_occ.createForAssemblyContext(self.parent.raw_occ)
@@ -419,7 +418,7 @@ class F3Occurrence:
         if not isinstance(o, af.Occurrence):
             o = af.Occurrence.cast(o)
             if o is None:
-                raise Exception('The arg is not af.Occurrence.')
+                raise BadCodeException('The arg is not af.Occurrence.')
         self.raw_occ = o
         self._child = F3OccurrenceDict(self)
         self._occ_attr = F3AttributeDict(self.raw_occ.attributes)
@@ -432,7 +431,7 @@ class F3Occurrence:
         new_raw_occ = self.raw_occ.moveToComponent(new_parent_occ.raw_occ)
         new_raw_occ.component.name = name
         if new_raw_occ.component.name != name:
-            raise Exception(f'Name collision: {name} already exists.')
+            raise BadCodeException(f'Name collision: {name} already exists.')
         return F3Occurrence(new_raw_occ)
 
     def rigidize(self):
@@ -446,7 +445,7 @@ class F3Occurrence:
         ret: ty.List[af.BRepBody] = []
         for b in self.raw_occ.component.bRepBodies:
             if b.nativeObject is not None:
-                raise Exception('Bad code.')
+                raise BadCodeException()
             for a in b.attributes:
                 if a.name == attr_name and (attr_value is None or a.value == attr_value):
                     ret.append(b.createForAssemblyContext(self.raw_occ))
@@ -461,7 +460,7 @@ class F3Occurrence:
     def name(self, name):
         self.raw_occ.component.name = name
         if self.raw_occ.component.name != name:
-            raise Exception(f'{name} raises name collision. All components should have identical name.')
+            raise BadCodeException(f'{name} raises name collision. All components should have identical name.')
 
     @property
     def parent(self):
@@ -639,7 +638,7 @@ class F3Context:
     def name(self, name):
         self.root_comp.name = name
         if self.root_comp.name != name:  # name collision
-            raise Exception(f'{name} raises name collision. All components should have identical name.')
+            raise BadCodeException(f'{name} raises name collision. All components should have identical name.')
 
     @property
     def child(self):
@@ -697,6 +696,17 @@ def reset_context(des: ty.Optional[af.Design] = None):
     return con
 
 
+class BadCodeException(Exception):
+    def __init__(self, message=''):
+        m = '' if len(message) == 0 else '\n' + message
+        super().__init__('Bad code. You need to debug.' + m)
+
+
+class BadConditionException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 def catch_exception(func: ty.Callable):
     '''
     This attribute wraps handlers which are called from F360 message pump.
@@ -704,9 +714,9 @@ def catch_exception(func: ty.Callable):
     def wrapped(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except Exception as e:
+            get_context().ui.messageBox(str(e))
             traceback.print_exc()
-            adsk.terminate()
     return wrapped
 
 
@@ -762,7 +772,7 @@ def get_ids(comp: af.Component) -> ty.Set[str]:
 @contextmanager
 def create_component(acc_comp: VirtualComponent, new_name: str, postfix: ty.Optional[str] = None):
     if isinstance(acc_comp, SurrogateComponent):
-        raise Exception("SurrogateComponent is not available.")
+        raise BadCodeException("SurrogateComponent is not available.")
     container: ty.List[F3Occurrence] = []
     before_ids = get_ids(acc_comp)
     yield container

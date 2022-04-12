@@ -1,5 +1,5 @@
 import typing as ty
-from f360_common import get_context
+from f360_common import BadCodeException, BadConditionException, get_context
 from p2ppcb_composer.cmd_common import CommandHandlerBase
 from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
 from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler
@@ -38,7 +38,7 @@ def get_cmd_def(handler_class: ty.Type):
         cmd_def.deleteMe()
         cmd_def = cmd_defs.itemById(cmd_id)
         if cmd_def is not None:
-            raise Exception(f'{cmd_id} deleteMe() failed.')
+            raise BadCodeException(f'{cmd_id} deleteMe() failed.')
     cmd_def = cmd_defs.addButtonDefinition(cmd_id, handler.cmd_name, handler.tooltip, handler.resource_folder)
     cmd_def.commandCreated.add(handler)
     HANDLERS.append(handler)
@@ -48,11 +48,11 @@ def get_cmd_def(handler_class: ty.Type):
 def init_toolbar():
     con = get_context()
     if not con.ui.isTabbedToolbarUI:
-        raise Exception('Classic UI is not supported.')
+        raise BadConditionException('Classic UI is not supported.')
 
     design_workspace = con.ui.workspaces.itemById('FusionSolidEnvironment')
     if design_workspace is None:
-        raise Exception('FusionSolidEnvironment not found in workspaces.')
+        raise BadConditionException('FusionSolidEnvironment not found in workspaces.')
     tabs = design_workspace.toolbarTabs
     tab = tabs.itemById(TBT_ID_P2PPCB)
     if tab is None:
@@ -70,7 +70,7 @@ def init_toolbar():
                 panel_ctrl.deleteMe()
                 panel_ctrl = panel.controls.itemById(panel_ctrl_id)
                 if panel_ctrl is not None:
-                    raise Exception(f'{panel_ctrl_id} deleteMe() failed.')
+                    raise BadCodeException(f'{panel_ctrl_id} deleteMe() failed.')
             panel_ctrl = panel.controls.addCommand(get_cmd_def(handler_class))
             panel_ctrl.isPromotedByDefault = promote
 

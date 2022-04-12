@@ -17,7 +17,7 @@ import adsk
 
 from f360_insert_decal_rpa import start as insert_decal_rpa_start
 from f360_insert_decal_rpa import InsertDecalParameter
-from f360_common import BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, PROF, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
+from f360_common import BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, PROF, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
     CreateObjectCollectionT, SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, reset_context, set_context
 
 CUSTOM_EVENT_DONE_ID = 'rpa_done'
@@ -88,7 +88,7 @@ def convert_quantity_to_float(qs: ty.Dict[str, Quantity]):
         elif v.is_compatible_with('cm'):
             ret[k] = v.m_as('cm')
         else:
-            raise Exception(f'Unknown dimension in part info: {str(v)}')
+            raise BadCodeException(f'Unknown dimension in part info: {str(v)}')
     return ret
 
 
@@ -151,7 +151,7 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch: Quantity, 
             go_on = False
             current_direction = current_direction @ cw
         if not hit:
-            raise Exception('Cannot find edge in key pattern.')
+            raise BadCodeException('Cannot find edge in key pattern.')
         if np.all(yx == initial_yx):
             break
     vertices = (np.array(vertices_list) - np.array(lp.shape) / 2) / 4
@@ -187,7 +187,7 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch: Quantity, 
     con = get_context()
     ab = con.child[CN_DEPOT_APPEARANCE].comp.bRepBodies.itemByName(BN_APPEARANCE_KEY_LOCATOR)
     if ab is None:
-        raise Exception(f'appearance.f3d is corruputed. It lacks {BN_APPEARANCE_KEY_LOCATOR} body.')
+        raise BadCodeException(f'appearance.f3d is corruputed. It lacks {BN_APPEARANCE_KEY_LOCATOR} body.')
     kl_appearance = ab.appearance
     for b in pa_f.bodies:
         b.appearance = kl_appearance
@@ -232,7 +232,7 @@ class PartsDepot:
                 continue
             break
         if cache_doc is None:
-            raise Exception(f'Cannot open {self.cache_docname}. Internet connection or Autodesk A360 service may be too slow.')
+            raise BadConditionException(f'Cannot open {self.cache_docname}. Internet connection or Autodesk A360 service may be too slow.')
         self.cache_doc = cache_doc
         self.cache_doc_is_modified = False
         orig_doc.activate()
@@ -246,12 +246,12 @@ class PartsDepot:
 
     def _prepare_context(self):
         if self.is_close:
-            raise Exception('Already closed.')
+            raise BadConditionException('Already closed.')
         con = get_context()
         self.orig_con = con
         self.orig_doc = con.app.activeDocument
         if not self.orig_doc.isSaved:
-            raise Exception('Start from a saved document.')
+            raise BadConditionException('Start from a saved document.')
         try:
             self.cache_doc.activate()
         except RuntimeError:
@@ -362,8 +362,7 @@ class PartsDepot:
                             time.sleep(0.01)
                             adsk.doEvents()
                     except Exception:
-                        traceback.print_exc()
-                        raise Exception(f'F3D file import failed: {pp.part_source_filename}')
+                        raise BadConditionException(f'F3D file import failed: {pp.part_source_filename}')
                 comp = container.pop().comp
                 for k, v in pp.model_parameters.items():
                     for mp in comp.modelParameters:
@@ -373,7 +372,7 @@ class PartsDepot:
                             elif v.is_compatible_with('cm'):
                                 mp.value = v.m_as('cm')
                             else:
-                                raise Exception(f'Unknown dimension in part info: {str(v)}')
+                                raise BadCodeException(f'Unknown dimension in part info: {str(v)}')
                 if pp.cap_placeholder_parameters is not None:
                     for b in comp.bRepBodies:
                         a = b.attributes.itemByName(ATTR_GROUP, 'Placeholder')
@@ -476,7 +475,7 @@ class PartsDepot:
         def exec(cmd, fail_object):
             result = con.app.executeTextCommand(cmd)
             if result != 'Ok':
-                raise Exception(f"I failed to do {fail_object}.")
+                raise BadCodeException(f"Failed to do {fail_object}.")
         
         def copy_paste_new(obj_occ: F3Occurrence, acc_occ: F3Occurrence, new_name: str, is_visible: bool):
             acs = con.ui.activeSelections
@@ -613,11 +612,11 @@ class PartsDepot:
         def rec_move(src_occ: F3Occurrence, acc_occ: F3Occurrence):
             m = dp_name_re.match(src_occ.name)
             if m is None:
-                raise Exception('Bad code.')
+                raise BadCodeException()
             rn = m.groups()[0]
             if len(src_occ.child) > 0:
                 if not all([n.startswith(PCN_DEPOT_PORTING) for n in src_occ.child]):
-                    raise Exception('All components should be start with PCN_DEPOT_PORTING.')
+                    raise BadCodeException('All components should be start with PCN_DEPOT_PORTING.')
                 tgt_occ = acc_occ.child.get_real(rn)
                 for cn in list(src_occ.child):
                     rec_move(src_occ.child.get_real(cn), tgt_occ)

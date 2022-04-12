@@ -2,7 +2,7 @@ import typing as ty
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 import adsk.fusion as af
-from f360_common import get_context, CN_INTERNAL, F3Occurrence
+from f360_common import BadCodeException, get_context, CN_INTERNAL, F3Occurrence
 from p2ppcb_composer.cmd_common import all_has_sel_ins, get_cis, has_sel_in, AN_LOCATORS_PLANE_TOKEN, TOOLTIP_NOT_SELECTED, InputLocators, \
     get_selected_locators, locator_notify_pre_select, CommandHandlerBase, CheckInterferenceCommandBlock, MoveComponentCommandBlock
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, get_layout_plane_transform, place_key_placeholders
@@ -20,7 +20,7 @@ def get_orig_lp(lp_in: ac.SelectionCommandInput, selected_locators: ty.List[F3Oc
     lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
     token = lp_ci.get_locators_attr_value(selected_locators)
     if token is None:
-        raise Exception('Locators have different lp.')
+        raise BadCodeException('Locators have different lp.')
     return af.ConstructionPlane.cast(con.find_by_token(token)[0])
 
 
@@ -146,7 +146,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
             lp = get_lp(lp_in)
             token = lp_ci.get_locators_attr_value(selected_locators)
             if token is None:
-                raise Exception('Locators have different lp.')
+                raise BadCodeException('Locators have different lp.')
             orig_lp = af.ConstructionPlane.cast(con.find_by_token(token)[0])
             if lp != orig_lp:
                 orig_t = get_layout_plane_transform(orig_lp)

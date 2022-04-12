@@ -7,7 +7,7 @@ from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEve
     SelectionEventArgs, ValidateInputsEventArgs, Selection
 from f360_common import AN_HOLE, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, AN_TERRITORY, ANS_OPTION, \
     ATTR_GROUP, BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, \
+    CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, key_assembly_name, key_placeholder_name, catch_exception, reset_context
 from p2ppcb_parts_resolver import resolver as parts_resolver
@@ -50,7 +50,7 @@ INPS_ID_SHOW_HIDE = [INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV]
 TOOLTIP_NOT_SELECTED = 'Not Selected'
 
 
-class _CommandEventHandler(ac.CommandEventHandler):  # type: ignore
+class _CommandEventHandler(ac.CommandEventHandler):
     def __init__(self, parent: 'CommandHandlerBase', method_name: str):
         super().__init__()
         self.parent = parent
@@ -64,8 +64,6 @@ class _CommandEventHandler(ac.CommandEventHandler):  # type: ignore
         try:
             self.parent._inputs = inputs
             getattr(self.parent, self.method_name)(event_args)
-        except Exception as e:
-            get_context().ui.messageBox(f'Unhandled exception:\n{str(e)}')
         finally:
             self.parent._inputs = li
 
@@ -93,8 +91,6 @@ class _InputChangedHandler(ac.InputChangedEventHandler):  # type: ignore
         try:
             self.parent._inputs = inputs
             self.parent.notify_input_changed(event_args, changed_input)
-        except Exception as e:
-            get_context().ui.messageBox(f'Unhandled exception:\n{str(e)}')
         finally:
             self.parent._inputs = li
 
@@ -117,8 +113,6 @@ class _SelectionEventHandler(ac.SelectionEventHandler):  # type: ignore
             else:
                 self.parent._inputs = active_input.commandInputs
             getattr(self.parent, self.method_name)(event_args, active_input, selection)
-        except Exception as e:
-            get_context().ui.messageBox(f'Unhandled exception:\n{str(e)}')
         finally:
             self.parent._inputs = li
 
@@ -136,8 +130,6 @@ class _ValidateEventHandler(ac.ValidateInputsEventHandler):  # type: ignore
         try:
             self.parent._inputs = inputs
             self.parent.notify_validate(event_args)
-        except Exception as e:
-            get_context().ui.messageBox(f'Unhandled exception:\n{str(e)}')
         finally:
             self.parent._inputs = li
 
@@ -163,7 +155,7 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
     @property
     def inputs(self) -> ac.CommandInputs:
         if self._inputs is None:
-            raise Exception('CommandInputs is not available here.')
+            raise BadCodeException('CommandInputs is not available here.')
         return self._inputs
 
     @catch_exception
@@ -208,8 +200,6 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
         self.run_execute = True
         try:
             self.notify_create(event_args)
-        except Exception as e:
-            get_context().ui.messageBox(f'Unhandled exception:\n{str(e)}')
         finally:
             self._inputs = None
 
@@ -414,7 +404,7 @@ class InputLocators:
         v: ty.Optional[str] = ''
         for ent in selected_locators:
             if self.attr_name not in ent.comp_attr:
-                raise Exception('This file is corrupted.')
+                raise BadConditionException('This file is corrupted.')
             n = ent.comp_attr[self.attr_name]
             if v == '':
                 v = n
@@ -472,7 +462,7 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
     lp_ci = InputLocators(active_input, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
     preselect_lp_token = lp_ci.get_locators_attr_value([ent])
     if preselect_lp_token is None:
-        raise Exception('Internal Error: Key locator lacks lp_token.')
+        raise BadCodeException('Internal Error: Key locator lacks lp_token.')
     preselect_lp = con.find_by_token(preselect_lp_token)[0]
     locator_in = get_ci(active_input.commandInputs, inp_id, ac.SelectionCommandInput)
     if has_sel_in(locator_in):
@@ -496,7 +486,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
     def _get_attr_value(body: af.BRepBody, attr_name: str):
         a = body.attributes.itemByName(ATTR_GROUP, attr_name)
         if a is None:
-            raise Exception('Bad code.')
+            raise BadCodeException()
         return a.value
 
     AN_PART_NAME = 'part_name'
@@ -534,7 +524,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         for n, c_kp_occ in key_placeholders_occ.child[kpn].child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 return c_kp_occ.child[pn]
-        raise Exception('Bad code.')
+        raise BadCodeException()
 
     def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
         col.clear()
@@ -616,7 +606,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     hit_mf.append(lb)
                 if _get_attr_value(rb, AN_CATEGORY_NAME) != AN_HOLE:
                     rpn = _get_attr_value(rb, AN_PART_NAME)[:len(CNP_PARTS)]
-                    raise Exception(f'The part data is corrupted. Two MF bodies are interferencing. The part name: {rpn}')
+                    raise BadConditionException(f'The part data is corrupted. Two MF bodies are interferencing. The part name: {rpn}')
                 if category_enables[AN_HOLE]:
                     hit_hole.append(rb)
         if hit:
@@ -710,7 +700,7 @@ class MoveComponentCommandBlock:
         for inp_id in inps_id:
             inp = self.parent.inputs.itemById(inp_id)
             if inp is None:
-                raise Exception(f"{inp_id} didn't find in inputs.")
+                raise BadCodeException(f"{inp_id} didn't find in inputs.")
             inp.isEnabled = is_show
             inp.isVisible = is_show
             if not is_show:
@@ -781,7 +771,7 @@ class MoveComponentCommandBlock:
         v = ac.Vector3D.create(dist_x, dist_y, 0.)
         t = self.transaction_trans
         if t is None:
-            raise Exception('Bad code')
+            raise BadCodeException()
         v.transformBy(t)
         mov = ac.Matrix3D.create()
         mov.setCell(0, 3, v.x)
@@ -805,7 +795,7 @@ class MoveComponentCommandBlock:
         if self.transaction_trans is not None:
             rot, mov = self.get_rot_mov_trans()
             if rot is None or mov is None:
-                raise Exception('Bad code')
+                raise BadCodeException()
             for occ in selections:
                 sel_trans = occ.transform
                 t = sel_trans.copy()
@@ -837,10 +827,7 @@ class OnceEventHandler(ac.CustomEventHandler):
         get_context().app.unregisterCustomEvent(self.event_id)
         del CUSTOM_EVENT_EVENTS[self.event_id]
         del CUSTOM_EVENT_HANDLERS[self.event_id]
-        try:
-            self.notify_event()
-        except Exception as e:
-            get_context().ui.messageBox(str(e), 'P2PPCB')
+        self.notify_event()
 
     def notify_event(self):
         raise NotImplementedError('notify_event() not implemented.')
@@ -857,7 +844,7 @@ def check_layout_plane(cp: af.ConstructionPlane) -> ac.Plane:
     cp_plane = ac.Plane.createUsingDirections(cp_o, cp_vx, cp_vy)
     z_axis_line = ac.Line3D.create(ORIGIN_P3D, ac.Point3D.create(0, 0, 1))
     if cp_plane.isParallelToLine(z_axis_line):
-        raise Exception('Layout Plane cannot be parallel to Z axis.')
+        raise BadConditionException('Layout Plane cannot be parallel to Z axis.')
     return cp_plane
 
 
@@ -867,6 +854,6 @@ def get_category_appearance():
     for category, bn in zip([AN_HOLE, AN_MF, AN_MEV], [BN_APPEARANCE_HOLE, BN_APPEARANCE_MF, BN_APPEARANCE_MEV]):
         cat_b = depot_appearance_occ.raw_occ.bRepBodies.itemByName(bn)
         if cat_b is None:
-            raise Exception(f'appearance.f3d is corruputed. It lacks {bn} body.')
+            raise BadCodeException(f'appearance.f3d is corruputed. It lacks {bn} body.')
         category_appearance[category] = cat_b.appearance
     return category_appearance

@@ -17,7 +17,7 @@ from PIL.Image import Image as ImageType
 import numpy as np
 from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
-from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, \
+from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
     get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH, FourOrientation, AN_KLE_B64
 
 
@@ -132,7 +132,7 @@ class FlatCable:
         led = 'LED' in wire_name
         m = FlatCable.WIRE_NAME_N_RE.match(wire_name)
         if m is None:
-            raise Exception(f"wire_name: {wire_name} lacks number.")
+            raise BadCodeException(f"wire_name: {wire_name} lacks number.")
         i_in_group = int(m.group(1)) - self.first_index_in_wire_name
         for g in self.groups:
             if g.rc == rc and g.led == led:
@@ -217,7 +217,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
     for pattern_name, specs_ops in specs_ops_on_pn.items():
         for i, (specifier, op) in enumerate(specs_ops):
             if op is None:
-                raise Exception('Bad code.')
+                raise BadCodeException()
             kl_name = key_locator_name(i, pattern_name)
             kl_occ = locators_occ.child[kl_name]
             switch_desc = kl_occ.comp_attr[AN_SWITCH_DESC]
@@ -261,7 +261,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                 if i_logical_col is None:
                     i_logical_col = cp.cable.get_logical_number(col_name, RC.Col)
             if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or i_cp_row == -1 or i_cp_col == -1:
-                raise Exception('Bad code.')
+                raise BadCodeException()
             k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), orientation, switch_path,
                     img,  # type: ignore
                     code, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
@@ -324,13 +324,13 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             model.optimize(max_seconds=5)  # type: ignore
 
             if model.num_solutions == 0:
-                raise Exception('Bad code')
+                raise BadCodeException()
             line: Line = []
             i = START
             while True:
                 js = [j for j in V_GOAL if (i, j) in x and x[i, j].x >= 0.99]  # type: ignore
                 if len(js) == 0:
-                    raise Exception('Bad code')
+                    raise BadCodeException()
                 j = js[0]
                 if j == GOAL:
                     break

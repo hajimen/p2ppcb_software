@@ -3,7 +3,7 @@ import typing as ty
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
-from f360_common import CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, CreateObjectCollectionT, \
+from f360_common import CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, \
     AN_KEY_PITCH, create_component, get_context, AN_PARTS_DATA_PATH
 from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
     has_sel_in, get_cis, PartsCommandBlock, AN_MAIN_SURFACE, CommandHandlerBase, check_layout_plane
@@ -255,7 +255,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             options = self.parts_cb.get_selected_options()
             offset = self.parts_cb.get_v_offset()
             if offset is None:
-                raise Exception('Bad code.')
+                raise BadCodeException()
             mb = self.get_mainboard_in().selectedItem.name
 
         con.attr_singleton[AN_MAIN_SURFACE] = ('noop', main_surface)

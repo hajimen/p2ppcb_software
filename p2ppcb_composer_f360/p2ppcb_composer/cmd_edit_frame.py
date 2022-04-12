@@ -8,7 +8,7 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, CreateObjectCollectionT, F3Occurrence, \
+    CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
 from route.route import get_cn_mainboard
@@ -82,7 +82,7 @@ def collect_body_from_key(an: str):
                         ret.add(rb)
 
     if ret.count == 0:
-        raise Exception(f'The design lacks {an} body in the parts.')
+        raise BadConditionException(f'The design lacks {an} body in the parts.')
 
     return ret
 
@@ -100,7 +100,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
     ss_bodies: ty.List[af.BRepBody] = []
     if is_generate_bridge:
         if len(profs) == 0:
-            raise Exception('profs should have a profile at least.')
+            raise BadConditionException('profs should have a profile at least.')
 
         extrudes = con.root_comp.features.extrudeFeatures
         col2 = CreateObjectCollectionT(af.BRepBody)
@@ -116,7 +116,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         for st in set([a.value for a in con.find_attrs(AN_LOCATORS_SKELETON_TOKEN)]):
             sss = con.find_by_token(st)
             if len(sss) == 0:
-                raise Exception('Skeleton Surface has been deleted after it was specified.')
+                raise BadConditionException('Skeleton Surface has been deleted after it was specified.')
             skeleton_surface = af.BRepBody.cast(sss[0])
             col.clear()
             for f in skeleton_surface.faces:
@@ -147,13 +147,15 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         for b in list(col2):
             b.deleteMe()
 
-    fill_body_col = collect_body_from_key(AN_FILL)
-    if fill_body_col.count == 0:
-        raise Exception('There is no key.')
-
     if is_generate_bridge:
         if len(ss_bodies) == 0:
-            raise Exception('Cannot generate a bridge.')
+            raise BadConditionException('Cannot generate a bridge.')
+
+    fill_body_col = collect_body_from_key(AN_FILL)
+    if fill_body_col.count == 0:
+        raise BadConditionException('There is no key.')
+
+    if is_generate_bridge:
         base_body = ss_bodies.pop(0)
         for b in ss_bodies:
             fill_body_col.add(b)
@@ -178,8 +180,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
             fbs.append(b)
 
     if len(fbs) == 0:
-        con.ui.messageBox('Bad code or bad parts data.')
-        return
+        raise BadCodeException('Bad code or bad parts data.')
     elif len(fbs) == 1:
         frame_body = fbs[0]
         frame_body.name = BN_FRAME
@@ -215,7 +216,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
 def get_frame(func: ty.Optional[ty.Callable] = None):
     frame = get_context().comp.bRepBodies.itemByName(BN_FRAME)
     if frame is None:
-        raise Exception('Bad code')
+        raise BadCodeException()
     return frame
 
 
@@ -247,8 +248,7 @@ class FillFrameCommandHandler(CommandHandlerBase):
         for o in key_placeholders_occ.child.values():
             if not o.light_bulb:
                 self.run_execute = False
-                con.ui.messageBox('There is unplaced key(s). Please fix it first.')
-                return
+                raise BadConditionException('There is unplaced key(s). Please fix it first.')
 
         bridge_in = self.inputs.addBoolValueInput(INP_ID_GENERATE_BRIDGE_BOOL, 'Generate Bridge', True)
         bridge_in.value = True
@@ -350,7 +350,7 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
         elif category == AN_HOLE:
             target_category = AN_MF
         else:
-            raise Exception('Bad code.')
+            raise BadCodeException()
         
         for tb, _, an in move_refs:
             if an == target_category and tb.boundingBox.intersects(fixed_body.boundingBox):
@@ -384,7 +384,7 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
         for b, o, an in fixed_refs:
             if b == temp_body:
                 return o, an
-        raise Exception('Bad code.')
+        raise BadCodeException()
 
     def _show(ent: ac.Base, io: ty.Union[int, VirtualF3Occurrence], an: str):
         b = af.BRepBody.cast(ent)
@@ -443,8 +443,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
                 b.deleteMe()
         if not hit_frame:
             self.run_execute = False
-            con.ui.messageBox('Please generate a frame first.')
-            return
+            raise BadConditionException('Please generate a frame first.')
 
         self.move_comp_cb = MoveComponentCommandBlock(self)
         self.move_comp_cb.notify_create(event_args)
@@ -615,8 +614,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
                 b.deleteMe()
         if not hit_frame:
             self.run_execute = False
-            con.ui.messageBox('Please generate a frame first.')
-            return
+            raise BadConditionException('Please generate a frame first.')
 
         inl_occ = con.child[CN_INTERNAL]
         fp_occ = inl_occ.child.get_real(CN_FOOT_PLACEHOLDERS)
@@ -691,7 +689,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
                 locs = [(fb.minPoint.x, fb.maxPoint.y), (min_x + xw, fb.maxPoint.y), (min_x + xw * 2, fb.maxPoint.y), (fb.maxPoint.x, fb.maxPoint.y),
                         (fb.minPoint.x, fb.minPoint.y), (min_x + xw, fb.minPoint.y), (min_x + xw * 2, fb.minPoint.y), (fb.maxPoint.x, fb.minPoint.y), ]
             else:
-                raise Exception('Bad code.')
+                raise BadCodeException()
 
             for fn, (x, y), rot in zip(
                     FOOT_NAMES[:num_foot],

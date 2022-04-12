@@ -5,7 +5,7 @@ import numpy as np
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
+from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, BadCodeException, BadConditionException, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
 from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, has_sel_in
 from route import route as rt
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
@@ -194,7 +194,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         key_locators.light_bulb = True
         for kl_occ in key_locators.child.values():
             if not isinstance(kl_occ, F3Occurrence):
-                raise Exception('Bad code.')
+                raise BadCodeException()
             cgs = kl_occ.comp.customGraphicsGroups
             for irc in rt.RC:
                 cg = cgs.add()
@@ -229,7 +229,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         key_locators.light_bulb = False
         for kl_occ in key_locators.child.values():
             if not isinstance(kl_occ, F3Occurrence):
-                raise Exception('Bad code.')
+                raise BadCodeException()
             for cg in list(kl_occ.comp.customGraphicsGroups):
                 for cge in list(cg):
                     cge.deleteMe()
@@ -261,12 +261,11 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
                 matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
             else:
-                con.ui.messageBox('Assign source/drain to all key locators.', 'P2PPCB')
-                return
+                raise BadConditionException('Assign source/drain to all key locators.')
 
         mc = rt.get_mainboard_constants()
         if CN_MISC_PLACEHOLDERS not in inl_occ.child or rt.get_cn_mainboard() not in inl_occ.child[CN_MISC_PLACEHOLDERS].child:
-            raise Exception('Place a mainboard.')
+            raise BadConditionException('Place a mainboard first.')
 
         dir_dlg = con.ui.createFolderDialog()
         dir_dlg.title = 'Choose Output Folder'
@@ -288,11 +287,11 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
         for i, cable in enumerate(mc.flat_cables):
             cp_s = mb_occ.comp.constructionPoints.itemByName(f'Cable{i}_Start')
             if cp_s is None:
-                raise Exception(f'The mainboard F3D lacks Cable{i}_Start construction point.')
+                raise BadCodeException(f'The mainboard F3D lacks Cable{i}_Start construction point.')
             cp_s = cp_s.createForAssemblyContext(mb_occ.raw_occ)
             cp_e = mb_occ.comp.constructionPoints.itemByName(f'Cable{i}_End')
             if cp_e is None:
-                raise Exception(f'The mainboard F3D lacks Cable{i}_End construction point.')
+                raise BadCodeException(f'The mainboard F3D lacks Cable{i}_End construction point.')
             cp_e = cp_e.createForAssemblyContext(mb_occ.raw_occ)
             oc: ac.ObjectCollectionT[af.SketchPoint] = sk.project(cp_s)  # type: ignore
             start = sk.sketchToModelSpace(oc[0].geometry)

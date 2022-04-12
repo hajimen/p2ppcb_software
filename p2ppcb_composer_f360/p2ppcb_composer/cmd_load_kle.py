@@ -3,7 +3,6 @@ import pickle
 import pathlib
 import zlib
 import base64
-import traceback
 import numpy as np
 from pint import Quantity
 import p2ppcb_parts_resolver.resolver as parts_resolver
@@ -12,7 +11,7 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
 from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
-    CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, SpecsOpsOnPn, \
+    CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, SpecsOpsOnPn, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
     AN_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
@@ -115,12 +114,10 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
 
         if not con.app.activeDocument.isSaved:
             self.run_execute = False
-            con.ui.messageBox('Save this document first.')
-            return
+            raise BadConditionException('Save this document first.')
         if CN_INTERNAL not in con.child:
             self.run_execute = False
-            con.ui.messageBox('Start a P2PPCB project first.')
-            return
+            raise BadConditionException('Start a P2PPCB project first.')
 
         file_dlg = con.ui.createFileDialog()
         file_dlg.isMultiSelectEnabled = False
@@ -137,8 +134,7 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         kle_b64 = base64.b64encode(zlib.compress(kle_file_content)).decode()
         if len(kle_b64.encode('utf-8')) > 2097152:
             self.run_execute = False
-            con.ui.messageBox('Sorry, the KLE file is too large.')
-            return
+            raise BadConditionException('Sorry, the KLE file is too large.')
         inl_occ = con.child[CN_INTERNAL]
         inl_occ.comp_attr[AN_KLE_B64] = kle_b64
 
@@ -147,8 +143,7 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         try:
             place_locators_args = load_kle(kle_file_path, pi)
         except Exception:
-            traceback.print_exc()
-            raise Exception('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
+            raise BadConditionException('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
 
         place_locators(pi, *place_locators_args)
 
@@ -158,13 +153,12 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
             pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
         except parts_resolver.SpecifierException as e:
             self.run_execute = False
-            con.ui.messageBox(f'Specifier "{e.missed_specifier}" is not available.\nAvailable specifiers:\n' + '\n'.join(e.available_specifiers))
-            return
+            raise BadConditionException(f'Specifier "{e.missed_specifier}" is not available.\nAvailable specifiers:\n' + '\n'.join(e.available_specifiers))
 
         if len(pps_part) > 0:
             success = prepare_parts_sync(pps_part)
             if not success:
-                raise Exception('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
+                raise BadConditionException('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
 
         self.move_comp_cb = MoveComponentCommandBlock(self)
         self.move_comp_cb.notify_create(event_args)
@@ -173,8 +167,7 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         t = get_layout_plane_transform(lp)
         if t is None:
             self.run_execute = False
-            con.ui.messageBox('The layout plane is invalid.')
-            return
+            raise BadConditionException('The layout plane is invalid.')
         self.move_comp_cb.start_transaction(t)
 
         locators_occ = inl_occ.child.get_real(CN_KEY_LOCATORS)

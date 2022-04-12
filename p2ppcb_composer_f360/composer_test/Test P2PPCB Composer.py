@@ -3,7 +3,9 @@ import os
 import pathlib
 import typing as ty
 import unittest
+import traceback
 
+import adsk
 import adsk.core as ac
 
 
@@ -19,10 +21,19 @@ reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.d
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
           'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar', 'composer_test.test_cmd', ], ['mainboard'])
 
-from f360_common import catch_exception
 from composer_test.test_base import HANDLERS, HANDLER_IDS
 
 APP: ac.Application
+
+
+def catch_exception(func: ty.Callable):
+    def wrapped(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            traceback.print_exc()
+            adsk.terminate()
+    return wrapped
 
 
 def load_automated_tests(test_suite: unittest.TestSuite):
@@ -76,9 +87,9 @@ def run(context):
     APP = ac.Application.get()
     test_suite = unittest.TestSuite()
 
-    load_automated_tests(test_suite)
+    # load_automated_tests(test_suite)
     # load_manual_tests(test_suite)
-    # load_notorious_tests(test_suite)
+    load_notorious_tests(test_suite)
 
     # Run a command interactively
 
