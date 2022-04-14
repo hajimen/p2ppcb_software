@@ -87,9 +87,9 @@ def run(context):
     APP = ac.Application.get()
     test_suite = unittest.TestSuite()
 
-    # load_automated_tests(test_suite)
+    load_automated_tests(test_suite)
     # load_manual_tests(test_suite)
-    load_notorious_tests(test_suite)
+    # load_notorious_tests(test_suite)
 
     # Run a command interactively
 

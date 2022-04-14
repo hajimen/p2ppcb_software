@@ -1,3 +1,3 @@
 Specifier,filename,Parameter
-LED,PCB-MX-LED.png,Col_L_X Col_L_Y Col_L_Angle Col_R_X Col_R_Y Col_R_Angle Row_L_X Row_L_Y Row_L_Angle Row_R_X Row_R_Y Row_R_Angle
-.*,PCB-MX.png,Col_L_X Col_L_Y Col_L_Angle Col_R_X Col_R_Y Col_R_Angle Row_L_X Row_L_Y Row_L_Angle Row_R_X Row_R_Y Row_R_Angle
+LED,PCB-MX-LED.png,Col_L_X Col_L_Y Col_L_Angle Col_R_X Col_R_Y Col_R_Angle Row_L_X Row_L_Y Row_L_Angle Row_R_X Row_R_Y Row_R_Angle SwitchAngle
+.*,PCB-MX.png,Col_L_X Col_L_Y Col_L_Angle Col_R_X Col_R_Y Col_R_Angle Row_L_X Row_L_Y Row_L_Angle Row_R_X Row_R_Y Row_R_Angle SwitchAngle

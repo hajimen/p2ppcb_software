@@ -19,6 +19,7 @@ from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
 from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
     get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH, FourOrientation, AN_KLE_B64
+from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
 WIRE_PITCH = 0.127
@@ -66,7 +67,7 @@ class Entry:
 @dataclass
 class Key:
     key_location: ty.Tuple[float, float, float]  # x, y, angle
-    switch_orientation: FourOrientation
+    switch_angle: float
     path: SwitchPath
     img: ImageType = field(compare=False)
     code: str
@@ -163,7 +164,7 @@ class FlatCablePlacement:
 
 
 def _get_key_angle(k: Key):
-    return k.key_location[2] + ROT_RAD[k.switch_orientation]
+    return k.key_location[2] + k.switch_angle
 
 
 def _get_absolute_wire_path(key: Key, rc: RC, td: TerminalDirection, is_orig: bool) -> ty.Tuple[float, float, float]:
@@ -221,12 +222,13 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             kl_name = key_locator_name(i, pattern_name)
             kl_occ = locators_occ.child[kl_name]
             switch_desc = kl_occ.comp_attr[AN_SWITCH_DESC]
-            orientation = FourOrientation[kl_occ.comp_attr[AN_SWITCH_ORIENTATION]]
             code = op.legend[I_CODE_LABEL]
             if kl_occ.comp_attr[AN_ROW_NAME].startswith('LED'):
                 specifier += ' LED'
             filename, wiring_parameters = pi.resolve_pcb_wiring(specifier, switch_desc)
+            switch_orientation = FourOrientation[kl_occ.comp_attr[AN_SWITCH_ORIENTATION]]
             wp = {k: v.m_as('rad') if k.endswith('Angle') else v.m_as('cm') for k, v in wiring_parameters.items()}
+            switch_angle = ROT_RAD[switch_orientation] + wp[SPN_SWITCH_ANGLE]
             if filename in image_cache:
                 img = image_cache[filename]
             else:
@@ -262,7 +264,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                     i_logical_col = cp.cable.get_logical_number(col_name, RC.Col)
             if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or i_cp_row == -1 or i_cp_col == -1:
                 raise BadCodeException()
-            k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), orientation, switch_path,
+            k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), switch_angle, switch_path,
                     img,  # type: ignore
                     code, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
             keys_row[i_cp_row, i_pin_row].append(k)
