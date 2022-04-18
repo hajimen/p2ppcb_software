@@ -845,6 +845,9 @@ def check_layout_plane(cp: af.ConstructionPlane) -> ac.Plane:
     z_axis_line = ac.Line3D.create(ORIGIN_P3D, ac.Point3D.create(0, 0, 1))
     if cp_plane.isParallelToLine(z_axis_line):
         raise BadConditionException('Layout Plane cannot be parallel to Z axis.')
+    if cp_plane.normal.z < 0.:
+        cp_vy.scaleBy(-1.)
+        cp_plane = ac.Plane.createUsingDirections(cp_o, cp_vx, cp_vy)
     return cp_plane
 
 

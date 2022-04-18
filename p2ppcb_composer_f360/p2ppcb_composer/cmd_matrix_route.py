@@ -159,7 +159,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         rc = self.get_rc()
         selected_locators = self.get_selected_locators()
 
-        if has_sel_in(locator_in):
+        if not has_sel_in(locator_in):
             event_args.areInputsValid = False
             return
         if wire_in.selectedItem.name == '':

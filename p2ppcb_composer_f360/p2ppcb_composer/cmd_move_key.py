@@ -139,6 +139,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         con = get_context()
 
         locator_in, lp_in, skeleton_surface_in, angle_surface_in = self.get_selection_ins()
+        angle = af.BRepBody.cast(angle_surface_in.selection(0).entity)  # Don't move downward this line because CommandInput losses the selection by manipulating components.
         if has_sel_in(locator_in):
             selected_locators = get_selected_locators(locator_in)
 
@@ -166,7 +167,6 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                 skeleton_ci.set_locators_attr_value(selected_locators, skeleton_surface.entityToken)
 
             angle_ci = InputLocators(angle_surface_in, AN_LOCATORS_ANGLE_TOKEN, af.BRepBody)
-            angle = af.BRepBody.cast(angle_surface_in.selection(0).entity)
             token = angle_ci.get_locators_attr_value(selected_locators)
             if angle.entityToken != token:
                 angle_ci.set_locators_attr_value(selected_locators, angle.entityToken)
