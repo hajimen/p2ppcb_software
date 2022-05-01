@@ -1,2 +1,2 @@
-Specifier,StabilizerStemBottomHeight
-.*,3.6 mm
+Specifier,StabilizerStemBottomHeight,StabilizerTravel
+.*,3.6 mm,3.0 mm

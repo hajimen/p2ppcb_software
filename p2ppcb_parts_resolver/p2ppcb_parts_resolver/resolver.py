@@ -25,6 +25,7 @@ SPN_SWITCH_X = 'SwitchX'
 SPN_SWITCH_Y = 'SwitchY'
 
 SPN_TRAVEL = 'Travel'
+SPN_STABILIZER_TRAVEL = 'StabilizerTravel'
 SPN_TOP_HEIGHT = 'TopHeight'
 SPN_CAP_SB_HEIGHT = 'CapStemBottomHeight'
 SPN_SWITCH_SB_HEIGHT = 'SwitchStemBottomHeight'
@@ -277,15 +278,16 @@ class PartsInfo:
                      (SPN_SWITCH_BOTTOM_HEIGHT, Part.Switch), (SPN_STABILIZER_SB_HEIGHT, Part.Stabilizer)]:
             if p not in part_height_parameter or n not in part_height_parameter[p]:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {stabilizer_desc}, {switch_desc}.')
-        for n, p in [(SPN_TOP_HEIGHT, Part.Cap), (SPN_TRAVEL, Part.Switch)]:
+        for n, p in [(SPN_TOP_HEIGHT, Part.Cap), (SPN_TRAVEL, Part.Switch), (SPN_STABILIZER_TRAVEL, Part.Stabilizer)]:
             if n not in parameters:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {switch_desc}.')
         for n in [SPN_SWITCH_ANGLE, SPN_SWITCH_X, SPN_SWITCH_Y]:
             if n in parameters:
                 switch_xya[n] = parameters.pop(n)
+        travel_gap = parameters[SPN_STABILIZER_TRAVEL] - parameters[SPN_TRAVEL]
         part_z_pos: ty.Dict[Part, Quantity] = {
             Part.Cap: - part_height_parameter[Part.Cap][SPN_CAP_SB_HEIGHT],
-            Part.Stabilizer: - part_height_parameter[Part.Stabilizer][SPN_STABILIZER_SB_HEIGHT],
+            Part.Stabilizer: - part_height_parameter[Part.Stabilizer][SPN_STABILIZER_SB_HEIGHT] + travel_gap,
             Part.Switch: - part_height_parameter[Part.Switch][SPN_SWITCH_SB_HEIGHT],
             Part.PCB: - part_height_parameter[Part.Switch][SPN_SWITCH_SB_HEIGHT] + part_height_parameter[Part.Switch][SPN_SWITCH_BOTTOM_HEIGHT],
         }  # type: ignore
