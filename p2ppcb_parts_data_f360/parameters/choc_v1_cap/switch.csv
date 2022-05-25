@@ -1,4 +1,4 @@
 Specifier,SwitchX,SwitchY,SwitchAngle,StabilizerX,StabilizerY,StabilizerAngle
 ISO_Enter,4.45 mm,0 mm,180 deg,3.375 mm,0 mm,-90 deg
-Vertical 2u,0 mm,0 mm,180 deg,0 mm,0 mm,180 deg
+Vertical 2u,0 mm,0 mm,-90 deg,0 mm,0 mm,180 deg
 .*u,0 mm,0 mm,180 deg,0 mm,0 mm,180 deg
