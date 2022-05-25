@@ -303,7 +303,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             # objective function: minimize the distance
             model.objective = mip.minimize(mip.xsum(dist_map[i, j] * x[i, j] for i, j in product(V_START, V) if i[0] != j[0]))  # type: ignore
 
-            # constraint: canont use the same direction of a terminal for enter / leave both
+            # constraint: cannot use the same direction of a terminal for enter / leave both
             for v in V:
                 model += mip.xsum(x[v, j] for j in V_GOAL if j[0] != v[0]) + mip.xsum(x[i, v] for i in V_START if i[0] != v[0]) <= 1  # type: ignore
 

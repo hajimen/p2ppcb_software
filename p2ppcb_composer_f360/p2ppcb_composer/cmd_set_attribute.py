@@ -2,7 +2,7 @@ import typing as ty
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
-from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, AN_PLACEHOLDER, AN_TERRITORY, ATTR_GROUP, get_context
+from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, AN_PLACEHOLDER, AN_TERRITORY, ATTR_GROUP
 from p2ppcb_composer.cmd_common import CommandHandlerBase, get_ci
 
 INP_ID_ENTITY_SEL = 'entity'

@@ -15,7 +15,7 @@ from route.route import get_cn_mainboard
 
 INP_ID_GENERATE_BRIDGE_BOOL = 'generateBridge'
 INP_ID_BRIDGE_PROFILE_SEL = 'bridgeProfile'
-INP_ID_MAINBOARD_LAYOUT_RADIO = 'maiboardLayout'
+INP_ID_MAINBOARD_LAYOUT_RADIO = 'mainboardLayout'
 INP_ID_FLIP_BOOL = 'flip'
 INP_ID_CHECK_INTERFERENCE_BOOL = 'checkInterference'
 INP_ID_FOOT_LOCATOR_SEL = 'footLocator'

@@ -187,7 +187,7 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict
     con = get_context()
     ab = con.child[CN_DEPOT_APPEARANCE].comp.bRepBodies.itemByName(BN_APPEARANCE_KEY_LOCATOR)
     if ab is None:
-        raise BadCodeException(f'appearance.f3d is corruputed. It lacks {BN_APPEARANCE_KEY_LOCATOR} body.')
+        raise BadCodeException(f'appearance.f3d is corrupted. It lacks {BN_APPEARANCE_KEY_LOCATOR} body.')
     kl_appearance = ab.appearance
     for b in pa_f.bodies:
         b.appearance = kl_appearance
@@ -255,7 +255,7 @@ class PartsDepot:
         try:
             self.cache_doc.activate()
         except RuntimeError:
-            pass  # I don't know why "RuntimeError: 2 : InternalValidationError : res" occurs. F360's bug? But activate() works nevertheres.
+            pass  # I don't know why "RuntimeError: 2 : InternalValidationError : res" occurs. F360's bug? But activate() works nevertheless.
         return reset_context(af.Design.cast(self.cache_doc.products[0]))
 
     def prepare(self, acc_occ: F3Occurrence, prepare_locator_parameters: ty.List[PrepareKeyLocatorParameter], prepare_part_parameters: ty.List[PreparePartParameter], next: ty.Callable, error: ty.Callable, silent=False) -> None:

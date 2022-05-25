@@ -606,7 +606,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     hit_mf.append(lb)
                 if _get_attr_value(rb, AN_CATEGORY_NAME) != AN_HOLE:
                     rpn = _get_attr_value(rb, AN_PART_NAME)[:len(CNP_PARTS)]
-                    raise BadConditionException(f'The part data is corrupted. Two MF bodies are interferencing. The part name: {rpn}')
+                    raise BadConditionException(f'The part data is corrupted. Two MF bodies are interfering. The part name: {rpn}')
                 if category_enables[AN_HOLE]:
                     hit_hole.append(rb)
         if hit:
@@ -857,6 +857,6 @@ def get_category_appearance():
     for category, bn in zip([AN_HOLE, AN_MF, AN_MEV], [BN_APPEARANCE_HOLE, BN_APPEARANCE_MF, BN_APPEARANCE_MEV]):
         cat_b = depot_appearance_occ.raw_occ.bRepBodies.itemByName(bn)
         if cat_b is None:
-            raise BadCodeException(f'appearance.f3d is corruputed. It lacks {bn} body.')
+            raise BadCodeException(f'appearance.f3d is corrupted. It lacks {bn} body.')
         category_appearance[category] = cat_b.appearance
     return category_appearance

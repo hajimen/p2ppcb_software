@@ -837,7 +837,7 @@ from time import perf_counter
 @dataclass(eq=True, frozen=True)
 class Segment:
     filename: str
-    lineno: int
+    lineno: ty.Optional[int]
 
 
 class Profiler:

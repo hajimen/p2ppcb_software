@@ -13,7 +13,7 @@ from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
     CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, SpecsOpsOnPn, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
-    AN_KEY_PITCH_W, AN_KEY_PITCH_D, ANS_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
+    ANS_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_MAIN_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
     CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION
