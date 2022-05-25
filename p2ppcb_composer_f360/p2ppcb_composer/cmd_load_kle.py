@@ -13,7 +13,7 @@ from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
     CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, SpecsOpsOnPn, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
-    AN_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
+    AN_KEY_PITCH_W, AN_KEY_PITCH_D, ANS_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_MAIN_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
     CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION
@@ -33,11 +33,11 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
     offset_str = inl_occ.comp_attr[AN_MAIN_KEY_V_OFFSET]
 
     locators_occ = con.child[CN_INTERNAL].child.get_real(CN_KEY_LOCATORS)
-    key_pitch = ty.cast(Quantity, Quantity(float(inl_occ.comp_attr[AN_KEY_PITCH]), 'cm'))
-    U = key_pitch.m_as('cm')
+    key_pitch_wd = {an: ty.cast(Quantity, Quantity(float(inl_occ.comp_attr[an]), 'cm')) for an in ANS_KEY_PITCH}
+    u_wd = np.array([float(inl_occ.comp_attr[an]) for an in ANS_KEY_PITCH])
     min_xyu = np.array(min_xyu)
     max_xyu = np.array(max_xyu)
-    w, h = (max_xyu - min_xyu) * U  # type: ignore
+    w, h = (max_xyu - min_xyu) * u_wd  # type: ignore
     for pattern_name, specs_ops in specs_ops_on_pn.items():
         for i, (specifier, op) in enumerate(specs_ops):
             if op is None:
@@ -64,7 +64,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                     pp = parts_depot.PrepareKeyLocatorParameter(
                         locator_decal_parameters,
                         parts_resolver.KEY_AREA_PATTERN_DIC[pattern_name],
-                        key_pitch,
+                        key_pitch_wd,
                         []
                     )
                     pp_kl_on_specifier[specifier] = pp
@@ -81,7 +81,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                 occ = locators_occ.child.get(name, on_surrogate=_on_surrogate)
             r = - (op.angle * np.pi / 180)
             rot_mat = np.array([[np.cos(r), - np.sin(r)], [np.sin(r), np.cos(r)]])
-            x, y = (np.array(op.center_xyu) - min_xyu) * U  # type: ignore
+            x, y = (np.array(op.center_xyu) - min_xyu) * u_wd  # type: ignore
             mat_3d = np.eye(4)
             mat_3d[:2, :2] = rot_mat
             mat_3d[:2, 3] = x - w / 2, h / 2 - y

@@ -17,7 +17,7 @@ import adsk
 
 from f360_insert_decal_rpa import start as insert_decal_rpa_start
 from f360_insert_decal_rpa import InsertDecalParameter
-from f360_common import BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, PROF, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
+from f360_common import ANS_KEY_PITCH, BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, PROF, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
     CreateObjectCollectionT, SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, reset_context, set_context
 
 CUSTOM_EVENT_DONE_ID = 'rpa_done'
@@ -51,7 +51,7 @@ class CapPlaceholderParameter:
 class PrepareKeyLocatorParameter:
     decal_parameters: ty.Dict[str, Quantity]
     pattern: np.ndarray
-    pitch: Quantity
+    pitch_wd: ty.Dict[str, Quantity]
     names_images: ty.List[ty.Tuple[str, pathlib.Path]]
 
 
@@ -123,7 +123,7 @@ class RpaEventHandler(ac.CustomEventHandler):
         self.call()
 
 
-def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch: Quantity, occ: F3Occurrence) -> None:
+def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict[str, Quantity], occ: F3Occurrence) -> None:
     lp = np.zeros((pattern.shape[0] + 2, pattern.shape[1] + 2), np.bool_)
     lp[1:-1, 1:-1] = pattern
     cw = np.array([[0, -1], [1, 0]], int)
@@ -158,7 +158,7 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch: Quantity, 
     directions = np.array(directions_list) / 4
     sketch: af.Sketch = occ.comp.sketches.add(occ.comp.xYConstructionPlane)
     lines = sketch.sketchCurves.sketchLines
-    p: float = pitch.m_as('cm')
+    p: float = min([pitch_wd[an].m_as('cm') for an in ANS_KEY_PITCH])
     src_slc = CreateObjectCollectionT(af.SketchLine)
     for v, d in zip(vertices, directions):
         s = v * p
@@ -277,9 +277,9 @@ class PartsDepot:
 
             def on_create_locator_pattern_occ(occ: F3Occurrence):
                 self.cache_doc_is_modified = True
-                create_key_locator_surface_by_pattern(lp.pattern, lp.pitch, occ)
+                create_key_locator_surface_by_pattern(lp.pattern, lp.pitch_wd, occ)
 
-            pattern_hash_bytes = str(lp.pitch).encode() + lp.pattern.tobytes()
+            pattern_hash_bytes = str(lp.pitch_wd).encode() + lp.pattern.tobytes()
             pattern_hash = hashlib.md5(pattern_hash_bytes).hexdigest()
             if pattern_hash not in locator_decal_redundant_check:
                 locator_decal_redundant_check[pattern_hash] = set()

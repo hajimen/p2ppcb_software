@@ -3,8 +3,8 @@ import typing as ty
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
-from f360_common import CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, \
-    AN_KEY_PITCH, create_component, get_context, AN_PARTS_DATA_PATH
+from f360_common import AN_KEY_PITCH_D, AN_KEY_PITCH_W, ANS_KEY_PITCH, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, \
+    create_component, get_context, AN_PARTS_DATA_PATH
 from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
     has_sel_in, get_cis, PartsCommandBlock, AN_MAIN_SURFACE, CommandHandlerBase, check_layout_plane
 import mainboard
@@ -12,7 +12,8 @@ from route.route import get_cn_mainboard, get_mainboard_constants
 
 INP_ID_MAIN_SURFACE_SEL = 'mainSurface'
 INP_ID_MAIN_LAYOUT_PLANE_SEL = 'layoutPlane'
-INP_ID_KEY_PITCH_VAL = 'keyPitch'
+INP_ID_KEY_PITCH_W_VAL = 'keyPitchW'
+INP_ID_KEY_PITCH_D_VAL = 'keyPitchD'
 INP_ID_MAINBOARD = 'mainboard'
 INP_ID_SCAFFOLD_BOOL = 'scaffold'
 
@@ -68,6 +69,7 @@ def generate_scaffold():
     ex_in1.setTwoSidesDistanceExtent(cm15, cm15)
     skeleton_surface = extrudes.add(ex_in1).bodies[0]
     skeleton_surface.opacity = 0.2
+    skeleton_surface.name = 'Main Surface'
 
     arc2 = arcs.addByThreePoints(
         ac.Point3D.create(-4., -4. - 1.4, 0.),
@@ -115,7 +117,7 @@ def generate_scaffold():
     camera.isFitView = True
     con.app.activeViewport.camera = camera
 
-    return pitch, offset, skeleton_surface, alternative_surface, layout_plane
+    return pitch, pitch, offset, skeleton_surface, alternative_surface, layout_plane
 
 
 CUSTOM_EVENT_ID_INITIALIZE = 'initialize_project'
@@ -171,11 +173,13 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             layout_plane_in.addSelection(s[0].parent)
 
         attr: ty.MutableMapping[str, str] = con.child[CN_INTERNAL].comp_attr if CN_INTERNAL in con.child else {}
-        if AN_KEY_PITCH in attr:
-            pitch_vi = ac.ValueInput.createByReal(float(attr[AN_KEY_PITCH]))
-        else:
-            pitch_vi = ac.ValueInput.createByString('19 mm')
-        _ = self.inputs.addValueInput(INP_ID_KEY_PITCH_VAL, 'Key Pitch', 'mm', pitch_vi)
+        pns = {AN_KEY_PITCH_W: 'Widthwise Key Pitch', AN_KEY_PITCH_D: 'Depthwise Key Pitch'}
+        for an in ANS_KEY_PITCH:
+            if an in attr:
+                pitch_vi = ac.ValueInput.createByReal(float(attr[an]))
+            else:
+                pitch_vi = ac.ValueInput.createByString('19 mm')
+            _ = self.inputs.addValueInput(an, pns[an], 'mm', pitch_vi)
 
         mb = attr[AN_MAINBOARD] if AN_MAINBOARD in attr else mainboard.DEFAULT
         mb_in = self.inputs.addDropDownCommandInput(INP_ID_MAINBOARD, 'Mainboard', ac.DropDownStyles.TextListDropDownStyle)
@@ -208,8 +212,11 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
     def get_scaffold_in(self):
         return ac.BoolValueCommandInput.cast(self.inputs.itemById(INP_ID_SCAFFOLD_BOOL))
 
-    def get_pitch_in(self):
-        return ac.ValueCommandInput.cast(self.inputs.itemById(INP_ID_KEY_PITCH_VAL))
+    def get_pitch_w_in(self):
+        return ac.ValueCommandInput.cast(self.inputs.itemById(INP_ID_KEY_PITCH_W_VAL))
+
+    def get_pitch_d_in(self):
+        return ac.ValueCommandInput.cast(self.inputs.itemById(INP_ID_KEY_PITCH_D_VAL))
 
     def get_mainboard_in(self):
         return ac.DropDownCommandInput.cast(self.inputs.itemById(INP_ID_MAINBOARD))
@@ -219,7 +226,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             scaffold_in = ac.BoolValueCommandInput.cast(changed_input)
             scaffold_disabled = not scaffold_in.value
             for ci in self.get_selection_ins() + self.parts_cb.get_option_ins() \
-                    + (self.get_pitch_in(), self.get_mainboard_in(), self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in()):
+                    + (self.get_pitch_w_in(), self.get_pitch_d_in(), self.get_mainboard_in(), self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in()):
                 ci.isEnabled = scaffold_disabled
                 ci.isVisible = scaffold_disabled
             for sci in self.get_selection_ins():
@@ -244,13 +251,14 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
         if self.get_scaffold_in().value:
             options = [inp.listItems[1].name for inp in self.parts_cb.get_option_ins()]
-            pitch, offset, main_surface, _, layout_plane = generate_scaffold()
+            pitch_w, pitch_d, offset, main_surface, _, layout_plane = generate_scaffold()
             mb = mainboard.DEFAULT
         else:
             main_in, layout_plane_in = self.get_selection_ins()
             main_surface = af.BRepBody.cast(main_in.selection(0).entity)
             layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
-            pitch = self.get_pitch_in().value
+            pitch_w = self.get_pitch_w_in().value
+            pitch_d = self.get_pitch_d_in().value
 
             options = self.parts_cb.get_selected_options()
             offset = self.parts_cb.get_v_offset()
@@ -261,7 +269,8 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         con.attr_singleton[AN_MAIN_SURFACE] = ('noop', main_surface)
         con.attr_singleton[AN_MAIN_LAYOUT_PLANE] = ('noop', layout_plane)
         inl_occ = con.child.get_real(CN_INTERNAL)
-        inl_occ.comp_attr[AN_KEY_PITCH] = str(pitch)
+        inl_occ.comp_attr[AN_KEY_PITCH_W] = str(pitch_w)
+        inl_occ.comp_attr[AN_KEY_PITCH_D] = str(pitch_d)
         inl_occ.comp_attr[AN_PARTS_DATA_PATH] = str(self.parts_cb.parts_data_path)
         for an, option in zip(ANS_MAIN_OPTION, options):
             inl_occ.comp_attr[an] = option

@@ -214,8 +214,9 @@ class TestInitProject(unittest.TestCase):
     def test_generate_scaffold(self):
         doc = new_document()
         from p2ppcb_composer.cmd_init_project import generate_scaffold
-        pitch, offset, skeleton_surface, alternative_surface, layout_plane = generate_scaffold()
-        self.assertEqual(pitch, 1.9)
+        pitch_x, pitch_y, offset, skeleton_surface, alternative_surface, layout_plane = generate_scaffold()
+        self.assertEqual(pitch_x, 1.9)
+        self.assertEqual(pitch_y, 1.9)
         self.assertEqual(offset, 0.)
         self.assertIsInstance(skeleton_surface, af.BRepBody)
         self.assertIsInstance(alternative_surface, af.BRepBody)
@@ -333,6 +334,19 @@ class TestMatrixRoute(unittest.TestCase):
         from mainboard.Alice import constants
         doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
         mc = constants()
+
+        # from collections import defaultdict
+        # from f360_common import BadConditionException, AN_COL_NAME, AN_ROW_NAME
+        # inl_occ = get_context().child[CN_INTERNAL]
+        # matrix: ty.Dict[str, ty.Dict[str, str]] = defaultdict(lambda: defaultdict(str))
+        # for kl_occ in inl_occ.child[CN_KEY_LOCATORS].child.values():
+        #     if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
+        #         matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
+        #     else:
+        #         raise BadConditionException('Assign source/drain to all key locators.')
+        # with open((TEST_PKL_DIR / 'matrix.pkl'), 'wb') as f:
+        #     pickle.dump({k: dict(v) for k, v in matrix.items()}, f)
+
         with open(TEST_PKL_DIR / 'matrix.pkl', 'rb') as f:
             matrix = pickle.load(f)
         flat_cable_placements: ty.List[rt.FlatCablePlacement] = []

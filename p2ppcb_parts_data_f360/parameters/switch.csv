@@ -1,4 +1,4 @@
-Specifier,SwitchX,SwitchY,SwitchAngle
-ISO_Enter,2.375 mm,0 mm,-90 deg
-Bigass_Enter,0 mm,-9.25 mm,180 deg
-.*u,0 mm,0 mm,180 deg
+Specifier,SwitchX,SwitchY,SwitchAngle,StabilizerX,StabilizerY,StabilizerAngle
+ISO_Enter,2.375 mm,0 mm,-90 deg,-90 deg,2.375 mm,0 mm,-90 deg
+Bigass_Enter,0 mm,-9.25 mm,180 deg,0 mm,-9.25 mm,180 deg
+.*u,0 mm,0 mm,180 deg,0 mm,0 mm,180 deg

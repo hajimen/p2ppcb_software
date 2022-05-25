@@ -85,7 +85,9 @@ AN_KEY_V_ALIGN = 'keyVAlign'
 AN_KEY_V_OFFSET = 'keyVOffset'
 ANS_OPTION = [AN_CAP_DESC, AN_STABILIZER_DESC, AN_STABILIZER_ORIENTATION, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, AN_KEY_V_ALIGN]
 
-AN_KEY_PITCH = 'keyPitch'
+AN_KEY_PITCH_W = 'keyPitchW'
+AN_KEY_PITCH_D = 'keyPitchD'
+ANS_KEY_PITCH = [AN_KEY_PITCH_W, AN_KEY_PITCH_D]
 AN_ROW_NAME = 'rowName'
 AN_COL_NAME = 'colName'
 ANS_RC_NAME = [AN_ROW_NAME, AN_COL_NAME]
@@ -788,7 +790,7 @@ def create_component(acc_comp: VirtualComponent, new_name: str, postfix: ty.Opti
 KLE_CACHE: ty.Dict[str, ty.Any] = {}
 
 
-def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[SpecsOpsOnPn, ty.Tuple, ty.Tuple]:
+def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[SpecsOpsOnPn, ty.Tuple[float, float], ty.Tuple[float, float]]:
     with open(kle_file, 'rb') as f:
         kle_file_content = f.read()
     kle_hash = hashlib.md5(kle_file_content).hexdigest()

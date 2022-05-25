@@ -288,14 +288,15 @@ def prepare_key_assembly(
             if p in part_z_pos
         }
 
-        t = EYE_M3D.copy()
-        switch_angle = switch_xya[parts_resolver.SPN_SWITCH_ANGLE].m_as('rad')
-        if switch_angle != 0.:
-            t.setToRotation(switch_angle, ZU_V3D, ORIGIN_P3D)
-        t.setCell(0, 3, switch_xya[parts_resolver.SPN_SWITCH_X].m_as('cm'))
-        t.setCell(1, 3, switch_xya[parts_resolver.SPN_SWITCH_Y].m_as('cm'))
         for p in [Part.Stabilizer, Part.Switch, Part.PCB]:
             if p in part_trans:
+                t = EYE_M3D.copy()
+                spn_x, spn_y, spn_angle = (parts_resolver.SPN_STABILIZER_X, parts_resolver.SPN_STABILIZER_Y, parts_resolver.SPN_STABILIZER_ANGLE) if p == Part.Stabilizer else (parts_resolver.SPN_SWITCH_X, parts_resolver.SPN_SWITCH_Y, parts_resolver.SPN_SWITCH_ANGLE)
+                switch_angle = switch_xya[spn_angle].m_as('rad')
+                if switch_angle != 0.:
+                    t.setToRotation(switch_angle, ZU_V3D, ORIGIN_P3D)
+                t.setCell(0, 3, switch_xya[spn_x].m_as('cm'))
+                t.setCell(1, 3, switch_xya[spn_y].m_as('cm'))
                 part_trans[p].transformBy(t)
 
         offset_trans = ac.Matrix3D.create()

@@ -23,6 +23,9 @@ PARTS_INFO_DIRNAME = 'parameters'
 SPN_SWITCH_ANGLE = 'SwitchAngle'
 SPN_SWITCH_X = 'SwitchX'
 SPN_SWITCH_Y = 'SwitchY'
+SPN_STABILIZER_ANGLE = 'StabilizerAngle'
+SPN_STABILIZER_X = 'StabilizerX'
+SPN_STABILIZER_Y = 'StabilizerY'
 
 SPN_TRAVEL = 'Travel'
 SPN_STABILIZER_TRAVEL = 'StabilizerTravel'
@@ -242,7 +245,9 @@ class PartsInfo:
         part_parameter_names: ty.Dict[Part, ty.List[str]] = {}
         part_placeholder: ty.Dict[Part, str] = {}
         part_height_parameter: ty.Dict[Part, ty.Dict[str, Quantity]] = {}
-        switch_xya: ty.Dict[str, Quantity] = {SPN_SWITCH_ANGLE: Quantity('0 deg'), SPN_SWITCH_X: Quantity('0 mm'), SPN_SWITCH_Y: Quantity('0 mm')}  # type: ignore
+        switch_xya: ty.Dict[str, Quantity] = {
+            SPN_SWITCH_ANGLE: Quantity('0 deg'), SPN_SWITCH_X: Quantity('0 mm'), SPN_SWITCH_Y: Quantity('0 mm'),
+            SPN_STABILIZER_ANGLE: Quantity('0 deg'), SPN_STABILIZER_X: Quantity('0 mm'), SPN_STABILIZER_Y: Quantity('0 mm')}  # type: ignore
         for desc, part in [(cap_desc, Part.Cap), (stabilizer_desc, Part.Stabilizer), (switch_desc, Part.Switch), (switch_desc, Part.PCB)]:
             try:
                 part_filename[part], part_parameter_names[part], path = self._resolve_parameters(specifier, desc, part)
@@ -272,6 +277,11 @@ class PartsInfo:
                     if part not in part_height_parameter:
                         part_height_parameter[part] = {}
                     part_height_parameter[part][n] = qps.pop(n)
+            for n in [SPN_SWITCH_ANGLE, SPN_SWITCH_X, SPN_SWITCH_Y, SPN_STABILIZER_ANGLE, SPN_STABILIZER_X, SPN_STABILIZER_Y]:
+                if n in qps:
+                    v = qps.pop(n)
+                    if part == Part.Cap:
+                        switch_xya[n] = v
             parameters.update(qps)
 
         for n, p in [(SPN_CAP_SB_HEIGHT, Part.Cap), (SPN_SWITCH_SB_HEIGHT, Part.Switch),
@@ -281,9 +291,6 @@ class PartsInfo:
         for n, p in [(SPN_TOP_HEIGHT, Part.Cap), (SPN_TRAVEL, Part.Switch), (SPN_STABILIZER_TRAVEL, Part.Stabilizer)]:
             if n not in parameters:
                 raise Exception(f'Parts info lacks mandatory parameter: {n} about {p.name} of {cap_desc}, {switch_desc}.')
-        for n in [SPN_SWITCH_ANGLE, SPN_SWITCH_X, SPN_SWITCH_Y]:
-            if n in parameters:
-                switch_xya[n] = parameters.pop(n)
         travel_gap = parameters[SPN_STABILIZER_TRAVEL] - parameters[SPN_TRAVEL]
         part_z_pos: ty.Dict[Part, Quantity] = {
             Part.Cap: - part_height_parameter[Part.Cap][SPN_CAP_SB_HEIGHT],

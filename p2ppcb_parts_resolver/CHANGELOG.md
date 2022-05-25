@@ -23,3 +23,7 @@
 ## Version 0.1.9 : 2022/5/1
 
 - `StabilizerTravel` added. Now stabilizer's `z_pos` is adjusted by travel bottom.
+
+## Version 0.1.10 : 2022/5/25
+
+- Special parameters `Stabilizer[X|Y|Angle]` added.

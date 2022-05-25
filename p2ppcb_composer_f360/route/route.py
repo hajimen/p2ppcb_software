@@ -18,7 +18,7 @@ import numpy as np
 from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
 from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
-    get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH, FourOrientation, AN_KLE_B64
+    get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH_W, AN_KEY_PITCH_D, FourOrientation, AN_KLE_B64
 from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
@@ -211,7 +211,8 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
     pi = get_part_info()
     kle_b64 = con.child[CN_INTERNAL].comp_attr[AN_KLE_B64]
     specs_ops_on_pn, min_xyu, max_xyu = load_kle_by_b64(kle_b64, pi)
-    pitch = float(inl_occ.comp_attr[AN_KEY_PITCH])
+    pitch_w = float(inl_occ.comp_attr[AN_KEY_PITCH_W])
+    pitch_d = float(inl_occ.comp_attr[AN_KEY_PITCH_D])
     keys_row: KeysOnPinType = defaultdict(list)
     keys_col: KeysOnPinType = defaultdict(list)
     image_cache = {}
@@ -264,7 +265,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                     i_logical_col = cp.cable.get_logical_number(col_name, RC.Col)
             if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or i_cp_row == -1 or i_cp_col == -1:
                 raise BadCodeException()
-            k = Key((op.center_xyu[0] * pitch, op.center_xyu[1] * pitch, np.deg2rad(op.angle)), switch_angle, switch_path,
+            k = Key((op.center_xyu[0] * pitch_w, op.center_xyu[1] * pitch_d, np.deg2rad(op.angle)), switch_angle, switch_path,
                     img,  # type: ignore
                     code, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
             keys_row[i_cp_row, i_pin_row].append(k)
@@ -273,7 +274,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
     keys_rc: ty.Dict[RC, KeysOnPinType] = {RC.Row: keys_row, RC.Col: keys_col}
     route_rccp: ty.Dict[RC_CP, ty.Dict[int, Line]] = defaultdict(dict)
     entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]] = {}
-    center_xy = ((min_xyu[0] + max_xyu[0]) * pitch / 2, (min_xyu[1] + max_xyu[1]) * pitch / 2)
+    center_xy = ((min_xyu[0] + max_xyu[0]) * pitch_w / 2, (min_xyu[1] + max_xyu[1]) * pitch_d / 2)
     for rc, (i_cp, cp) in product(RC, enumerate(cable_placements)):
         entries = cp.cable.get_entries(cp.angle, cp.start, center_xy, rc)
         if len(entries) == 0:

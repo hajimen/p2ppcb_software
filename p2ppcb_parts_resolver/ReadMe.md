@@ -91,8 +91,18 @@ Z position of each part in a key assembly.
 
 ## Special parameters for switch_xya
 
-The angle, x, and y of a switch/stabilizer/PCB depend on the specifier. For example, ISO Enter requires right angled switch/stabilizer/PCB.
-`SwitchAngle`, `SwitchX`, and `SwitchY` are special parameters for the purpose.
+The angle, x, and y of a switch/stabilizer/PCB depend on the specifier.
+For example, ISO Enter requires right angled switch/stabilizer/PCB in many cases.
+These are special parameters for the purpose:
+
+- SwitchAngle
+- SwitchX
+- SwitchY
+- StabilizerAngle
+- StabilizerX
+- StabilizerY
+
+A PCB follows its switch, of course.
 
 ## Special parameter: `Placeholder`
 
