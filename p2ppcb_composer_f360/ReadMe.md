@@ -205,7 +205,7 @@ pip install -r requirements.txt -t app-packages --extra-index-url ../../pep503/s
 So far, P2PPCB Composer F360 remains at sketchy quality. It helps you design your own keyboard *in many cases*. In some cases, it annoys you rather than helps you.
 In other cases, it gets stuck in F360's bugs. We need further development for better quality of P2PPCB Composer F360.
 
-## Why so extraordinarily slow for a large keyboard?
+## Why so extraordinarily slow, especially about a large keyboard?
 
 There are two reasons.
 
@@ -216,7 +216,8 @@ It causes a lot of redundant F360 components. However it doesn't cause O(n^2) co
 
 2. F360 becomes extraordinarily slow when there are 100 or above F360 components in a file.
 
-I don't know why. Autodesk doesn't expect such usage, I guess.
+I don't know why. Autodesk doesn't expect such usage, I guess. `findBRepUsingRay()` function can consume several seconds, so `Move Key` command
+is nearly impossible.
 
 ## F360's bugs which annoy you or make you get stuck
 

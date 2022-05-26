@@ -1,6 +1,8 @@
 [
   [
-    { "a": 0 },
+    {
+      "a": 0
+    },
     "~\n`\n\n\nKC_TILDE",
     "!\n1\n\n\nKC_1",
     "@\n2\n\n\nKC_2",
@@ -14,11 +16,15 @@
     ")\n0\n\n\nKC_0",
     "_\n-\n\n\nKC_MINUS",
     "+\n=\n\n\nKC_EQUAL",
-    { "w": 2 },
-    "Backspace\n\n\n\nKC_BSPACE"
+    {
+      "w": 2
+    },
+    "Backspace\n\n\n\nKC_BACKSPACE"
   ],
   [
-    { "w": 1.5 },
+    {
+      "w": 1.5
+    },
     "Tab\n\n\n\nKC_TAB",
     "Q\n\n\n\nKC_Q",
     "W\n\n\n\nKC_W",
@@ -30,33 +36,45 @@
     "I\n\n\n\nKC_I",
     "O\n\n\n\nKC_O",
     "P\n\n\n\nKC_P",
-    "{\n[\n\n\nKC_LBRACKET",
-    "}\n]\n\n\nKC_RBRACKET",
-    { "w": 1.5 },
-    "|\n\\\n\n\nKC_BSLASH"
+    "{\n[\n\n\nKC_LEFT_BRACKET",
+    "}\n]\n\n\nKC_RIGHT_BRACKET",
+    {
+      "w": 1.5
+    },
+    "|\n\\\n\n\nKC_BACKSLASH"
   ],
   [
-    { "w": 1.75 },
+    {
+      "w": 1.75
+    },
     "Caps Lock\n\n\n\nKC_CAPSLOCK",
     "A\n\n\n\nKC_A",
     "S\n\n\n\nKC_S",
     "D\n\n\n\nKC_D",
-    { "n": true },
+    {
+      "n": true
+    },
     "F\n\n\n\nKC_F",
     "G\n\n\n\nKC_G",
     "H\n\n\n\nKC_H",
-    { "n": true },
+    {
+      "n": true
+    },
     "J\n\n\n\nKC_J",
     "K\n\n\n\nKC_K",
     "L\n\n\n\nKC_L",
-    ":\n;\n\n\nKC_SCOLON",
+    ":\n;\n\n\nKC_SEMICOLON",
     "\"\n'\n\n\nKC_QUOTE",
-    { "w": 2.25 },
+    {
+      "w": 2.25
+    },
     "Enter\n\n\n\nKC_ENTER"
   ],
   [
-    { "w": 2.25 },
-    "Shift\n\n\n\nKC_LSHIFT",
+    {
+      "w": 2.25
+    },
+    "Shift\n\n\n\nKC_LEFT_SHIFT",
     "Z\n\n\n\nKC_Z",
     "X\n\n\n\nKC_X",
     "C\n\n\n\nKC_C",
@@ -67,25 +85,45 @@
     "<\n,\n\n\nKC_COMMA",
     ">\n.\n\n\nKC_DOT",
     "?\n/\n\n\nKC_SLASH",
-    { "w": 2.75 },
-    "Shift\n\n\n\nKC_RSHIFT"
+    {
+      "w": 2.75
+    },
+    "Shift\n\n\n\nKC_RIGHT_SHIFT"
   ],
   [
-    { "w": 1.25 },
-    "Ctrl\n\n\n\nKC_LCTRL",
-    { "w": 1.25 },
-    "Win\n\n\n\nKC_LGUI",
-    { "w": 1.25 },
-    "Alt\n\n\n\nKC_LALT",
-    { "a": 3, "w": 6.25 },
+    {
+      "w": 1.25
+    },
+    "Ctrl\n\n\n\nKC_LEFT_CTRL",
+    {
+      "w": 1.25
+    },
+    "Win\n\n\n\nKC_LEFT_GUI",
+    {
+      "w": 1.25
+    },
+    "Alt\n\n\n\nKC_LEFT_ALT",
+    {
+      "a": 3,
+      "w": 6.25
+    },
     "\n\n\n\nKC_SPACE",
-    { "a": 0, "w": 1.25 },
-    "Alt\n\n\n\nKC_RALT",
-    { "w": 1.25 },
-    "Win\n\n\n\nKC_RGUI",
-    { "w": 1.25 },
+    {
+      "a": 0,
+      "w": 1.25
+    },
+    "Alt\n\n\n\nKC_RIGHT_ALT",
+    {
+      "w": 1.25
+    },
+    "Win\n\n\n\nKC_RIGHT_GUI",
+    {
+      "w": 1.25
+    },
     "Menu\n\n\n\nKC_APPLICATION",
-    { "w": 1.25 },
-    "Ctrl\n\n\n\nKC_RCTRL"
+    {
+      "w": 1.25
+    },
+    "Ctrl\n\n\n\nKC_RIGHT_CTRL"
   ]
 ]

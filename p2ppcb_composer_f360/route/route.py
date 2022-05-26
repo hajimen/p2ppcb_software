@@ -23,7 +23,9 @@ from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
 WIRE_PITCH = 0.127
-I_CODE_LABEL = 9
+I_CODE0_LABEL = 9
+N_CODES = 3
+N_QMK_LAYER = 4  # VIA supports 4 layers max.
 CURVATURE = 5
 
 
@@ -70,7 +72,7 @@ class Key:
     switch_angle: float
     path: SwitchPath
     img: ImageType = field(compare=False)
-    code: str
+    codes: ty.List[str]
     i_row: int
     i_col: int
     i_logical_row: int
@@ -223,7 +225,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             kl_name = key_locator_name(i, pattern_name)
             kl_occ = locators_occ.child[kl_name]
             switch_desc = kl_occ.comp_attr[AN_SWITCH_DESC]
-            code = op.legend[I_CODE_LABEL]
+            codes = op.legend[I_CODE0_LABEL:I_CODE0_LABEL + N_CODES]
             if kl_occ.comp_attr[AN_ROW_NAME].startswith('LED'):
                 specifier += ' LED'
             filename, wiring_parameters = pi.resolve_pcb_wiring(specifier, switch_desc)
@@ -267,7 +269,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                 raise BadCodeException()
             k = Key((op.center_xyu[0] * pitch_w, op.center_xyu[1] * pitch_d, np.deg2rad(op.angle)), switch_angle, switch_path,
                     img,  # type: ignore
-                    code, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
+                    codes, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
             keys_row[i_cp_row, i_pin_row].append(k)
             keys_col[i_cp_col, i_pin_col].append(k)
 
@@ -443,13 +445,13 @@ def read_json_by_b64(json_b64: str) -> ty.Any:
 
 def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstants'):
     con = get_context()
-    matrix_code: ty.Dict[int, ty.Dict[int, str]] = defaultdict(dict)
+    matrix_code: ty.Dict[int, ty.Dict[int, ty.List[str]]] = defaultdict(dict)
     keys: ty.List[Key] = []
     for ks in keys_rc[RC.Row].values():
         keys.extend(ks)
     keys = sorted(keys, key=attrgetter('i_kle'))
     for k in keys:
-        matrix_code[k.i_logical_row][k.i_logical_col] = k.code
+        matrix_code[k.i_logical_row][k.i_logical_col] = k.codes
 
     kle_json = []
     i_kle = 0
@@ -482,20 +484,24 @@ def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstant
     }
     
     qmk_str = ''
-    for i_logical_row in range(mbc.n_logical_rc[RC.Row]):
-        qmk_str += '        {'
-        for i_logical_col in range(mbc.n_logical_rc[RC.Col]):
-            if i_logical_row not in matrix_code or i_logical_col not in matrix_code[i_logical_row]:
-                kc = 'KC_NO'
-            elif matrix_code[i_logical_row][i_logical_col] is None:
-                kc = 'KC_NO'
-            else:
-                kc = matrix_code[i_logical_row][i_logical_col]
-            qmk_str += (kc + ', ')
-        qmk_str += '},\n'
-    return '''const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    [0] = {
-''' + qmk_str + '    }\n};\n', json.dumps(via_dic, indent=2)
+    for i_layer in range(N_QMK_LAYER):
+        qmk_str += '    [' + str(i_layer) + '] = {\n'
+        for i_logical_row in range(mbc.n_logical_rc[RC.Row]):
+            qmk_str += '        {'
+            for i_logical_col in range(mbc.n_logical_rc[RC.Col]):
+                if i_logical_row not in matrix_code or i_logical_col not in matrix_code[i_logical_row]:
+                    kc = 'KC_NO'
+                elif matrix_code[i_logical_row][i_logical_col] is None:
+                    kc = 'KC_NO'
+                elif len(matrix_code[i_logical_row][i_logical_col]) <= i_layer:
+                    kc = 'KC_NO'
+                else:
+                    c = matrix_code[i_logical_row][i_logical_col][i_layer]
+                    kc = 'KC_NO' if c is None else c
+                qmk_str += (kc + ', ')
+            qmk_str += '},\n'
+        qmk_str += '    }\n'
+    return 'const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {\n' + qmk_str + '};\n', json.dumps(via_dic, indent=2)
 
 
 @dataclass
