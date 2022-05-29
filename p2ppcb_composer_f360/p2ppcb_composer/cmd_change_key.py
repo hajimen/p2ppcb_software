@@ -229,6 +229,12 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         print('destroy')
         self.show_key_placeholders(True)
 
+        # Bug workaround of F360. Without the code below, change switch orientation -> cancel button occurs wrong result.
+        key_placeholders_occ = get_context().child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
+        kd = {n: o.transform for n, o in key_placeholders_occ.child.items()}
+        for n, o in key_placeholders_occ.child.items():
+            o.transform = kd[n]
+
 
 TOOLTIP_PATTERN_NAME = "Usually '1u', '125u', '15u' and so on. There are some special pattern names too, like 'ISO Enter'."
 TOOLTIP_SPECIFIER = "Row-dependent caps should have prefix on pattern name, like 'R4 1u'. 'Homing' and 'Spacebar' are common prefix."

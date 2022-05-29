@@ -26,6 +26,8 @@ INP_ID_FRAME_BODY_SEL = 'frameBody'
 BN_FRAME = 'Frame' + MAGIC
 BN_FOOT_BOSS = 'Foot Boss' + MAGIC
 BN_MAINBOARD_BOSS = 'Mainboard Boss' + MAGIC
+# CPN: Construction Plane Name
+CPN_INTERNAL_FLOOR = 'Internal Floor' + MAGIC
 CNP_FOOT_LOCATORS = '_FL'
 
 AN_MB_LOCATION_INPUTS = 'mbLocationInputs'
@@ -200,8 +202,12 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
     plane_in = planes.createInput()
     plane_z = get_minpoint('z').z - MIN_FLOOR_HEIGHT
     plane_in.setByOffset(con.comp.xYConstructionPlane, ac.ValueInput.createByReal(plane_z))
+
+    ifp = planes.itemByName(CPN_INTERNAL_FLOOR)
+    if ifp is not None:
+        ifp.deleteMe()
     floor_plane = planes.add(plane_in)
-    floor_plane.name = 'Internal Floor'
+    floor_plane.name = CPN_INTERNAL_FLOOR
     plane_z = floor_plane.geometry.origin.z  # F360's bug workaround
 
     min_point_xy = ac.Point3D.create(get_minpoint('x').x, get_minpoint('y').y, plane_z)
@@ -420,6 +426,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         super().__init__()
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
+        self.last_boss = False
 
     @property
     def cmd_name(self) -> str:
@@ -440,6 +447,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             if b.name == BN_FRAME:
                 hit_frame = True
             if b.name.startswith(BN_MAINBOARD_BOSS):
+                self.last_boss = True
                 b.deleteMe()
         if not hit_frame:
             self.run_execute = False
@@ -573,11 +581,17 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             self.get_layout_in().selectedItem.name,
             self.get_flip_in().value,
         ])).decode()
-        for b in o.bodies_by_attr(AN_FILL):
-            b.isLightBulbOn = False
-            nb = b.copyToComponent(get_context().comp)
-            nb.isLightBulbOn = True
-            nb.name = BN_MAINBOARD_BOSS
+        self.last_boss = True
+
+    def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        if self.last_boss:
+            con = get_context()
+            o = con.child[CN_INTERNAL].child[CN_MISC_PLACEHOLDERS].child[get_cn_mainboard()]
+            for b in o.bodies_by_attr(AN_FILL):
+                b.isLightBulbOn = False
+                nb = b.copyToComponent(con.comp)
+                nb.isLightBulbOn = True
+                nb.name = BN_MAINBOARD_BOSS
 
 
 FOOT_NAMES = [f'Foot {s}{CNP_FOOT_LOCATORS}' for s in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']]
@@ -589,6 +603,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
         self.last_foot_transforms: ty.Dict[str, ac.Matrix3D]
+        self.last_num_foot = 0
 
     @property
     def cmd_name(self) -> str:
@@ -635,21 +650,20 @@ class PlaceFootCommandHandler(CommandHandlerBase):
                     nb.isLightBulbOn = True
                 o.light_bulb = False  # F360's bug workaround
 
-        last_num_foot = 0
         for pn, po in fp_occ.child.items():
             if po.light_bulb:
-                last_num_foot += 1
+                self.last_num_foot += 1
                 self.last_foot_transforms[pn] = po.transform
-        if last_num_foot != 4 and last_num_foot != 6 and last_num_foot != 8:
-            last_num_foot = 0
+        if self.last_num_foot != 4 and self.last_num_foot != 6 and self.last_num_foot != 8:
+            self.last_num_foot = 0
             self.last_foot_transforms.clear()
 
         inputs = self.inputs
 
         nf_in = inputs.addRadioButtonGroupCommandInput(INP_ID_NUM_FOOT_RADIO, 'Num of feet')
-        nf_in.listItems.add('4', last_num_foot == 4 or last_num_foot == 0)
-        nf_in.listItems.add('6', last_num_foot == 6)
-        nf_in.listItems.add('8', last_num_foot == 8)
+        nf_in.listItems.add('4', self.last_num_foot == 4 or self.last_num_foot == 0)
+        nf_in.listItems.add('6', self.last_num_foot == 6)
+        nf_in.listItems.add('8', self.last_num_foot == 8)
 
         locator_in = inputs.addSelectionInput(INP_ID_FOOT_LOCATOR_SEL, 'Foot', 'Select an entity')
         locator_in.addSelectionFilter('SolidBodies')
@@ -783,19 +797,23 @@ class PlaceFootCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)
-        con = get_context()
-        inl_occ = con.child[CN_INTERNAL]
-        fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
-        fos = [fp_occ.child[fn].child.get_real(CN_FOOT) for fn in FOOT_NAMES[:self.get_num_foot()]]
-        for o in fos:
-            o.light_bulb = True
-            for b in o.bodies_by_attr(AN_FILL):
-                nb = b.copyToComponent(con.comp)
-                nb.isLightBulbOn = True
-                nb.name = BN_FOOT_BOSS
-        f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
-        for b in f_occ.bodies_by_attr(AN_FILL):
-            b.isLightBulbOn = False
+        self.last_num_foot = self.get_num_foot()
+    
+    def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        if self.last_num_foot != 0:
+            con = get_context()
+            inl_occ = con.child[CN_INTERNAL]
+            fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
+            fos = [fp_occ.child[fn].child.get_real(CN_FOOT) for fn in FOOT_NAMES[:self.get_num_foot()]]
+            for o in fos:
+                o.light_bulb = True
+                for b in o.bodies_by_attr(AN_FILL):
+                    nb = b.copyToComponent(con.comp)
+                    nb.isLightBulbOn = True
+                    nb.name = BN_FOOT_BOSS
+            f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
+            for b in f_occ.bodies_by_attr(AN_FILL):
+                b.isLightBulbOn = False
 
 
 def hole_all_parts(frame: af.BRepBody):

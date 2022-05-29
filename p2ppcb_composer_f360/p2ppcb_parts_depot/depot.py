@@ -498,7 +498,6 @@ class PartsDepot:
 
         if self.cache_doc_is_modified:
             old_ver = self.cache_doc.dataFile.versionNumber
-            self.cache_doc.save('prepare_next() started.')
             self.cache_doc.close(False)
             for _ in range(10):
                 adsk.doEvents()
@@ -506,7 +505,6 @@ class PartsDepot:
                 cf = open_a360_file(admin_folder, self.cache_docname)
                 if cf.versionNumber > old_ver:
                     self.cache_doc = con.app.documents.open(cf, True)
-                    print('self.cache_doc = app.documents.open(cf, True) ok')
                     break
             self.cache_doc_is_modified = False
             con = reset_context()
