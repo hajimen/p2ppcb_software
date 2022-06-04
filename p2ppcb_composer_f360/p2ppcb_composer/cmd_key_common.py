@@ -10,7 +10,7 @@ import adsk.fusion as af
 from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, ANS_OPTION, \
     ATTR_GROUP, CN_DEPOT_CAP_PLACEHOLDER, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, \
-    CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, BadCodeException, CreateObjectCollectionT, \
+    CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, BadCodeException, BodyFinder, CreateObjectCollectionT, \
     F3Occurrence, SpecsOpsOnPn, SurrogateF3Occurrence, VirtualF3Occurrence, cap_name, \
     cap_placeholder_name, capture_position, \
     get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, XU_V3D, \
@@ -411,6 +411,7 @@ def _check_intra_key_assembly_interference(ka_occ_list: ty.List[VirtualF3Occurre
             raise BadCodeException()
         return bn.value
 
+    body_finder = BodyFinder()
     error_messages: ty.List[str] = []
     for ka_occ in ka_occ_list:
         hit_bug = False
@@ -420,7 +421,7 @@ def _check_intra_key_assembly_interference(ka_occ_list: ty.List[VirtualF3Occurre
         result_str_list = []
         for pn, po in ka_occ.child.items():
             for an in ANS_HOLE_MEV_MF:
-                for b in po.bodies_by_attr(an):
+                for b in body_finder.get(po, an):
                     tb = b.copyToComponent(con.comp)
                     temp_refs.append((tb, pn))
                     tb.attributes.add(ATTR_GROUP, AN_ORIGINAL_BODY_NAME, b.name)

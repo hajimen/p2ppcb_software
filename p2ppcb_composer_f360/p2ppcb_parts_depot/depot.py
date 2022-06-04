@@ -498,6 +498,7 @@ class PartsDepot:
 
         if self.cache_doc_is_modified:
             old_ver = self.cache_doc.dataFile.versionNumber
+            self.cache_doc.save('prepare_next() started.')
             self.cache_doc.close(False)
             for _ in range(10):
                 adsk.doEvents()

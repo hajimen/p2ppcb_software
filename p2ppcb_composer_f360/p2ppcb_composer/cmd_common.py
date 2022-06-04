@@ -7,7 +7,7 @@ from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEve
     SelectionEventArgs, ValidateInputsEventArgs, Selection
 from f360_common import AN_HOLE, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, AN_TERRITORY, ANS_OPTION, \
     ATTR_GROUP, BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, \
+    CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, key_assembly_name, key_placeholder_name, catch_exception, reset_context
 from p2ppcb_parts_resolver import resolver as parts_resolver
@@ -500,6 +500,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
     temp_occ = inl_occ.child.get_real(CN_TEMP)
     temp_occ.light_bulb = True
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
+    body_finder = BodyFinder()
 
     def _get_temp_body(orig_body: af.BRepBody, part_name: str, attrs: ty.List[ty.Tuple[str, str]]):
         for ob, tb in cache_temp_body:
@@ -529,7 +530,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
     def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
         col.clear()
         for po, lr in zip([left_part_occ, right_part_occ], [AV_LEFT, AV_RIGHT]):
-            for b in po.bodies_by_attr(AN_MEV):
+            for b in body_finder.get(po, AN_MEV):
                 col.add(_get_temp_body(b, po.name, [(AN_LR, lr)]))
         if len(col) < 2:
             return []
@@ -542,10 +543,10 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
 
     def _check_mf_hole(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
         ret: ty.List[af.InterferenceResult] = []
-        for hole in right_part_occ.bodies_by_attr(AN_HOLE):
+        for hole in body_finder.get(right_part_occ, AN_HOLE):
             col.clear()
             col.add(_get_temp_body(hole, right_part_occ.name, [(AN_LR, AV_RIGHT), (AN_CATEGORY_NAME, AN_HOLE)]))
-            for mf in left_part_occ.bodies_by_attr(AN_MF):
+            for mf in body_finder.get(left_part_occ, AN_MF):
                 col.add(_get_temp_body(mf, left_part_occ.name, [(AN_LR, AV_LEFT), (AN_CATEGORY_NAME, AN_MF)]))
             if len(col) < 2:
                 continue
@@ -568,7 +569,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for pn, part_occ in c_kp_occ.child.items():
-                    cb = part_occ.bodies_by_attr(AN_TERRITORY)[0]
+                    cb = body_finder.get(part_occ, AN_TERRITORY)[0]
                     selected_kp_territories.append(_get_temp_body(cb, pn, [(AN_KP_NAME, kpn)]))
 
     intersect_pairs: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
@@ -576,7 +577,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for pn, part_occ in c_kp_occ.child.items():
-                    cb = part_occ.bodies_by_attr(AN_TERRITORY)[0]
+                    cb = body_finder.get(part_occ, AN_TERRITORY)[0]
                     for st in selected_kp_territories:
                         if _get_names(st.nativeObject)[0] == kpn:
                             continue

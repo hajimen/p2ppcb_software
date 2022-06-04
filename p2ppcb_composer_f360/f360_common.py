@@ -348,9 +348,6 @@ class SurrogateF3Occurrence:
         self.light_bulb = True
         self.rigid_in_replace = False
 
-    def bodies_by_attr(self, attr_name: str, attr_value: ty.Optional[str] = None):
-        raise BadCodeException('This is a surrogate.')
-
     @property
     def raw_occ(self) -> af.Occurrence:
         raise BadCodeException('This is a surrogate.')
@@ -442,17 +439,6 @@ class F3Occurrence:
         oc.add(self.raw_occ)
         capture_position()
         self.parent.comp.rigidGroups.add(oc, False)
-
-    def bodies_by_attr(self, attr_name: str, attr_value: ty.Optional[str] = None):
-        ret: ty.List[af.BRepBody] = []
-        for b in self.raw_occ.component.bRepBodies:
-            if b.nativeObject is not None:
-                raise BadCodeException()
-            for a in b.attributes:
-                if a.name == attr_name and (attr_value is None or a.value == attr_value):
-                    ret.append(b.createForAssemblyContext(self.raw_occ))
-                    continue
-        return ret
 
     @property
     def name(self):
@@ -696,6 +682,32 @@ def reset_context(des: ty.Optional[af.Design] = None):
     con = F3Context(des)
     F3_CONTEXT = con
     return con
+
+
+class BodyFinder:
+    def __init__(self) -> None:
+        self.cache: ty.Dict[str, ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]]] = {}
+
+    def get(self, occ: VirtualF3Occurrence, attr_name: str, attr_value: ty.Optional[str] = None):
+        con = get_context()
+        if attr_name not in self.cache:
+            v = []
+            for a in con.find_attrs(attr_name):
+                b = af.BRepBody.cast(a.parent)
+                if b is None:
+                    continue
+                if b.attributes.itemByName(ATTR_GROUP, attr_name) is not None:  # F360 API's findAttributes() can return unrelated attributes.
+                    v.append((b.parentComponent, b, a))
+            self.cache[attr_name] = v
+        v = self.cache[attr_name]
+        ret: ty.List[af.BRepBody] = []
+        for c, b, a in v:
+            if c != occ.comp:
+                continue
+            if attr_value is not None and a.value != attr_value:
+                continue
+            ret.append(b.createForAssemblyContext(occ.raw_occ))
+        return ret
 
 
 class BadCodeException(Exception):

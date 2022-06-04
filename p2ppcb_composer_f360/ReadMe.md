@@ -219,6 +219,10 @@ It causes a lot of redundant F360 components. However it doesn't cause O(n^2) co
 I don't know why. Autodesk doesn't expect such usage, I guess. `findBRepUsingRay()` function can consume several seconds, so `Move Key` command
 is nearly impossible.
 
+3. F360 API's `attributes` scanning is extraordinarily slow.
+
+I tried to find a good workaround, but failed.
+
 ## F360's bugs which annoy you or make you get stuck
 
 In some cases, interference check doesn't work:

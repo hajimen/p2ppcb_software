@@ -8,7 +8,7 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, CreateObjectCollectionT, F3Occurrence, \
+    CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
 from route.route import get_cn_mainboard
@@ -74,11 +74,12 @@ def collect_body_from_key(an: str):
     con = get_context()
     ret = CreateObjectCollectionT(af.BRepBody)
     key_placeholders_occ = con.child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
+    body_finder = BodyFinder()
     for kp_occ in key_placeholders_occ.child.values():
         for n, o in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for p in o.child.values():
-                    for b in p.bodies_by_attr(an):
+                    for b in body_finder.get(p, an):
                         rb = b.copyToComponent(con.comp)
                         rb.isLightBulbOn = True
                         ret.add(rb)
@@ -274,14 +275,14 @@ class FillFrameCommandHandler(CommandHandlerBase):
         print('inputChanged')
         prof_in = self.get_sel_in()
         bridge_in = self.get_bridge_in()
+        is_gb = bridge_in.value
         has_sel = has_sel_in(prof_in)
         if changed_input.id == INP_ID_BRIDGE_PROFILE_SEL:
             self.offset_cb.show(has_sel)
-            self.check_interference_cb.get_checkbox_ins()[0].isVisible = has_sel
         elif changed_input.id == INP_ID_GENERATE_BRIDGE_BOOL:
-            is_gb = bridge_in.value
             prof_in.isVisible = is_gb
             self.offset_cb.show(is_gb)
+        self.check_interference_cb.get_checkbox_ins()[0].isVisible = has_sel or (not is_gb)
         self.check_interference_cb.notify_input_changed(event_args, changed_input)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
@@ -337,9 +338,10 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
 
     col_misc = {AN_MEV: col_mev, AN_HOLE: col_mf, AN_MF: col_hole}
     move_refs: ty.List[ty.Tuple[af.BRepBody, int, str]] = []
+    body_finder = BodyFinder()
     for i, mo in enumerate(move_occs):
         for an in [AN_MEV, AN_HOLE, AN_MF]:
-            for b in mo.bodies_by_attr(an):
+            for b in body_finder.get(mo, an):
                 tb = b.copyToComponent(con.comp)
                 tb.isLightBulbOn = False
                 col_misc[an].add(tb)
@@ -369,13 +371,13 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for po in ka_occ.child.values():
                     for an in ANS_HOLE_MEV_MF:
-                        for b in po.bodies_by_attr(an):
+                        for b in body_finder.get(po, an):
                             tb = b.copyToComponent(con.comp)
                             tb.isLightBulbOn = False
                             _append_if_possible(tb, po, an)
     for o in other_occs:
         for an in ANS_HOLE_MEV_MF:
-            for b in o.bodies_by_attr(an):
+            for b in body_finder.get(o, an):
                 tb = b.copyToComponent(con.comp)
                 tb.isLightBulbOn = False
                 _append_if_possible(tb, o, an)
@@ -426,7 +428,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         super().__init__()
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
-        self.last_boss = False
 
     @property
     def cmd_name(self) -> str:
@@ -441,6 +442,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         return 'Resources/place_mainboard'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
+        self.last_boss = False
         con = get_context()
         hit_frame = False
         for b in list(con.comp.bRepBodies):
@@ -491,7 +493,8 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             mb_occ = inl_occ.child[CN_DEPOT_PARTS].child[cn_mainboard]
             o = mp_occ.child.add(mb_occ, t)
             o.light_bulb = False
-        for b in o.bodies_by_attr(AN_FILL):
+        body_finder = BodyFinder()
+        for b in body_finder.get(o, AN_FILL):
             b.isLightBulbOn = True
 
     def get_layout_in(self):
@@ -587,7 +590,8 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         if self.last_boss:
             con = get_context()
             o = con.child[CN_INTERNAL].child[CN_MISC_PLACEHOLDERS].child[get_cn_mainboard()]
-            for b in o.bodies_by_attr(AN_FILL):
+            body_finder = BodyFinder()
+            for b in body_finder.get(o, AN_FILL):
                 b.isLightBulbOn = False
                 nb = b.copyToComponent(con.comp)
                 nb.isLightBulbOn = True
@@ -603,7 +607,6 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
         self.last_foot_transforms: ty.Dict[str, ac.Matrix3D]
-        self.last_num_foot = 0
 
     @property
     def cmd_name(self) -> str:
@@ -618,6 +621,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         return 'Resources/place_foot'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
+        self.last_num_foot = 0
         self.last_foot_transforms = {}
         con = get_context()
 
@@ -634,9 +638,10 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         inl_occ = con.child[CN_INTERNAL]
         fp_occ = inl_occ.child.get_real(CN_FOOT_PLACEHOLDERS)
         f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
-        for b in f_occ.bodies_by_attr(AN_PLACEHOLDER):
+        body_finder = BodyFinder()
+        for b in body_finder.get(f_occ, AN_PLACEHOLDER):
             b.isLightBulbOn = False
-        for b in f_occ.bodies_by_attr(AN_FILL):
+        for b in body_finder.get(f_occ, AN_FILL):
             b.isLightBulbOn = True
         for fn in FOOT_NAMES:
             if fn not in fp_occ.child:
@@ -644,7 +649,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
                 o.light_bulb = True  # F360's bug workaround
                 fo = o.child.add(f_occ)
                 fo.light_bulb = True
-                for b in fo.bodies_by_attr(AN_PLACEHOLDER):
+                for b in body_finder.get(fo, AN_PLACEHOLDER):
                     nb = b.copyToComponent(o.raw_occ)
                     nb.name = b.name
                     nb.isLightBulbOn = True
@@ -805,21 +810,21 @@ class PlaceFootCommandHandler(CommandHandlerBase):
             inl_occ = con.child[CN_INTERNAL]
             fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
             fos = [fp_occ.child[fn].child.get_real(CN_FOOT) for fn in FOOT_NAMES[:self.get_num_foot()]]
+            body_finder = BodyFinder()
             for o in fos:
                 o.light_bulb = True
-                for b in o.bodies_by_attr(AN_FILL):
+                for b in body_finder.get(o, AN_FILL):
                     nb = b.copyToComponent(con.comp)
                     nb.isLightBulbOn = True
                     nb.name = BN_FOOT_BOSS
             f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
-            for b in f_occ.bodies_by_attr(AN_FILL):
+            for b in body_finder.get(f_occ, AN_FILL):
                 b.isLightBulbOn = False
 
 
 def hole_all_parts(frame: af.BRepBody):
     con = get_context()
     hole_body_col = collect_body_from_key(AN_HOLE)
-    fill_body_col = CreateObjectCollectionT(af.BRepBody)
     other_occs: ty.List[VirtualF3Occurrence] = []
     inl_occ = con.child[CN_INTERNAL]
     if CN_MISC_PLACEHOLDERS in inl_occ.child:
@@ -831,22 +836,15 @@ def hole_all_parts(frame: af.BRepBody):
         for ph_occ in fp_occ.child.values():
             if ph_occ.light_bulb:
                 other_occs.append(ph_occ.child[CN_FOOT])
+    body_finder = BodyFinder()
     for o in other_occs:
-        for b in o.bodies_by_attr(AN_FILL):
-            tb = b.copyToComponent(con.comp)
-            fill_body_col.add(tb)
-        for b in o.bodies_by_attr(AN_HOLE):
+        for b in body_finder.get(o, AN_HOLE):
             tb = b.copyToComponent(con.comp)
             hole_body_col.add(tb)
 
     before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
     frame.name = BN_FRAME
     combines = con.root_comp.features.combineFeatures
-    if len(fill_body_col) > 0:
-        co_in3 = combines.createInput(frame, fill_body_col)
-        co_in3.operation = af.FeatureOperations.JoinFeatureOperation
-        co_in3.isKeepToolBodies = False
-        _ = combines.add(co_in3)
 
     if len(hole_body_col) > 0:
         co_in4 = combines.createInput(frame, hole_body_col)
@@ -892,12 +890,6 @@ class HolePartsCommandHandler(CommandHandlerBase):
         frame_in.addSelectionFilter('SolidBodies')
         frame_in.setSelectionLimits(1, 1)
 
-        if_in = self.inputs.addBoolValueInput(INP_ID_CHECK_INTERFERENCE_BOOL, 'Check Interference', True)
-        if_in.value = False
-
-    def get_check_interference_in(self):
-        return get_ci(self.inputs, INP_ID_CHECK_INTERFERENCE_BOOL, ac.BoolValueCommandInput)
-
     def get_frame_in(self):
         return get_ci(self.inputs, INP_ID_FRAME_BODY_SEL, ac.SelectionCommandInput)
 
@@ -908,29 +900,7 @@ class HolePartsCommandHandler(CommandHandlerBase):
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         print('executePreview')
         self.execute_common(event_args)
-        if self.get_check_interference_in().value:
-            inl_occ = get_context().child[CN_INTERNAL]
-            inl_occ.light_bulb = True  # bug workaround
-            other_occs: ty.List[F3Occurrence] = []
-            if CN_MISC_PLACEHOLDERS in inl_occ.child:
-                other_occs.extend([o for o in inl_occ.child[CN_MISC_PLACEHOLDERS].child.values() if isinstance(o, F3Occurrence)])
-            fos = []
-            if CN_FOOT_PLACEHOLDERS in inl_occ.child:
-                fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
-                for ph_occ in fp_occ.child.values():
-                    if ph_occ.light_bulb:
-                        fos.append(ph_occ.child.get_real(CN_FOOT))
-            hits = check_interference(fos, other_occs)
-            if CN_FOOT_PLACEHOLDERS in inl_occ.child:
-                fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
-                for o, h in zip(fp_occ.child.values(), hits):
-                    if h:
-                        o.child[CN_FOOT].light_bulb = False
-                        for b in o.comp.bRepBodies:
-                            b.opacity = 0.
-            inl_occ.light_bulb = False  # bug workaround
-        else:
-            event_args.isValidResult = True
+        event_args.isValidResult = True
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         print('notify_execute')
