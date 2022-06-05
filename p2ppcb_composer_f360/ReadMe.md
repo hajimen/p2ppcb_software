@@ -79,7 +79,7 @@ It can consume tens of minutes. F360 isn't very suitable to P2PPCB Composer, but
 
 You can move each key, or change switch/cap/stabilizer of each key.
 
-6. Generate a frame
+6. Fill
 
 A generated frame doesn't have holes for keys yet. It is for fill/hole method. The detail is later.
 
@@ -91,7 +91,7 @@ You can run this command more than once. To place feet, you need to do so in mos
 
 You need to do this step by F360's features like loft, extrude, etc.
 
-9. Finish
+9. Hole
 
 It makes a 3D printable solid body. Run **Save As Mesh**, choose STL and OK. Send the STL file to 3D printing service of MJF.
 
@@ -101,10 +101,10 @@ MJF cannot print isolated thin wall around under 0.8 mm. If it occurs, you need 
 
 ## Bridge and fill/hole - MF/MEV method
 
-Key switches, stabilizers, and screws should be fixed on their holes. Such holes must be void without defect, otherwise parts will be stuck.
+Key switches, stabilizers, and screws should be fixed on their holes. Such holes must be free of obstruction, otherwise parts will be stuck.
 
-On the other hand, a frame is not so rigorous about "defect". Frame should be strong, stiff, and have essential areas to hold parts (internal screw thread, for example).
-Except for essential areas, a frame can have void to some extent.
+On the other hand, a frame is not so rigorous about defect. Frame should be strong, stiff, and have essential areas to hold parts (internal screw thread, for example).
+Except for essential areas, a frame can have defects (void) to some extent.
 
 P2PPCB Composer F360 adopts fill/hole method to form a frame. Fill: make a block. Hole: cut the block.
 
@@ -127,6 +127,7 @@ To reduce inference check range, there is **Territory**. It declares the outer e
 QMK keycodes are here: <https://beta.docs.qmk.fm/using-qmk/simple-keycodes/keycodes>
 
 By including the keycodes on your KLE file, P2PPCB can help you much. Just write the keycode on the key's front-left legend.
+Front-center legend is layer 1, and front-right legend is layer 2.
 
 ## Keyboard matrix
 

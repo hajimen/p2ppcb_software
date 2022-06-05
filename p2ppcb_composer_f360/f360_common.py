@@ -193,7 +193,7 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
 
     def __delitem__(self, name: str):
         if isinstance(self[name], F3Occurrence):
-            self[name].raw_occ.deleteMe()  # type: ignore
+            self[name].raw_occ.deleteMe()
             return
         else:
             for o in list(self.surrogate_occs):
@@ -250,12 +250,6 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
         o = SurrogateF3Occurrence(name, self.parent_occ, transform, comp)
         self.surrogate_occs.append(o)
         return o
-
-    def new(self, name: str, overwrite=False, transform: ac.Matrix3D = EYE_M3D) -> VirtualF3Occurrence:
-        if self.parent_comp is None:
-            return self.new_surrogate(name, overwrite, transform)
-        else:
-            return self.new_real(name, overwrite=overwrite, transform=transform)
 
     def add(self, f3occ: VirtualF3Occurrence, transform: ac.Matrix3D = EYE_M3D, on_surrogate: ty.Callable = _DO_NOTHING) -> VirtualF3Occurrence:
         if isinstance(f3occ, F3Occurrence) and self.parent_comp is not None:
@@ -685,13 +679,19 @@ def reset_context(des: ty.Optional[af.Design] = None):
 
 
 class BodyFinder:
+    '''
+    F360 API is extraordinarily slow about scanning of attributes. So I need to use adsk.core.Product.findAttributes()
+    to find a adsk.fusion.BRepBody object which has an attribute name.
+    '''
     def __init__(self) -> None:
         self.cache: ty.Dict[str, ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]]] = {}
 
     def get(self, occ: VirtualF3Occurrence, attr_name: str, attr_value: ty.Optional[str] = None):
         con = get_context()
-        if attr_name not in self.cache:
-            v = []
+        if attr_name in self.cache:
+            v = self.cache[attr_name]
+        else:
+            v: ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]] = []
             for a in con.find_attrs(attr_name):
                 b = af.BRepBody.cast(a.parent)
                 if b is None:
@@ -699,7 +699,6 @@ class BodyFinder:
                 if b.attributes.itemByName(ATTR_GROUP, attr_name) is not None:  # F360 API's findAttributes() can return unrelated attributes.
                     v.append((b.parentComponent, b, a))
             self.cache[attr_name] = v
-        v = self.cache[attr_name]
         ret: ty.List[af.BRepBody] = []
         for c, b, a in v:
             if c != occ.comp:
@@ -711,12 +710,18 @@ class BodyFinder:
 
 
 class BadCodeException(Exception):
+    '''
+    An exception for Pylance hinting. By removing forbidden code paths explicitly, Pylance does a good job.
+    '''
     def __init__(self, message=''):
         m = '' if len(message) == 0 else '\n' + message
         super().__init__('Bad code. You need to debug.' + m)
 
 
 class BadConditionException(Exception):
+    '''
+    An exception for users.
+    '''
     def __init__(self, message):
         super().__init__(message)
 
@@ -735,6 +740,11 @@ def catch_exception(func: ty.Callable):
 
 
 def CreateObjectCollectionT(cls):
+    '''
+    adsk.core.ObjectCollectionT is a typed version of adsk.core.ObjectCollection.
+    You don't need to the class definition in your hand because it never instantiates.
+    Just for type hints.
+    '''
     r: ac.ObjectCollectionT[cls] = ac.ObjectCollection.create()  # type: ignore
     return r
 
@@ -819,7 +829,7 @@ def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[S
             # PC's hibernate -> resume often raises this error. F360's Python's problem.
             pass
         else:
-            print(f'resolve_kle() Failed. The error message:\n{str(e)}\n\nTry again...', file=sys.stderr)
+            print(f'parts_resolver.resolve_kle() Failed. The error message:\n{str(e)}\n\nRetrying...', file=sys.stderr)
         specs_ops_on_pn, min_xyu, max_xyu = pi.resolve_kle(kle_file, CURRENT_DIR / 'tmp')
 
     return specs_ops_on_pn, min_xyu, max_xyu

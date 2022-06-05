@@ -17,7 +17,7 @@ import adsk
 
 from f360_insert_decal_rpa import start as insert_decal_rpa_start
 from f360_insert_decal_rpa import InsertDecalParameter
-from f360_common import ANS_KEY_PITCH, BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, PROF, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
+from f360_common import ANS_KEY_PITCH, BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
     CreateObjectCollectionT, SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, reset_context, set_context
 
 CUSTOM_EVENT_DONE_ID = 'rpa_done'
@@ -212,10 +212,10 @@ class PartsDepot:
             newdoc_con.child[CN_DEPOT_APPEARANCE].light_bulb = False
 
             newdoc_con.des.designType = af.DesignTypes.DirectDesignType
-            _ = newdoc_con.child.new(CN_SRC_FIXED)
-            decaled_root_occ = newdoc_con.child.new(CN_SRC_DECALED)
-            _ = decaled_root_occ.child.new(CN_SRC_CAP_PLACEHOLDER)
-            _ = decaled_root_occ.child.new(CN_SRC_KEY_LOCATOR)
+            _ = newdoc_con.child.new_real(CN_SRC_FIXED)
+            decaled_root_occ = newdoc_con.child.new_real(CN_SRC_DECALED)
+            _ = decaled_root_occ.child.new_real(CN_SRC_CAP_PLACEHOLDER)
+            _ = decaled_root_occ.child.new_real(CN_SRC_KEY_LOCATOR)
 
             doc.saveAs(self.cache_docname, admin_folder, 'P2PPCB Cache', '')
             doc.close(False)
@@ -287,8 +287,6 @@ class PartsDepot:
             locator_src_occ = decaled_root_occ.child.get_real(pattern_hash + CNP_DECALED, on_create=on_create_locator_pattern_occ)
             locator_acc_occ = locator_root_occ.child.get_real(pattern_hash + CNP_KEY_LOCATOR, on_create=on_create_cache_doc_modified)
 
-            PROF.tick()
-
             for _, image in lp.names_images:
                 if image is None:
                     img_hash_bytes = b''
@@ -328,13 +326,10 @@ class PartsDepot:
                             ],
                             **convert_quantity_to_float(lp.decal_parameters)))
             locator_hashes_on_patterns.append(locator_hashes)
-            PROF.tick()
 
         self.pattern_hashes = pattern_hashes
         self.locator_hashes_on_patterns = locator_hashes_on_patterns
         self.names_images_on_patterns = [lp.names_images for lp in prepare_locator_parameters]
-
-        PROF.tick()
 
         # fp: fixed part
         fp_comps: ty.List[af.Component] = []
@@ -468,7 +463,6 @@ class PartsDepot:
 
     def _prepare_next_impl(self, acc_occ: F3Occurrence) -> None:
         print('prepare_next starting...')
-        PROF.tick()
 
         con = get_context()
 
@@ -494,8 +488,6 @@ class PartsDepot:
             o.light_bulb = is_visible
             return o
 
-        PROF.tick()
-
         if self.cache_doc_is_modified:
             old_ver = self.cache_doc.dataFile.versionNumber
             self.cache_doc.save('prepare_next() started.')
@@ -510,13 +502,10 @@ class PartsDepot:
             self.cache_doc_is_modified = False
             con = reset_context()
 
-        PROF.tick()
-
         fixed_root_occ = con.child[CN_SRC_FIXED]
         decaled_root_occ = con.child[CN_SRC_DECALED]
-        container_occ = ty.cast(F3Occurrence, con.child.new(CN_CONTAINER))
+        container_occ = ty.cast(F3Occurrence, con.child.new_real(CN_CONTAINER))
 
-        PROF.tick()
         if self.fp_hashes is not None:
             cp_root_occ = decaled_root_occ.child[CN_SRC_CAP_PLACEHOLDER]
             cp_root_occ.light_bulb = True
@@ -547,8 +536,6 @@ class PartsDepot:
             cp_root_occ.light_bulb = False
             fixed_acc_occ.light_bulb = False
 
-        PROF.tick()
-
         if self.pattern_hashes is not None and self.names_images_on_patterns is not None:
             locator_root_occ = decaled_root_occ.child[CN_SRC_KEY_LOCATOR]
             locator_root_occ.light_bulb = True
@@ -567,8 +554,6 @@ class PartsDepot:
             locator_acc_occ.light_bulb = False
             locator_root_occ.light_bulb = False
 
-        PROF.tick()
-
         fp = CURRENT_DIR / 'tmp/cache_container.f3d'
         if fp.is_file():
             fp.unlink()
@@ -580,12 +565,9 @@ class PartsDepot:
             print(f'F3D file export failed: {fn}', file=sys.stderr)
             raise
 
-        PROF.tick()
         container_occ.raw_occ.nativeObject.deleteMe()
-        PROF.tick()
 
         self.orig_doc.activate()
-        PROF.tick()
 
         con = set_context(self.orig_con)
         # i_timeline_before = con.des.timeline.count
@@ -604,7 +586,6 @@ class PartsDepot:
                 print(f'F3D file import failed: {fn}', file=sys.stderr)
                 raise
         imported_occ = c.pop()
-        PROF.tick()
 
         dp_name_re = re.compile(f'{PCN_DEPOT_PORTING}(.*){CNP_DEPOT_PORTING}')  # F360's component name is unique including deleted component.
 
@@ -640,7 +621,6 @@ class PartsDepot:
         # tg.name = 'P2PPCB Insert'
 
         print('calling next()...')
-        PROF.tick()
 
     def prepare_next(self, acc_occ: F3Occurrence, next: ty.Callable, error: ty.Callable) -> None:
         try:
