@@ -48,6 +48,10 @@ INP_ID_Y_DV = 'distanceY'
 INPS_ID_SHOW_HIDE = [INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV]
 
 TOOLTIP_NOT_SELECTED = 'Not Selected'
+TOOLTIPS_PARTS_DIR = ('Parts Data Dir', 'Parts data dir contains parts data of P2PPCB. Usually p2ppcb_software/p2ppcb_parts_data_f360.')
+TOOLTIPS_STABILIZER_ORIENTATION = ('Stabilizer Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 is not good for this.')
+TOOLTIPS_SWITCH_ORIENTATION = ('Switch Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 is not good for this.')
+TOOLTIPS_V_ALIGN = ('Key V-Align', "The anchor point of vertical alignment. The anchor point is on its skeleton surface.\nStemBottom refers key-up state. TravelBottom refers the cap's top of key-down state.")
 
 
 class _CommandEventHandler(ac.CommandEventHandler):
@@ -345,13 +349,17 @@ class PartsCommandBlock:
     def notify_create(self, event_args: CommandCreatedEventArgs):
         inputs = self.parent.inputs
         if self.choose_path:
-            _ = inputs.addBoolValueInput(INP_ID_PARTS_DATA_PATH_BOOL, 'Parts Data Dir', False)
+            i = inputs.addBoolValueInput(INP_ID_PARTS_DATA_PATH_BOOL, 'Parts Data Dir', False)
+            i.tooltip, i.tooltipDescription = TOOLTIPS_PARTS_DIR
         _ = inputs.addDropDownCommandInput(INP_ID_CAP_DESC_DD, 'Cap', ac.DropDownStyles.TextListDropDownStyle)
         _ = inputs.addDropDownCommandInput(INP_ID_STABILIZER_DESC_DD, 'Stabilizer', ac.DropDownStyles.TextListDropDownStyle)
-        _ = inputs.addDropDownCommandInput(INP_ID_STABILIZER_ORIENTATION_DD, 'Stabilizer Orientation', ac.DropDownStyles.TextListDropDownStyle)
+        i = inputs.addDropDownCommandInput(INP_ID_STABILIZER_ORIENTATION_DD, 'Stabilizer Orientation', ac.DropDownStyles.TextListDropDownStyle)
+        i.tooltip, i.tooltipDescription = TOOLTIPS_STABILIZER_ORIENTATION
         _ = inputs.addDropDownCommandInput(INP_ID_SWITCH_DESC_DD, 'Switch', ac.DropDownStyles.TextListDropDownStyle)
-        _ = inputs.addDropDownCommandInput(INP_ID_SWITCH_ORIENTATION_DD, 'Switch Orientation', ac.DropDownStyles.TextListDropDownStyle)
-        _ = inputs.addDropDownCommandInput(INP_ID_KEY_V_ALIGN_TO_DD, 'Key V-Align', ac.DropDownStyles.TextListDropDownStyle)
+        i = inputs.addDropDownCommandInput(INP_ID_SWITCH_ORIENTATION_DD, 'Switch Orientation', ac.DropDownStyles.TextListDropDownStyle)
+        i.tooltip, i.tooltipDescription = TOOLTIPS_SWITCH_ORIENTATION
+        i = inputs.addDropDownCommandInput(INP_ID_KEY_V_ALIGN_TO_DD, 'Key V-Align', ac.DropDownStyles.TextListDropDownStyle)
+        i.tooltip, i.tooltipDescription = TOOLTIPS_V_ALIGN
         _ = inputs.addStringValueInput(INP_ID_KEY_V_OFFSET_STR, 'Key V-Offset', '0 mm')
         self.set_parts_data_path(PARTS_DATA_DIR if self.parts_data_path is None else self.parts_data_path)
 

@@ -16,6 +16,9 @@ from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, I_ANS_OPTION,
 INP_ID_SPECIFIER_STR = 'specifier'
 INP_ID_PATTERN_NAME_STR = 'patternName'
 
+TOOLTIP_SPECIFIER = "Row-dependent caps should have prefix on pattern name, like 'R4 1u'. 'Homing' and 'Spacebar' are common prefix."
+TOOLTIP_PATTERN_NAME = "Usually '1u', '125u', '15u' and so on. There are some special pattern names too, like 'ISO Enter'."
+
 CUSTOM_EVENT_ID_PREPARE_PARTS = 'prepare_parts'
 
 
@@ -88,7 +91,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        print('notify_input_changed')
         locator_in = self.get_selection_in()
         specifier_in = self.get_specifier_in()
         selected_locators = get_selected_locators(locator_in)
@@ -170,7 +172,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         return changed_locators
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        print('notify_validate')
         if has_sel_in(self.get_selection_in()):
             self.parts_cb.notify_validate(event_args)
             if not event_args.areInputsValid:
@@ -201,7 +202,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             event_args.areInputsValid = False
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        print('notify_execute_preview')
         changed_locators = self.get_changed_locators()
         if len(changed_locators) > 0:
             place_key_placeholders(changed_locators)
@@ -213,7 +213,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         self.show_key_placeholders(True)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        print('notify_execute')
         changed_locators = self.get_changed_locators()
         if len(changed_locators) > 0:
             place_key_placeholders(changed_locators)
@@ -226,7 +225,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             fill_surrogate()
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        print('destroy')
         self.show_key_placeholders(True)
 
         # Bug workaround of F360. Without the code below, change switch orientation -> cancel button occurs wrong result.
@@ -234,10 +232,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         kd = {n: o.transform for n, o in key_placeholders_occ.child.items()}
         for n, o in key_placeholders_occ.child.items():
             o.transform = kd[n]
-
-
-TOOLTIP_PATTERN_NAME = "Usually '1u', '125u', '15u' and so on. There are some special pattern names too, like 'ISO Enter'."
-TOOLTIP_SPECIFIER = "Row-dependent caps should have prefix on pattern name, like 'R4 1u'. 'Homing' and 'Spacebar' are common prefix."
 
 
 class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
@@ -259,7 +253,6 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
         return 'Resources/check_key_assembly'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
-        print('notify_create')
         con = get_context()
         if con.des.parentDocument.isModified or con.des.parentDocument.isSaved:
             self.run_execute = False
@@ -289,7 +282,6 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
         return selected_specifier, selected_options, str(Quantity(offset_str).m_as('cm'))  # type: ignore
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        print('notify_validate')
         specifier_in = self.get_specifier_in()
         pattern_name_in = self.get_pattern_name_in()
         specifier_in.tooltip = TOOLTIP_SPECIFIER
@@ -334,7 +326,6 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
             event_args.areInputsValid = False
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        print('notify_execute')
         con = get_context()
         doc = con.des.parentDocument
         doc.saveAs('P2PPCB Temp', con.app.data.dataProjects[0].rootFolder, 'Temporary file for P2PPCB', '')

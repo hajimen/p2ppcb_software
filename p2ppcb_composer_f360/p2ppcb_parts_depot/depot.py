@@ -462,8 +462,6 @@ class PartsDepot:
             con.app.fireCustomEvent(CUSTOM_EVENT_DONE_ID)
 
     def _prepare_next_impl(self, acc_occ: F3Occurrence) -> None:
-        print('prepare_next starting...')
-
         con = get_context()
 
         def exec(cmd, fail_object):
@@ -619,8 +617,6 @@ class PartsDepot:
         # i_timeline_after = con.des.timeline.count
         # tg = con.des.timeline.timelineGroups.add(i_timeline_before, i_timeline_after - 1)
         # tg.name = 'P2PPCB Insert'
-
-        print('calling next()...')
 
     def prepare_next(self, acc_occ: F3Occurrence, next: ty.Callable, error: ty.Callable) -> None:
         try:

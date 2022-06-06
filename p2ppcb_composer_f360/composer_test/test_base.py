@@ -16,7 +16,6 @@ HANDLER_IDS = []
 def do_many_events():
     for _ in range(20):
         adsk.doEvents()
-        # time.sleep(0.1)
 
 
 def execute_command(cls: Type):
@@ -149,6 +148,9 @@ def open_test_document(f3d_file: pathlib.Path):
 
 
 def delete_document(name: str):
+    '''
+    F360 API cannot delete a file completely. So you need to restart F360 after using this function.
+    '''
     con = get_context()
     folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
     for _ in range(5):

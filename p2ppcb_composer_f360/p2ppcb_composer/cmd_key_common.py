@@ -563,27 +563,6 @@ def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cach
     return prepare_success
 
 
-# def get_layout_plane_transform(cp: af.ConstructionPlane):
-#     cp_plane = check_layout_plane(cp)
-
-#     z_axis_i_line = ac.InfiniteLine3D.create(ORIGIN_P3D, ZU_V3D)
-#     z_point = cp_plane.intersectWithLine(z_axis_i_line)
-#     xy = ac.Plane.createUsingDirections(ORIGIN_P3D, XU_V3D, YU_V3D)
-#     if cp_plane.isParallelToPlane(xy):
-#         cp_xy = XU_V3D.copy()
-#     else:
-#         cp_xy_line = cp_plane.intersectWithPlane(xy)
-#         cp_xy = cp_xy_line.direction.copy()
-#         cp_xy.normalize()
-#         if cp_xy.x < 0:
-#             cp_xy.scaleBy(-1.0)
-#     cp_y = cp_plane.normal.crossProduct(cp_xy)
-
-#     t = ac.Matrix3D.create()
-#     t.setWithCoordinateSystem(z_point, cp_xy, cp_y, cp_plane.normal)
-#     return t
-
-
 def get_layout_plane_transform(cp: af.ConstructionPlane):
     cp_plane = check_layout_plane(cp)
 

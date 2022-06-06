@@ -23,6 +23,8 @@ INP_ID_OFFSET_STR = 'offset'
 INP_ID_NUM_FOOT_RADIO = 'numFoot'
 INP_ID_FRAME_BODY_SEL = 'frameBody'
 
+TOOLTIPS_GENERATE_BRIDGE = ('Generate Bridge', 'Generates a bridge body which connects the key/PCB mounts.')
+
 BN_FRAME = 'Frame' + MAGIC
 BN_FOOT_BOSS = 'Foot Boss' + MAGIC
 BN_MAINBOARD_BOSS = 'Mainboard Boss' + MAGIC
@@ -259,6 +261,7 @@ class FillFrameCommandHandler(CommandHandlerBase):
 
         bridge_in = self.inputs.addBoolValueInput(INP_ID_GENERATE_BRIDGE_BOOL, 'Generate Bridge', True)
         bridge_in.value = True
+        bridge_in.tooltip, bridge_in.tooltipDescription = TOOLTIPS_GENERATE_BRIDGE
 
         prof_in = self.inputs.addSelectionInput(INP_ID_BRIDGE_PROFILE_SEL, 'Bridge Profile', 'Select an entity')
         prof_in.addSelectionFilter('Profiles')
@@ -272,7 +275,6 @@ class FillFrameCommandHandler(CommandHandlerBase):
         self.check_interference_cb.notify_create(event_args)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        print('inputChanged')
         prof_in = self.get_sel_in()
         bridge_in = self.get_bridge_in()
         is_gb = bridge_in.value
@@ -286,7 +288,6 @@ class FillFrameCommandHandler(CommandHandlerBase):
         self.check_interference_cb.notify_input_changed(event_args, changed_input)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        print('notify_validate')
         prof_in = self.get_sel_in()
         bridge_in = self.get_bridge_in()
         if has_sel_in(prof_in):
@@ -310,7 +311,6 @@ class FillFrameCommandHandler(CommandHandlerBase):
         fill_frame(self.get_bridge_in().value, profs, before_frame_bodies, offset)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        print('executePreview')
         key_locators_occ = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
         result = self.check_interference_cb.b_notify_execute_preview([o for o in key_locators_occ.child.values() if isinstance(o, F3Occurrence)])
         if result is None:
@@ -321,11 +321,7 @@ class FillFrameCommandHandler(CommandHandlerBase):
                 self.execute_common(event_args)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        print('execute')
         self.execute_common(event_args)
-
-    def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        print('destroy')
 
 
 def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3Occurrence] = []):
@@ -507,7 +503,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         return get_ci(self.inputs, INP_ID_CHECK_INTERFERENCE_BOOL, ac.BoolValueCommandInput)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        print('notify_validate')
         self.offset_cb.b_notify_validate(event_args)
 
     def get_mainboard_transform(self):
@@ -542,8 +537,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         return t
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        print('inputChanged')
-
         if self.offset_cb.is_valid():
             if changed_input.id == INP_ID_MAINBOARD_LAYOUT_RADIO:
                 self.offset_cb.get_in().value = '2 mm'
@@ -563,7 +556,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         return o
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        print('executePreview')
         o = self.execute_common(event_args)
 
         if self.get_check_interference_in().value:
@@ -576,7 +568,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             o.light_bulb = not hits[0]
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        print('notify_execute')
         o = self.execute_common(event_args)
         o.comp_attr[AN_MB_LOCATION_INPUTS] = base64.b64encode(pickle.dumps([
             [ci.value for ci in self.move_comp_cb.get_inputs()],
@@ -751,7 +742,6 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         return get_ci(self.inputs, INP_ID_FOOT_LOCATOR_SEL, ac.SelectionCommandInput)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        print('notify_validate')
         self.offset_cb.b_notify_validate(event_args)
 
     def set_manipulator(self):
@@ -765,7 +755,6 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.move_comp_cb.start_transaction(t)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        print('inputChanged')
         if changed_input.id == INP_ID_FOOT_LOCATOR_SEL:
             if has_sel_in(self.get_locator_in()):
                 self.set_manipulator()
@@ -784,7 +773,6 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.move_comp_cb.b_notify_execute_preview(event_args, selected_locators)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        print('executePreview')
         self.execute_common(event_args)
         if self.get_check_interference_in().value:
             inl_occ = get_context().child[CN_INTERNAL]
@@ -898,10 +886,8 @@ class HolePartsCommandHandler(CommandHandlerBase):
         hole_all_parts(frame)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        print('executePreview')
         self.execute_common(event_args)
         event_args.isValidResult = True
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        print('notify_execute')
         self.execute_common(event_args)

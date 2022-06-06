@@ -1,6 +1,7 @@
 # P2PPCB Composer F360
 
 **P2PPCB Composer F360** is an add-in of Autodesk Fusion 360 (F360). It helps you design your own keyboard which is built on P2PPCB platform.
+I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, offer P2PPCB platform.
 
 DISCLAIMER: P2PPCB Composer F360 is extraordinarily slow for a large keyboard, so far.
 
@@ -29,9 +30,9 @@ The official codebase lacks RP2040 (Raspberry Pi Pico's MPU) support yet, so you
 
 - A 3D printing service of HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html>
 
-You might know the quality of 3D printers for hobbyists. MJF is in another league.
+Ledo 6060 also does a good job.
 
-There are a lot of 3D printing services of MJF in the world. Shapeways (North America and Europe), DMM.make (Japan), etc.
+There are a lot of 3D printing services of MJF in the world. Shapeways (North America and Europe), DMM.make (Japan), WENEXT (China) etc.
 Pick a good one for you.
 
 - P2PPCB parts from DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
@@ -40,7 +41,7 @@ P2PPCB Composer F360 is free, but the parts aren't :-)
 
 - Switches, caps, stabilizers
 
-If you need custom caps for your own design, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
+If you need custom printed caps for your own design, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
 I can make custom printed PBT keycaps. The total charge is from around $30.
 
 ## Installation
@@ -48,10 +49,10 @@ I can make custom printed PBT keycaps. The total charge is from around $30.
 Download a latest release file from here: <https://github.com/hajimen/p2ppcb_software/releases>
 
 Unzip the release file, run F360, type Shift-S. Click "Add-Ins" tab, click **+** at the right of "My Add-Ins".
-Choose `p2ppcb_composer` directory in the unzipped release file. Choose `P2PPCB Composer` in "Add-Ins" tab and click "Run".
+Choose `p2ppcb_composer_f360` directory in the unzipped release file. Choose `P2PPCB Composer` in "Add-Ins" tab and click "Run".
 Now "P2PPCB" tab should appear on F360 main window.
 
-## Overview of the design process by P2PPCB Composer F360
+## Overview of the design process
 
 1. Design your own key layout by KLE <http://www.keyboard-layout-editor.com/> and download the deliverable by JSON. The file is KLE file.
 
@@ -60,6 +61,7 @@ You can include QMK keycodes in your KLE file. The detail is later.
 2. Design the height/angle of keys by F360 surface.
 
 The F360 surface is **skeleton surface**. You need a F360 construction plane as **layout plane** too.
+You can specify **key angle surface** to make stepped ("staircase") profile keyboard by uniform profile keycaps (DSA/XDA etc.).
 
 You can see how they work by a scaffold set which is built in P2PPCB Composer F360.
 Click green **P2P/PCB** icon and enable 'Generate a scaffold set' checkbox in the command dialog.
@@ -79,7 +81,7 @@ It can consume tens of minutes. F360 isn't very suitable to P2PPCB Composer, but
 
 You can move each key, or change switch/cap/stabilizer of each key.
 
-6. Fill
+6. **Fill** command
 
 A generated frame doesn't have holes for keys yet. It is for fill/hole method. The detail is later.
 
@@ -91,26 +93,26 @@ You can run this command more than once. To place feet, you need to do so in mos
 
 You need to do this step by F360's features like loft, extrude, etc.
 
-9. Hole
+9. **Hole** command
 
-It makes a 3D printable solid body. Run **Save As Mesh**, choose STL and OK. Send the STL file to 3D printing service of MJF.
+It makes a 3D printable solid body. Run **Save As Mesh**, choose STL and OK. Send the STL file to your 3D printing service.
 
-10. There is isolated thin wall? Oh...
+10. There is an isolated thin wall? Oh...
 
-MJF cannot print isolated thin wall around under 0.8 mm. If it occurs, you need to remove them by F360's features by yourself.
+MJF cannot print isolated thin walls under 0.8 mm. If it occurs, you need to remove them by F360's features by yourself.
 
 ## Bridge and fill/hole - MF/MEV method
 
 Key switches, stabilizers, and screws should be fixed on their holes. Such holes must be free of obstruction, otherwise parts will be stuck.
 
 On the other hand, a frame is not so rigorous about defect. Frame should be strong, stiff, and have essential areas to hold parts (internal screw thread, for example).
-Except for essential areas, a frame can have defects (void) to some extent.
+Except for essential areas, a frame can have defects (voids) to some extent. Let's call such non-essential area which surrounds essential area as "supporting area".
 
 P2PPCB Composer F360 adopts fill/hole method to form a frame. Fill: make a block. Hole: cut the block.
 
-Make a block, how? By connecting essential areas. Where key layout is dense, essential areas overlap each other. In this case, simply do "join" operation.
-Where key layout is sparse, a bridge connects between essential areas. Bridge is a board parallel to the skeleton surface. 
-By joining essential areas and a bridge, a block has been made. This is **Fill**.
+Make a block, how? By connecting essential/supporting areas each other. Where key layout is dense, keys' essential/supporting areas overlap each other. In this case, simple "join" operation is enough.
+Where key layout is sparse, a bridge connects between essential/supporting areas. Bridge is a board parallel to the skeleton surface. 
+By joining essential/supporting areas and a bridge, a block has been made. This is **Fill**.
 
 Cutting the block will be obvious. Holes must be void without defect, so fill/hole method doesn't allow fill-after-hole. This is **Hole**.
 
@@ -120,18 +122,20 @@ Hole areas don't always equal to their parts. Two parts cannot occupy a same are
 but it is left void after once the part has been assembled. A typical case is Cherry-style stabilizer's wire. Thus a hole area can be larger than its part.
 To know the area of a part itself, and to check the interference of parts each other, we need **MEV** (must-exclusively-void) area, in addition to hole area.
 
-To reduce inference check range, there is **Territory**. It declares the outer edge of fill-hole areas of a part. **Placeholder** will be obvious.
+To reduce inference check range, there is **Territory**. It declares the outer edge of fill-hole areas of a part.
+
+**Placeholder** will be obvious.
 
 ## QMK keycodes in your KLE file
 
-QMK keycodes are here: <https://beta.docs.qmk.fm/using-qmk/simple-keycodes/keycodes>
+QMK keycodes are here: <https://github.com/qmk/qmk_firmware/blob/master/docs/keycodes.md>
 
-By including the keycodes on your KLE file, P2PPCB can help you much. Just write the keycode on the key's front-left legend.
+By including the keycodes on your KLE file, P2PPCB can help you much. Just write the keycode (of layer 0) on the key's front-left legend.
 Front-center legend is layer 1, and front-right legend is layer 2.
 
 ## Keyboard matrix
 
-Keyboard matrix: <https://beta.docs.qmk.fm/developing-qmk/for-a-deeper-understanding/how_a_matrix_works>
+Keyboard matrix: <https://github.com/qmk/qmk_firmware/blob/master/docs/how_a_matrix_works.md>
 
 By assigning a matrix, and by including the keycodes on your KLE file, you can generate route data (QMK keymap and wiring diagrams).
 Without route data generation, your life will be much harder.
@@ -208,7 +212,7 @@ In other cases, it gets stuck in F360's bugs. We need further development for be
 
 ## Why so extraordinarily slow, especially about a large keyboard?
 
-There are two reasons.
+There are several reasons.
 
 1. F360 API cannot handle decals.
 
@@ -237,7 +241,7 @@ But it can be hard to recognize the phenomenon.
 ## Custom features
 
 So far, P2PPCB Composer F360 doesn't support parametric modeling. I wish I could edit a skeleton surface and key angle surfaces by parametric modeling.
-Now (Apr. 2022) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
+Now (June 2022) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
 I don't expect much, but I'll take a look when it turned into GA.
 
 ## Mac

@@ -87,7 +87,6 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         return get_cis(self.inputs, [INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, INP_ID_SKELETON_SURFACE_SEL, INP_ID_KEY_ANGLE_SURFACE_SEL], ac.SelectionCommandInput)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        print('notify_input_changed')
         locator_in, layout_plane_in, skeleton_surface_in, angle_surface_in = self.get_selection_ins()
         if_in = self.check_interference_cb.get_checkbox_ins()[0]
         selected_locators = get_selected_locators(locator_in)
@@ -135,7 +134,6 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         self.move_comp_cb.b_notify_changed_input(changed_input)
 
     def execute_common(self, event_args: CommandEventArgs) -> ty.List[F3Occurrence]:
-        print('execute_common')
         con = get_context()
 
         locator_in, lp_in, skeleton_surface_in, angle_surface_in = self.get_selection_ins()
@@ -197,6 +195,3 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         # n_hit = len(hit_mev) + len(hit_hole) + len(hit_mf)
         # if n_hit > 0:
         #     get_context().ui.messageBox(f'Warning: {n_hit} interference(s) exists among {len(hit_kpns)} key placeholder(s).')
-
-    def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        print('destroy')

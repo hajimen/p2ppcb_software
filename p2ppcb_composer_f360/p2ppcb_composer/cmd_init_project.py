@@ -3,7 +3,7 @@ import typing as ty
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
-from f360_common import AN_KEY_PITCH_D, AN_KEY_PITCH_W, ANS_KEY_PITCH, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, \
+from f360_common import AN_KEY_PITCH_D, AN_KEY_PITCH_W, ANS_KEY_PITCH, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, F3Occurrence, \
     create_component, get_context, AN_PARTS_DATA_PATH
 from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
     has_sel_in, get_cis, PartsCommandBlock, AN_MAIN_SURFACE, CommandHandlerBase, check_layout_plane
@@ -17,34 +17,33 @@ INP_ID_KEY_PITCH_D_VAL = 'keyPitchD'
 INP_ID_MAINBOARD = 'mainboard'
 INP_ID_SCAFFOLD_BOOL = 'scaffold'
 
-
-def _set_design_type():
-    con = get_context()
-    if con.des.designType == af.DesignTypes.DirectDesignType:
-        con.des.designType = af.DesignTypes.ParametricDesignType  # importToTarget() requires parametric design.
+TOOLTIPS_MAIN_SURFACE = ('Main Surface', 'Specify a surface. It becomes initial preference of skeleton surface and key angle surface of all keys.\nYou can change the choice afterwards, on each key individually.')
+TOOLTIPS_MAIN_LAYOUT_PLANE = ('Main Layout Plane', 'Specify a construction plane to deploy a KLE file.\nYou can change the choice afterwards, on each key individually.')
 
 
 def initialize():
     con = get_context()
-    inl_occ = con.child.get_real(CN_INTERNAL)
     im = con.app.importManager
+
+    def _import(o: F3Occurrence, fn: str, cn: str):
+        if con.des.designType == af.DesignTypes.DirectDesignType:
+            con.des.designType = af.DesignTypes.ParametricDesignType  # importToTarget() requires parametric design.
+        with create_component(o.comp, cn):
+            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / fn)), o.comp)
+
+    inl_occ = con.child.get_real(CN_INTERNAL)
     if CN_DEPOT_APPEARANCE not in inl_occ.child:
-        _set_design_type()
-        with create_component(inl_occ.comp, CN_DEPOT_APPEARANCE):
-            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'appearance.f3d')), inl_occ.comp)
+        _import(inl_occ, 'appearance.f3d', CN_DEPOT_APPEARANCE)
     inl_occ.child[CN_DEPOT_APPEARANCE].light_bulb = False
     depot_parts_occ = inl_occ.child.get_real(CN_DEPOT_PARTS)
     cn_mainboard = get_cn_mainboard()
     if cn_mainboard not in depot_parts_occ.child:
-        _set_design_type()
         mc = get_mainboard_constants()
-        with create_component(depot_parts_occ.comp, cn_mainboard):
-            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / mc.f3d_name)), depot_parts_occ.comp)
+        _import(depot_parts_occ, mc.f3d_name, cn_mainboard)
     if CN_FOOT not in depot_parts_occ.child:
-        _set_design_type()
-        with create_component(depot_parts_occ.comp, CN_FOOT):
-            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'Foot.f3d')), depot_parts_occ.comp)
+        _import(depot_parts_occ, 'Foot.f3d', CN_FOOT)
     depot_parts_occ.light_bulb = False
+
     if con.des.designType == af.DesignTypes.ParametricDesignType:
         con.des.designType = af.DesignTypes.DirectDesignType
 
@@ -161,6 +160,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         main_in = self.inputs.addSelectionInput(INP_ID_MAIN_SURFACE_SEL, 'Main Surface', 'Select an entity')
         main_in.addSelectionFilter('SurfaceBodies')
         main_in.setSelectionLimits(1, 1)
+        main_in.tooltip, main_in.tooltipDescription = TOOLTIPS_MAIN_SURFACE
         s = con.find_attrs(AN_MAIN_SURFACE)
         if len(s) == 1 and s[0].isValid and s[0].parent is not None:
             main_in.addSelection(s[0].parent)
@@ -168,6 +168,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         layout_plane_in = self.inputs.addSelectionInput(INP_ID_MAIN_LAYOUT_PLANE_SEL, 'Main Layout Plane', 'Select an entity')
         layout_plane_in.addSelectionFilter('ConstructionPlanes')
         layout_plane_in.setSelectionLimits(1, 1)
+        layout_plane_in.tooltip, layout_plane_in.tooltipDescription = TOOLTIPS_MAIN_LAYOUT_PLANE
         s = con.find_attrs(AN_MAIN_LAYOUT_PLANE)
         if len(s) == 1 and s[0].isValid and s[0].parent is not None:
             layout_plane_in.addSelection(s[0].parent)
@@ -246,7 +247,6 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         self.parts_cb.notify_validate(event_args)
 
     def execute_common(self, event_args: CommandEventArgs, is_execute: bool) -> None:
-        print('execute_common')
         con = get_context()
 
         if self.get_scaffold_in().value:
@@ -283,6 +283,3 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args, True)
         InitializeEventHandler()
-
-    def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        print('destroy')

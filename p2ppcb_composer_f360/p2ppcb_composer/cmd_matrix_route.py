@@ -153,7 +153,6 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             self.set_wire_in()
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        print('notify_validate')
         locator_in = self.get_locator_in()
         wire_in = self.get_wire_in()
         rc = self.get_rc()
@@ -273,11 +272,6 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             return
         output_dir_path = pathlib.Path(dir_dlg.folder)
 
-        # import pickle
-        # from f360_common import CURRENT_DIR
-        # m = {k1: {k2: matrix[k1][k2] for k2 in matrix[k1]} for k1 in matrix}
-        # with open(CURRENT_DIR / 'matrix.pkl', 'wb') as f:
-        #     pickle.dump(m, f)
         mb_occ = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(rt.get_cn_mainboard())
         lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
         inv_lp_trans = get_layout_plane_transform(lp)

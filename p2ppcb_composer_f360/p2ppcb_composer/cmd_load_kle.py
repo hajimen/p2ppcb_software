@@ -179,11 +179,9 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         return get_ci(self.inputs, INP_ID_LAYOUT_PLANE_SEL, ac.SelectionCommandInput)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        print('inputChanged')
         self.move_comp_cb.b_notify_changed_input(changed_input)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        print('executePreview')
         con = get_context()
 
         inl_occ = con.child[CN_INTERNAL]
@@ -196,6 +194,3 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         place_key_placeholders()
 
         event_args.isValidResult = True
-
-    def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        print('destroy')
