@@ -1,7 +1,6 @@
 Part,Description,Path
 Cap,XDA,xda
 Cap,Junana MX,junana/mx
-Cap,Junana Choc V1,junana/choc_v1
 Cap,DSA,dsa
 Cap,OEM profile,mx_oem
 Cap,Cherry,cherry_cap
@@ -18,7 +17,6 @@ PCB,Choc V2,choc_pcb
 Decal,XDA,xda/decal
 Decal,DSA,decal_common_19mm
 Decal,Junana MX,junana/decal
-Decal,Junana Choc V1,junana/decal
 Decal,OEM profile,mx_oem/decal
 Decal,Cherry,cherry_cap/decal
 Decal,Choc V1,choc_v1_cap/decal
