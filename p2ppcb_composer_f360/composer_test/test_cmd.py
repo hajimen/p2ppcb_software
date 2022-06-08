@@ -10,7 +10,7 @@ import adsk
 
 from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CN_KEY_LOCATORS, \
     CN_KEY_PLACEHOLDERS, CNP_PARTS, F3Occurrence, FourOrientation, SpecsOpsOnPn, SurrogateF3Occurrence, TwoOrientation, get_context, \
-    get_part_info, key_placeholder_name, load_kle
+    get_part_info, key_placeholder_name, load_kle, reset_context
 from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
 from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events
@@ -43,7 +43,7 @@ class TestCmdCommon(unittest.TestCase):
     def test_check_layout_plane(self):
         from p2ppcb_composer.cmd_common import check_layout_plane
         doc = new_document()
-        con = get_context()
+        con = reset_context()
         yz_sk = con.root_comp.sketches.add(con.root_comp.yZConstructionPlane)
         sp = yz_sk.sketchPoints
         planes = con.root_comp.constructionPlanes
@@ -187,7 +187,7 @@ class TestInitProject(unittest.TestCase):
     
     def test_initialize(self):
         doc = new_document()
-        con = get_context()
+        con = reset_context()
         from p2ppcb_composer.cmd_init_project import initialize
         inl_occ = con.child.get_real(CN_INTERNAL)
         inl_occ.comp_attr[AN_MAINBOARD] = 'Alice'

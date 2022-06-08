@@ -19,7 +19,8 @@ reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.d
           'composer_test.test_base', 'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
           'p2ppcb_composer.cmd_init_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
-          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar', 'composer_test.test_cmd', ], ['mainboard'])
+          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar', 'composer_test.test_cmd',
+          'composer_test.test_utility', ], ['mainboard'])
 
 from composer_test.test_base import HANDLERS, HANDLER_IDS
 
@@ -37,6 +38,9 @@ def catch_exception(func: ty.Callable):
 
 
 def load_automated_tests(test_suite: unittest.TestSuite):
+    from composer_test.test_utility import TestF360Common
+    test_suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestF360Common))
+
     from composer_test.test_cmd import TestCmdCommon
     test_suite.addTest(TestCmdCommon('test_check_key_placeholders'))
     test_suite.addTest(TestCmdCommon('test_check_layout_plane'))

@@ -157,9 +157,14 @@ class F3AttributeDict(ty.MutableMapping[str, str]):
         return self.raw_attrs.itemByName(ATTR_GROUP, name) is not None
 
 
-class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
+class F3OccurrenceDict(ty.MutableMapping[str, VirtualF3Occurrence]):
     def __init__(self, parent: ty.Union[af.Component, VirtualF3Occurrence]) -> None:
         # super().__init__()  # It overwrites get() method.
+
+        # In case of isinstance(parent, af.Component), self.surrogate_occs never has elements.
+        # This is just for code simplicity.
+        self.surrogate_occs: ty.Union[ty.List[SurrogateF3Occurrence], SurrogateOccurrences] = []
+
         if isinstance(parent, af.Component):
             self.parent_comp = parent
             self.parent_occ = None
@@ -171,8 +176,7 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
             else:  # SurrogateComponent
                 self.parent_comp = None
                 self.parent_occ = parent
-
-        self.surrogate_occs: ty.Union[ty.List[SurrogateF3Occurrence], SurrogateOccurrences] = [] if isinstance(parent, af.Component) else SurrogateOccurrences(parent)
+            self.surrogate_occs = SurrogateOccurrences(parent)
 
     def _proxy_if_required(self, o: af.Occurrence):
         if self.parent_occ is None:
@@ -180,6 +184,9 @@ class F3OccurrenceDict(ty.Mapping[str, VirtualF3Occurrence]):
         elif isinstance(self.parent_occ, SurrogateF3Occurrence):
             raise BadCodeException()
         return o.createForAssemblyContext(self.parent_occ.raw_occ)
+
+    def __setitem__(self, k: str, v: VirtualF3Occurrence) -> None:
+        raise BadCodeException('F3OccurrenceDict cannot use __setitem__().')
 
     def __getitem__(self, name: str) -> VirtualF3Occurrence:
         if self.parent_comp is not None:
@@ -362,19 +369,16 @@ class SurrogateF3Occurrence:
 
         if real_occ is not None:
             if real_occ.name != self.name:
-                raise BadCodeException('The move_comp.name should be the same with self.name.')
+                raise BadCodeException('The real_occ.name should be the same with self.name.')
             new_occ = real_occ.move_to(self.parent, self.name)
         elif isinstance(self.comp, SurrogateComponent):
-            new_comp = None
-            for c in con.des.allComponents:
-                if c.name == self.name:
-                    new_comp = c
-                    break
+            new_comp = con.des.allComponents.itemByName(self.name)
             capture_position()
             if new_comp is None:
+                # TODO: valid code path?
                 raw_occ = self.parent.raw_occ.component.occurrences.addNewComponent(EYE_M3D)
                 raw_occ.component.name = self.name
-                if raw_occ.component.name != self.name:
+                if raw_occ.component.name != self.name:  # never happen
                     raise BadCodeException(f'Name collision: {self.name} already exists.')
             else:
                 raw_occ = self.parent.raw_occ.component.occurrences.addExistingComponent(new_comp, EYE_M3D)
@@ -512,33 +516,31 @@ class F3AttributeSingletonDict:
     def __setitem__(self, name: str, value: ty.Tuple[str, ty.Any]):
         s, e = value
         attrs = self.con.find_attrs(name)
-        for a in attrs:
+        for a in list(attrs):
             a.deleteMe()
         e.attributes.add(ATTR_GROUP, name, s)
 
     def __delitem__(self, name: str):
         attrs = self.con.find_attrs(name)
-        for a in attrs:
+        for a in list(attrs):
             a.deleteMe()
 
     def __contains__(self, name: str):
         return len(self.con.find_attrs(name)) > 0
 
 
-def _get_occ_names(occ: VirtualF3Occurrence):
-    occ_names = []
-    o = occ
-    while o.has_parent:
-        occ_names.append(o.name)
-        o = o.parent
-    occ_names.append(o.name)
-    return occ_names[::-1]
-
-
 class SurrogateOccurrences(ty.Iterable[SurrogateF3Occurrence], ty.Sized):
     def __init__(self, parent_occ: VirtualF3Occurrence) -> None:
         self.parent_occ = parent_occ
-        poc_names = _get_occ_names(parent_occ)
+
+        occ_names = []
+        o = parent_occ
+        while o.has_parent:
+            occ_names.append(o.name)
+            o = o.parent
+        occ_names.append(o.name)
+        poc_names = occ_names[::-1]
+
         con = get_context()
         if parent_occ.name not in con._comp_name_surrogate_child_names:
             con._comp_name_surrogate_child_names[parent_occ.name] = []
@@ -586,14 +588,12 @@ class SurrogateOccurrences(ty.Iterable[SurrogateF3Occurrence], ty.Sized):
 
     def clear(self):
         self.surrogate_occs.clear()
-        for cn in self.child_names:
+        for cn in list(self.child_names):
             self._remove_surrogate_comp(cn)
         self.child_names.clear()
 
 
 class F3Context:
-    stashed_transform: ty.Dict[str, ty.Tuple[ac.Matrix3D, ty.Dict]] = {}
-
     def __init__(self, des: ty.Optional[af.Design] = None) -> None:
         self.app = ac.Application.get()
         self.ui = self.app.userInterface
@@ -646,6 +646,9 @@ class F3Context:
 
     @property
     def attr_singleton(self):
+        '''
+        CAUTION: it depends on findAttributes() API. Surrogates are out of sight.
+        '''
         return self._attr_singleton
 
 
