@@ -122,10 +122,10 @@ class TestF360Common(unittest.TestCase):
         o4 = o1.child.get_real('o4', on_create=sbc)
         self.assertTrue(sbc.called, 'The on_create should be called.')
 
-        self.assertEqual(o1.child.get('o4', on_surrogate=raise_exception).comp, o4.comp, 'get() failed.')
-        self.assertEqual(o1.child.get('s1', on_surrogate=raise_exception).comp, s1.comp, 'get() failed.')
+        self.assertEqual(o1.child.get_virtual('o4', on_surrogate=raise_exception).comp, o4.comp, 'get() failed.')
+        self.assertEqual(o1.child.get_virtual('s1', on_surrogate=raise_exception).comp, s1.comp, 'get() failed.')
         sbc.called = False
-        _ = o1.child.get('s3', on_surrogate=sbc)
+        _ = o1.child.get_virtual('s3', on_surrogate=sbc)
         self.assertTrue(sbc.called, 'The on_surrogate should be called.')
 
         del o1.child['s1']

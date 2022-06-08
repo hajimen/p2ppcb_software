@@ -139,9 +139,9 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
             kp_occ = key_placeholders_occ.child[kn]
             if kp_occ.comp_attr[AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET] != specifier_options_offset_joined:
                 del key_placeholders_occ.child[kn]
-                kp_occ = key_placeholders_occ.child.get(kn, on_surrogate=_on_surrogate_kp)
+                kp_occ = key_placeholders_occ.child.get_virtual(kn, on_surrogate=_on_surrogate_kp)
         else:
-            kp_occ = key_placeholders_occ.child.get(kn, on_surrogate=_on_surrogate_kp)
+            kp_occ = key_placeholders_occ.child.get_virtual(kn, on_surrogate=_on_surrogate_kp)
         kp_occ.light_bulb = False
 
         skeleton_surface = af.BRepBody.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_SKELETON_TOKEN])[0])
@@ -359,7 +359,7 @@ def prepare_key_assembly(
                     [cap_name, stabilizer_name, switch_name, pcb_name],
                     [TwoOrientation.Front, stabilizer_orientation, switch_orientation, switch_orientation]):
                 if p in part_trans:
-                    part_occ = depot_parts_occ.child.get(
+                    part_occ = depot_parts_occ.child.get_virtual(
                         pn(desc_on_part[p], specifier, part_parameters[p]),
                         on_surrogate=_on_surrogate_parts(p))
                     pt = part_trans[p].copy()
@@ -374,7 +374,7 @@ def prepare_key_assembly(
                     o = ka_occ.child.add(part_occ, pt, on_surrogate=_on_surrogate_rigid)
                     o.light_bulb = True
 
-        ka_occ = depot_key_assembly_occ.child.get(
+        ka_occ = depot_key_assembly_occ.child.get_virtual(
             key_assembly_name(specifier, cap_desc, stabilizer_desc, stabilizer_orientation.name, switch_desc, switch_orientation.name, align_to.name),
             on_surrogate=_on_surrogate_ka)
         for kp in pka.kps:

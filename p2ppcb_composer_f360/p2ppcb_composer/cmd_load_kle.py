@@ -75,10 +75,10 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                     (name, op.image_file_path)  # type: ignore
                 )
 
-            occ = locators_occ.child.get(name, on_surrogate=_on_surrogate)
+            occ = locators_occ.child.get_virtual(name, on_surrogate=_on_surrogate)
             if occ.comp_attr[AN_LOCATORS_LEGEND_PICKLED] != legend_pickled:
                 del locators_occ.child[name]
-                occ = locators_occ.child.get(name, on_surrogate=_on_surrogate)
+                occ = locators_occ.child.get_virtual(name, on_surrogate=_on_surrogate)
             r = - (op.angle * np.pi / 180)
             rot_mat = np.array([[np.cos(r), - np.sin(r)], [np.sin(r), np.cos(r)]])
             x, y = (np.array(op.center_xyu) - min_xyu) * u_wd  # type: ignore

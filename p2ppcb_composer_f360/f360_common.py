@@ -159,7 +159,7 @@ class F3AttributeDict(ty.MutableMapping[str, str]):
 
 class F3OccurrenceDict(ty.MutableMapping[str, VirtualF3Occurrence]):
     def __init__(self, parent: ty.Union[af.Component, VirtualF3Occurrence]) -> None:
-        # super().__init__()  # It overwrites get() method.
+        super().__init__()  # It overwrites get() method.
 
         # In case of isinstance(parent, af.Component), self.surrogate_occs never has elements.
         # This is just for code simplicity.
@@ -290,7 +290,7 @@ class F3OccurrenceDict(ty.MutableMapping[str, VirtualF3Occurrence]):
                 on_create(o)
         return o
 
-    def get(self, name: str, on_surrogate: ty.Callable = _DO_NOTHING) -> VirtualF3Occurrence:
+    def get_virtual(self, name: str, on_surrogate: ty.Callable = _DO_NOTHING) -> VirtualF3Occurrence:
         if name in self:
             return self[name]
         o = self.new_surrogate(name)
