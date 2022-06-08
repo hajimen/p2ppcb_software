@@ -375,7 +375,6 @@ class SurrogateF3Occurrence:
             new_comp = con.des.allComponents.itemByName(self.name)
             capture_position()
             if new_comp is None:
-                # TODO: valid code path?
                 raw_occ = self.parent.raw_occ.component.occurrences.addNewComponent(EYE_M3D)
                 raw_occ.component.name = self.name
                 if raw_occ.component.name != self.name:  # never happen
