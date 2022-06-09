@@ -577,15 +577,20 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for pn, part_occ in c_kp_occ.child.items():
-                    cb = body_finder.get(part_occ, AN_TERRITORY)[0]
-                    selected_kp_territories.append(_get_temp_body(cb, pn, [(AN_KP_NAME, kpn)]))
+                    territory_body = body_finder.get(part_occ, AN_TERRITORY)
+                    if len(territory_body) == 0:
+                        raise BadConditionException(f'{pn} lacks Territory body.')
+                    selected_kp_territories.append(_get_temp_body(territory_body[0], pn, [(AN_KP_NAME, kpn)]))
 
     intersect_pairs: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
     for kpn, kp_occ in key_placeholders_occ.child.items():
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for pn, part_occ in c_kp_occ.child.items():
-                    cb = body_finder.get(part_occ, AN_TERRITORY)[0]
+                    territory_body = body_finder.get(part_occ, AN_TERRITORY)
+                    if len(territory_body) == 0:
+                        raise BadConditionException(f'{pn} lacks Territory body.')
+                    cb = territory_body[0]
                     for st in selected_kp_territories:
                         if _get_names(st.nativeObject)[0] == kpn:
                             continue
