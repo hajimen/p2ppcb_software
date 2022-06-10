@@ -811,6 +811,15 @@ def create_component(acc_comp: VirtualComponent, new_name: str, postfix: ty.Opti
             break
 
 
+def prepare_tmp_dir():
+    tmp = CURRENT_DIR / 'tmp'
+    if tmp.is_file():
+        raise BadConditionException(f'{tmp} should be directory, but a file exists.')
+    if not tmp.is_dir():
+        tmp.mkdir()
+    return tmp
+
+
 KLE_CACHE: ty.Dict[str, ty.Any] = {}
 
 
@@ -821,8 +830,10 @@ def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[S
     if kle_hash in KLE_CACHE:
         return KLE_CACHE[kle_hash]
 
+    tmp = prepare_tmp_dir()
+
     try:
-        result = pi.resolve_kle(kle_file, CURRENT_DIR / 'tmp')
+        result = pi.resolve_kle(kle_file, tmp)
         KLE_CACHE[kle_hash] = result
         specs_ops_on_pn, min_xyu, max_xyu = result
     except Exception as e:
@@ -832,7 +843,7 @@ def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[S
             pass
         else:
             print(f'parts_resolver.resolve_kle() Failed. The error message:\n{str(e)}\n\nRetrying...', file=sys.stderr)
-        specs_ops_on_pn, min_xyu, max_xyu = pi.resolve_kle(kle_file, CURRENT_DIR / 'tmp')
+        specs_ops_on_pn, min_xyu, max_xyu = pi.resolve_kle(kle_file, tmp)
 
     return specs_ops_on_pn, min_xyu, max_xyu
 

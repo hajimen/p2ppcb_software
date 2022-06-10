@@ -18,7 +18,7 @@ import adsk
 from f360_insert_decal_rpa import start as insert_decal_rpa_start
 from f360_insert_decal_rpa import InsertDecalParameter
 from f360_common import ANS_KEY_PITCH, BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
-    CreateObjectCollectionT, SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, reset_context, set_context
+    CreateObjectCollectionT, SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, prepare_tmp_dir, reset_context, set_context
 
 CUSTOM_EVENT_DONE_ID = 'rpa_done'
 CUSTOM_EVENT_ERROR_ID = 'rpa_error'
@@ -552,7 +552,7 @@ class PartsDepot:
             locator_acc_occ.light_bulb = False
             locator_root_occ.light_bulb = False
 
-        fp = CURRENT_DIR / 'tmp/cache_container.f3d'
+        fp = prepare_tmp_dir() / 'cache_container.f3d'
         if fp.is_file():
             fp.unlink()
         fn = str(fp)
