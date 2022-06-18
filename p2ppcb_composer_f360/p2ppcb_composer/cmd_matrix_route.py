@@ -36,6 +36,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         self.m_rc = {rt.RC.Row: mr, rt.RC.Col: mc}
         self.bb = af.CustomGraphicsBillBoard.create(ORIGIN_P3D)
         self.bb.billBoardStyle = af.CustomGraphicsBillBoardStyles.ScreenBillBoardStyle
+        self.last_light_bulb = False
 
     @property
     def cmd_name(self) -> str:
@@ -189,6 +190,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     def show_billboard(self):
         key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
+        self.last_light_bulb = key_locators.light_bulb
         key_locators.light_bulb = True
         for kl_occ in key_locators.child.values():
             if not isinstance(kl_occ, F3Occurrence):
@@ -224,7 +226,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
-        key_locators.light_bulb = False
+        key_locators.light_bulb = self.last_light_bulb
         for kl_occ in key_locators.child.values():
             if not isinstance(kl_occ, F3Occurrence):
                 raise BadCodeException()
