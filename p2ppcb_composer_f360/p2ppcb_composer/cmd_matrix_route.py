@@ -122,8 +122,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         ledkey_in.isVisible = True
         rowcol_in.isVisible = True
         wire_in.listItems.add('', True)
-        is_first_selected_locators = selected_locators_changed and selected_locators.count == 1
-        is_led = False if is_first_selected_locators else ledkey_in.value
+        is_first_selected_locators = selected_locators_changed and len(selected_locators) == 1
         selected_wn = ''
         for kl_occ in selected_locators:
             if ANS_RC_NAME[rc] in kl_occ.comp_attr:

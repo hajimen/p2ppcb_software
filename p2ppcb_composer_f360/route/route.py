@@ -267,7 +267,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                     i_logical_col = cp.cable.get_logical_number(col_name, RC.Col)
             if i_pin_row is None or i_pin_col is None or i_logical_row is None or i_logical_col is None or i_cp_row == -1 or i_cp_col == -1:
                 raise BadCodeException()
-            k = Key((op.center_xyu[0] * pitch_w, op.center_xyu[1] * pitch_d, np.deg2rad(op.angle)), switch_angle, switch_path,
+            k = Key((op.center_xyu[0] * pitch_w, op.center_xyu[1] * pitch_d, np.deg2rad(-op.angle)), switch_angle, switch_path,
                     img,  # type: ignore
                     codes, i_pin_row, i_pin_col, i_logical_row, i_logical_col, op.i_kle)
             keys_row[i_cp_row, i_pin_row].append(k)
@@ -370,7 +370,7 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
                 orig_wire_path = _get_absolute_wire_path(keys[j[0]], rc, TerminalDirection.Left if j[1] == TerminalDirection.Right else TerminalDirection.Right, True)
             wires.append(([(orig_wire_path[0], orig_wire_path[1])], -1))
             wires_pn_rc[rc][ep.pin_number] = wires
-    size = np.array([max(xs) - min(xs), max(ys) - min(ys)])
+    size = np.array([max(xs) - min(xs) + 1, max(ys) - min(ys) + 1])
     offset = np.array([min(xs), min(ys)])
 
     rainbow_cable_colors = [s for s in ['black', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'violet', 'grey', 'white']]
@@ -433,7 +433,7 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
                         legend_offset = [-legend_w // 2, 0]
                 mirrored_xy = locs[0] + MARGIN
                 draw.text((img_w - mirrored_xy[0] + legend_offset[0], mirrored_xy[1] + legend_offset[1]), str(pn), fill='black', font=font)
-        return img
+        return img.crop(ImageOps.invert(img).getbbox())
 
     return _draw_selective(RC.Row, [RC.Col, RC.Row]), _draw_selective(RC.Col, [RC.Row, RC.Col])
 
