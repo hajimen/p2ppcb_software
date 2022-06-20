@@ -521,18 +521,17 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             mxu = XU_V3D.copy()
             myu = YU_V3D.copy()
             if flip:
-                mxu.scaleBy(-1.)
-            else:
                 myu.scaleBy(-1.)
+            else:
+                mxu.scaleBy(-1.)
             t.setWithCoordinateSystem(o, mxu, ZU_V3D, myu)
         else:  # Bottom
             mzu = ZU_V3D.copy()
-            if flip:
-                mzu.scaleBy(-1.)
-            o = ac.Point3D.create(frame_bb.maxPoint.x - mb_bb.maxPoint.x, frame_bb.maxPoint.y + mb_bb.minPoint.y, frame_bb.minPoint.z + offset)
             myu = YU_V3D.copy()
-            if flip:
+            if not flip:
+                mzu.scaleBy(-1.)
                 myu.scaleBy(-1.)
+            o = ac.Point3D.create(frame_bb.maxPoint.x - mb_bb.maxPoint.x, frame_bb.maxPoint.y + mb_bb.minPoint.y, frame_bb.minPoint.z + offset)
             t.setWithCoordinateSystem(o, XU_V3D, myu, mzu)
         return t
 
