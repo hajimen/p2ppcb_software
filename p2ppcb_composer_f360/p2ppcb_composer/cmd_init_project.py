@@ -64,8 +64,8 @@ def generate_scaffold():
     extrudes = con.root_comp.features.extrudeFeatures
     ex_in1 = extrudes.createInput(profile1, af.FeatureOperations.NewBodyFeatureOperation)
     ex_in1.isSolid = False
-    cm15 = ac.ValueInput.createByString("15 cm")
-    ex_in1.setTwoSidesDistanceExtent(cm15, cm15)
+    extent_cm15 = af.DistanceExtentDefinition.create(ac.ValueInput.createByString("15 cm"))
+    ex_in1.setTwoSidesExtent(extent_cm15, extent_cm15)
     skeleton_surface = extrudes.add(ex_in1).bodies[0]
     skeleton_surface.opacity = 0.2
     skeleton_surface.name = 'Main Surface'
@@ -77,7 +77,7 @@ def generate_scaffold():
     profile2 = con.root_comp.createOpenProfile(arc2, False)
     ex_in2 = extrudes.createInput(profile2, af.FeatureOperations.NewBodyFeatureOperation)
     ex_in2.isSolid = False
-    ex_in2.setTwoSidesDistanceExtent(cm15, cm15)
+    ex_in2.setTwoSidesExtent(extent_cm15, extent_cm15)
     alternative_surface = extrudes.add(ex_in2).bodies[0]
     alternative_surface.opacity = 0.2
     alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
