@@ -866,6 +866,18 @@ def get_part_info():
     return parts_resolver.PartsInfo(get_parts_data_path() / parts_resolver.PARTS_INFO_DIRNAME)
 
 
+def get_inverted_m3d(m3d: ac.Matrix3D):
+    ret = m3d.copy()
+    ret.invert()
+    return ret
+
+
+def get_transformed_mpv3d(mpv3d, m3d: ac.Matrix3D):
+    ret = mpv3d.copy()
+    ret.transformBy(m3d)
+    return ret
+
+
 from time import perf_counter
 
 

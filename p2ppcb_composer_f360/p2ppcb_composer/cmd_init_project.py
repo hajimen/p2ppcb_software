@@ -80,7 +80,7 @@ def generate_scaffold():
     ex_in2.setTwoSidesExtent(extent_cm15, extent_cm15)
     alternative_surface = extrudes.add(ex_in2).bodies[0]
     alternative_surface.opacity = 0.2
-    alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
+    alternative_surface.name = 'Alternative Surface (Angle Shift or Skeleton)'
 
     col = CreateObjectCollectionT(af.BRepBody)
     col.add(skeleton_surface)

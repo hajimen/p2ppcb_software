@@ -5,10 +5,10 @@ import adsk.fusion as af
 from f360_common import BadCodeException, get_context, CN_INTERNAL, F3Occurrence
 from p2ppcb_composer.cmd_common import all_has_sel_ins, get_cis, has_sel_in, AN_LOCATORS_PLANE_TOKEN, TOOLTIP_NOT_SELECTED, InputLocators, \
     get_selected_locators, locator_notify_pre_select, CommandHandlerBase, CheckInterferenceCommandBlock, MoveComponentCommandBlock
-from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, get_layout_plane_transform, place_key_placeholders
+from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_SHIFT_TOKEN, AngleShiftEntity, get_layout_plane_transform, place_key_placeholders
 
 INP_ID_SKELETON_SURFACE_SEL = 'skeletonSurface'
-INP_ID_KEY_ANGLE_SURFACE_SEL = 'keyAngleSurface'
+INP_ID_ANGLE_SHIFT_SEL = 'angleShiftSurface'
 
 
 def get_lp(lp_in: ac.SelectionCommandInput):
@@ -17,7 +17,7 @@ def get_lp(lp_in: ac.SelectionCommandInput):
 
 def get_orig_lp(lp_in: ac.SelectionCommandInput, selected_locators: ty.List[F3Occurrence]):
     con = get_context()
-    lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
+    lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN)
     token = lp_ci.get_locators_attr_value(selected_locators)
     if token is None:
         raise BadCodeException('Locators have different lp.')
@@ -58,8 +58,9 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         skeleton_surface_in.setSelectionLimits(1, 1)
         skeleton_surface_in.isVisible = False
 
-        angle_surface_in = inputs.addSelectionInput(INP_ID_KEY_ANGLE_SURFACE_SEL, 'Key Angle Surface', 'Select an entity')
+        angle_surface_in = inputs.addSelectionInput(INP_ID_ANGLE_SHIFT_SEL, 'Angle Shift Surface', 'Select an entity')
         angle_surface_in.addSelectionFilter('SurfaceBodies')
+        angle_surface_in.addSelectionFilter('ConstructionPlanes')
         angle_surface_in.setSelectionLimits(1, 1)
         angle_surface_in.isVisible = False
 
@@ -73,8 +74,21 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         if active_input.id == INP_ID_KEY_LOCATOR_SEL:
             locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
             return
-        elif active_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
-            ent = af.BRepBody.cast(selection.entity)
+        elif active_input.id == INP_ID_ANGLE_SHIFT_SEL:
+            ent: AngleShiftEntity = selection.entity  # type: ignore
+            cp = af.ConstructionPlane.cast(ent)
+            if cp is not None:
+                locator_in, _, _, _ = self.get_selection_ins()
+                lp_ci = InputLocators(active_input, AN_LOCATORS_PLANE_TOKEN)
+                locator_lp_token = lp_ci.get_locators_attr_value(get_selected_locators(locator_in))
+                if locator_lp_token is None:
+                    event_args.isSelectable = False
+                    return
+                elif len(locator_lp_token) > 0:
+                    locator_lp = get_context().find_by_token(locator_lp_token)[0]
+                    if cp != locator_lp:
+                        event_args.isSelectable = False
+                        return
         elif active_input.id == INP_ID_LAYOUT_PLANE_SEL:
             ent = af.ConstructionPlane.cast(selection.entity)
         else:
@@ -84,7 +98,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
             event_args.isSelectable = False
 
     def get_selection_ins(self) -> ty.Tuple[ac.SelectionCommandInput, ...]:
-        return get_cis(self.inputs, [INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, INP_ID_SKELETON_SURFACE_SEL, INP_ID_KEY_ANGLE_SURFACE_SEL], ac.SelectionCommandInput)
+        return get_cis(self.inputs, [INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, INP_ID_SKELETON_SURFACE_SEL, INP_ID_ANGLE_SHIFT_SEL], ac.SelectionCommandInput)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         locator_in, layout_plane_in, skeleton_surface_in, angle_surface_in = self.get_selection_ins()
@@ -92,9 +106,9 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         selected_locators = get_selected_locators(locator_in)
 
         if changed_input.id == INP_ID_KEY_LOCATOR_SEL:
-            lp_ci = InputLocators(layout_plane_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
-            skeleton_ci = InputLocators(skeleton_surface_in, AN_LOCATORS_SKELETON_TOKEN, af.BRepBody)
-            angle_ci = InputLocators(angle_surface_in, AN_LOCATORS_ANGLE_TOKEN, af.BRepBody)
+            lp_ci = InputLocators(layout_plane_in, AN_LOCATORS_PLANE_TOKEN)
+            skeleton_ci = InputLocators(skeleton_surface_in, AN_LOCATORS_SKELETON_TOKEN)
+            angle_ci = InputLocators(angle_surface_in, AN_LOCATORS_ANGLE_SHIFT_TOKEN)
             if not has_sel_in(locator_in):
                 lp_ci.hide()
                 skeleton_ci.hide()
@@ -109,7 +123,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                 if_in.value = False
             self.check_interference_cb.show(if_in.value)
             locator_in.hasFocus = True
-        elif changed_input.id == INP_ID_LAYOUT_PLANE_SEL or changed_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
+        elif changed_input.id == INP_ID_LAYOUT_PLANE_SEL or changed_input.id == INP_ID_ANGLE_SHIFT_SEL:
             sci = ac.SelectionCommandInput.cast(changed_input)
             if not has_sel_in(sci):
                 sci.tooltip = TOOLTIP_NOT_SELECTED
@@ -136,12 +150,12 @@ class MoveKeyCommandHandler(CommandHandlerBase):
     def execute_common(self, event_args: CommandEventArgs) -> ty.List[F3Occurrence]:
         con = get_context()
 
-        locator_in, lp_in, skeleton_surface_in, angle_surface_in = self.get_selection_ins()
-        angle = af.BRepBody.cast(angle_surface_in.selection(0).entity)  # Don't move downward this line because CommandInput losses the selection by manipulating components.
+        locator_in, lp_in, skeleton_surface_in, angle_in = self.get_selection_ins()
+        angle: AngleShiftEntity = angle_in.selection(0).entity  # type: ignore  # Don't move downward this line because CommandInput losses the selection by manipulating components.
         if has_sel_in(locator_in):
             selected_locators = get_selected_locators(locator_in)
 
-            lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
+            lp_ci = InputLocators(lp_in, AN_LOCATORS_PLANE_TOKEN)
             lp = get_lp(lp_in)
             token = lp_ci.get_locators_attr_value(selected_locators)
             if token is None:
@@ -158,13 +172,13 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                     o.transform = t
                 lp_ci.set_locators_attr_value(selected_locators, lp.entityToken)
 
-            skeleton_ci = InputLocators(skeleton_surface_in, AN_LOCATORS_SKELETON_TOKEN, af.BRepBody)
+            skeleton_ci = InputLocators(skeleton_surface_in, AN_LOCATORS_SKELETON_TOKEN)
             skeleton_surface = af.BRepBody.cast(skeleton_surface_in.selection(0).entity)
             token = skeleton_ci.get_locators_attr_value(selected_locators)
             if skeleton_surface.entityToken != token:
                 skeleton_ci.set_locators_attr_value(selected_locators, skeleton_surface.entityToken)
 
-            angle_ci = InputLocators(angle_surface_in, AN_LOCATORS_ANGLE_TOKEN, af.BRepBody)
+            angle_ci = InputLocators(angle_in, AN_LOCATORS_ANGLE_SHIFT_TOKEN)
             token = angle_ci.get_locators_attr_value(selected_locators)
             if angle.entityToken != token:
                 angle_ci.set_locators_attr_value(selected_locators, angle.entityToken)

@@ -14,7 +14,7 @@ from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, A
     F3Occurrence, SpecsOpsOnPn, SurrogateF3Occurrence, VirtualF3Occurrence, cap_name, \
     cap_placeholder_name, capture_position, \
     get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, XU_V3D, \
-    FourOrientation, TwoOrientation, YU_V3D, ZU_V3D, key_assembly_name, \
+    FourOrientation, TwoOrientation, YU_V3D, ZU_V3D, get_inverted_m3d, get_transformed_mpv3d, key_assembly_name, \
     key_placeholder_name, pcb_name, stabilizer_name, switch_name, ANS_HOLE_MEV_MF, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_LOCATORS_PLANE_TOKEN, check_layout_plane
@@ -23,12 +23,14 @@ INP_ID_LAYOUT_PLANE_SEL = 'layoutPlane'
 INP_ID_KEY_LOCATOR_SEL = 'keyLocator'
 
 AN_LOCATORS_SKELETON_TOKEN = 'skeletonSurfaceToken'
-AN_LOCATORS_ANGLE_TOKEN = 'angleSurfaceToken'
+AN_LOCATORS_ANGLE_SHIFT_TOKEN = 'angleSurfaceToken'
 
 # PP: Prepare Parameter
 PP_KEY_ASSEMBLY_ON_SO = 'PP Key Assembly on Specifier name and Options'
 PP_KEY_LOCATORS_ON_SPECIFIER = 'PP Key Locators on Specifier'
 PP_SURROGATE_KEY_ASSEMBLY_NAMES = 'PP Surrogate Key Assembly Names'
+
+AngleShiftEntity = ty.Union[af.BRepBody, af.ConstructionPlane]
 
 
 class I_ANS_OPTION(IntEnum):
@@ -65,8 +67,9 @@ def _find_hit_point_face(hit_points, hit_faces, surface: af.BRepBody) -> ty.Unio
     hit_points: ac.ObjectCollectionT[ac.Point3D]
     hit_faces: ac.ObjectCollectionT[af.BRepFace]
     '''
+    s = surface if surface.nativeObject is None else surface.nativeObject
     for p, f in zip(hit_points, hit_faces):
-        if f.body == surface:
+        if f.body == s:
             return p, f
     return None, None
 
@@ -145,64 +148,62 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         kp_occ.light_bulb = False
 
         skeleton_surface = af.BRepBody.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_SKELETON_TOKEN])[0])
-        ss_comp = skeleton_surface.parentComponent
-        ss_trans = _get_proxy_transform(skeleton_surface.assemblyContext)
-        ss_inv_trans = ss_trans.copy()
-        ss_inv_trans.invert()
-
-        zv = ac.Vector3D.create(0., 0., -1.)
-        root_kl_trans = kl_occ.transform.copy()
-        root_kl_trans.transformBy(locators_occ.transform)
-        zv.transformBy(root_kl_trans)
-        zv_ss = zv.copy()
-        zv_ss.transformBy(ss_inv_trans)
-        orig = ORIGIN_P3D.copy()
-        orig.transformBy(root_kl_trans)
-        orig_ss = orig.copy()
-        orig_ss.transformBy(ss_inv_trans)
+        root_kl_trans = get_transformed_mpv3d(locators_occ.raw_occ.transform2, kl_occ.transform)  # transform from root
+        zv = get_transformed_mpv3d(ac.Vector3D.create(0., 0., -1.), root_kl_trans)
+        orig = get_transformed_mpv3d(ORIGIN_P3D, root_kl_trans)
         hit_points = CreateObjectCollectionT(ac.Point3D)
-        hit_faces: ac.ObjectCollectionT[af.BRepFace]
-        hit_faces = ss_comp.findBRepUsingRay(orig_ss, zv_ss, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points)  # type: ignore
-        center, _ = _find_hit_point_face(hit_points, hit_faces, skeleton_surface)
-        if center is None:
-            continue
-        center.transformBy(ss_trans)
 
-        ka_surface = af.BRepBody.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_ANGLE_TOKEN])[0])
-        ka_comp = ka_surface.parentComponent
-        ka_trans = _get_proxy_transform(ka_surface.assemblyContext)
-        ka_inv_trans = ka_trans.copy()
-        ka_inv_trans.invert()
-        zv_ka = zv.copy()
-        zv_ka.transformBy(ka_inv_trans)
-        orig_ka = orig.copy()
-        orig_ka.transformBy(ka_inv_trans)
-        hit_points.clear()
-        hit_faces = ka_comp.findBRepUsingRay(orig_ka, zv_ka, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points)  # type: ignore
-        ka_point, ka_face = _find_hit_point_face(hit_points, hit_faces, ka_surface)
-        if ka_point is None or ka_face is None:
+        ss_trans = _get_proxy_transform(skeleton_surface.assemblyContext)
+        ss_inv_trans = get_inverted_m3d(ss_trans)
+        zv_ss = get_transformed_mpv3d(zv, ss_inv_trans)
+        orig_ss = get_transformed_mpv3d(orig, ss_inv_trans)
+        hit_faces: ac.ObjectCollectionT[af.BRepFace] = skeleton_surface.parentComponent.findBRepUsingRay(orig_ss, zv_ss, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points)  # type: ignore
+        center, face = _find_hit_point_face(hit_points, hit_faces, skeleton_surface)
+        if center is None or face is None:
             continue
-        success, ka_normal = ka_face.evaluator.getNormalAtPoint(ka_point)
+        success, normal_ss = face.evaluator.getNormalAtPoint(center)
         if not success:
             continue
-        ka_normal.transformBy(ka_trans)
-        ka_normal.normalize()
+        normal = get_transformed_mpv3d(normal_ss, ss_trans)
+        normal.normalize()
 
         lp = af.ConstructionPlane.cast(con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_PLANE_TOKEN])[0])
-        lp_inv_trans = get_layout_plane_transform(lp)
-        if lp_inv_trans is None:
-            raise BadCodeException()
-        lp_inv_trans.invert()
+        lp_inv_trans = get_inverted_m3d(get_layout_plane_transform(lp))
 
-        t = root_kl_trans.copy()
-        t.transformBy(lp_inv_trans)
-        _, _, yv, _ = t.getAsCoordinateSystem()
+        ase = con.find_by_token(kl_occ.comp_attr[AN_LOCATORS_ANGLE_SHIFT_TOKEN])[0]
+        while af.ConstructionPlane.cast(ase) is None:
+            ase_surface = af.BRepBody.cast(ase)
+            ase_comp = ase_surface.parentComponent
+            ase_trans = _get_proxy_transform(ase_surface.assemblyContext)
+            ase_inv_trans = get_inverted_m3d(ase_trans)
+            orig_ase = get_transformed_mpv3d(orig, ase_inv_trans)
+            zv_ase = get_transformed_mpv3d(zv, ase_inv_trans)
+            hit_points.clear()
+            hit_faces = ase_comp.findBRepUsingRay(orig_ase, zv_ase, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points)  # type: ignore
+            ase_center, ase_face = _find_hit_point_face(hit_points, hit_faces, ase_surface)
+            if ase_center is None or ase_face is None:
+                break
+            success, ase_normal_ase = ase_face.evaluator.getNormalAtPoint(ase_center)
+            if not success:
+                break
+            ase_normal = get_transformed_mpv3d(ase_normal_ase, ase_trans)
+            ase_normal.normalize()
+            ase_normal_on_lp = get_transformed_mpv3d(ase_normal, lp_inv_trans)
+            if ase_normal_on_lp.isParallelTo(ZU_V3D):
+                break
+            axis = ase_normal_on_lp.crossProduct(ZU_V3D)
+            t = ac.Matrix3D.create()
+            t.setToRotateTo(ZU_V3D, ase_normal_on_lp, axis)
+            normal.transformBy(t)
+            break
+
+        _, _, yv, _ = get_transformed_mpv3d(root_kl_trans, lp_inv_trans).getAsCoordinateSystem()
         kp_trans = ac.Matrix3D.create()
-        nxv = yv.crossProduct(ka_normal)
+        nxv = yv.crossProduct(normal)
         nxv.normalize()
-        nyv = ka_normal.crossProduct(nxv)
+        nyv = normal.crossProduct(nxv)
         nyv.normalize()
-        kp_trans.setWithCoordinateSystem(center, nxv, nyv, ka_normal)
+        kp_trans.setWithCoordinateSystem(center, nxv, nyv, normal)
 
         kp_occ.transform = kp_trans
         kp_occ.light_bulb = True

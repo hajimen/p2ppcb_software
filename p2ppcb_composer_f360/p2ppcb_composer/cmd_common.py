@@ -402,10 +402,9 @@ class PartsCommandBlock:
 
 
 class InputLocators:
-    def __init__(self, inp: SelectionCommandInput, attr_name: str, entity_class: ty.Type[ty.Union[af.BRepBody, af.ConstructionPlane]]) -> None:
+    def __init__(self, inp: SelectionCommandInput, attr_name: str) -> None:
         self.inp = inp
         self.attr_name = attr_name
-        self.cls = entity_class
     
     def get_locators_attr_value(self, selected_locators: ty.List[F3Occurrence]) -> ty.Optional[str]:
         v: ty.Optional[str] = ''
@@ -440,15 +439,15 @@ class InputLocators:
             self.inp.tooltip = TOOLTIP_NOT_SELECTED
         else:
             con = get_context()
-            ent = self.cls.cast(con.find_by_token(token)[0])
+            ent = con.find_by_token(token)[0]
             if not has_sel_in(self.inp):
                 self.inp.addSelection(ent)
             else:
-                current_ent = self.cls.cast(self.inp.selection(0).entity)
+                current_ent = self.inp.selection(0).entity
                 if current_ent != ent:
                     self.inp.clearSelection()
                     self.inp.addSelection(ent)
-            self.inp.tooltip = ent.name
+            self.inp.tooltip = ent.name  # type: ignore
 
 
 def get_selected_locators(locator_in: ac.SelectionCommandInput):
@@ -466,7 +465,7 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
     if (not ent.has_parent) or ent.parent.name != CN_KEY_LOCATORS:
         event_args.isSelectable = False
         return
-    lp_ci = InputLocators(active_input, AN_LOCATORS_PLANE_TOKEN, af.ConstructionPlane)
+    lp_ci = InputLocators(active_input, AN_LOCATORS_PLANE_TOKEN)
     preselect_lp_token = lp_ci.get_locators_attr_value([ent])
     if preselect_lp_token is None:
         raise BadCodeException('Internal Error: Key locator lacks lp_token.')

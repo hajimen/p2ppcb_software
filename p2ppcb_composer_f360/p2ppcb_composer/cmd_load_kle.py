@@ -18,7 +18,7 @@ import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_MAIN_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
     CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, place_key_placeholders, prepare_key_assembly, prepare_parts_sync, get_layout_plane_transform, \
-    INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, PP_KEY_LOCATORS_ON_SPECIFIER
+    INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_SHIFT_TOKEN, PP_KEY_LOCATORS_ON_SPECIFIER
 
 
 def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, min_xyu, max_xyu):
@@ -54,7 +54,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                     o.comp_attr[an] = d
                 o.comp_attr[AN_KEY_V_OFFSET] = offset_str
                 o.comp_attr[AN_LOCATORS_SKELETON_TOKEN] = main_surface.entityToken
-                o.comp_attr[AN_LOCATORS_ANGLE_TOKEN] = main_surface.entityToken
+                o.comp_attr[AN_LOCATORS_ANGLE_SHIFT_TOKEN] = lp.entityToken
                 o.comp_attr[AN_LOCATORS_PLANE_TOKEN] = lp.entityToken
 
                 if specifier in pp_kl_on_specifier:
