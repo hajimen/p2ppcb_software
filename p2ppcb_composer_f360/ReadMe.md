@@ -1,20 +1,20 @@
 # P2PPCB Composer F360
 
-**P2PPCB Composer F360** is an add-in of Autodesk Fusion 360 (F360). It helps you design your own keyboard which is built on P2PPCB platform.
+**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). It helps you design your own keyboard which is built on P2PPCB platform.
 I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, offer P2PPCB platform.
 
-DISCLAIMER: P2PPCB Composer F360 is extraordinarily slow for a large keyboard, so far.
+DISCLAIMER: P2PPCB Composer F360 is extraordinarily slow for a large keyboard, so far. Around 60 keys are the upper limit in common sense.
 
 DISCLAIMER: So far, P2PPCB Composer F360 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug and waste much time to get around it.
 
 ## Requirements: Just designing a keyboard
 
-- Windows PC
+- Windows PC, English
 
-F360 runs on Mac too, but P2PPCB Composer F360 uses RPA to get over the lack of F360 API features.
+F360 runs on Mac too, but PC0 uses RPA to get over the lack of F360 API features. Windows' language should be english
+for RPA.
 
-By leaving all top legends empty, you can get around the problem, I guess (I haven't test it yet).
-But without legends, your work may be a bit hard.
+Moreover, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package which doesn't run on Mac.
 
 - Autodesk Fusion 360 (F360)
 
@@ -22,27 +22,27 @@ F360 is a proprietary 3D CAD. Autodesk generously offers free plan for hobbyists
 
 - QMK firmware <https://qmk.fm/>
 
-You need your own firmware for your own design. P2PPCB Composer F360 helps you, but you need to be well informed about QMK.
+You need your own firmware for your own design. PC0 helps you, but you need to be well informed about QMK.
 
-The official codebase lacks RP2040 (Raspberry Pi Pico's MPU) support yet, so you need to use a fork like this: <https://github.com/sekigon-gonnoc/qmk_firmware/tree/rp2040>.
+The official codebase lacks RP2040 (Raspberry Pi Pico's MPU) support now, so you need to use a fork like this: <https://github.com/sekigon-gonnoc/qmk_firmware/tree/rp2040>.
 
 ## Requirements: Building your own design
 
 - A 3D printing service of HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html>
 
-Ledo 6060 also does a good job.
+Somos® Ledo 6060 also does a good job.
 
 There are a lot of 3D printing services of MJF in the world. Shapeways (North America and Europe), DMM.make (Japan), WENEXT (China) etc.
 Pick a good one for you.
 
 - P2PPCB parts from DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
 
-P2PPCB Composer F360 is free, but the parts aren't :-)
+PC0 is free, but the parts aren't :-)
 
 - Switches, caps, stabilizers
 
 If you need custom printed caps for your own design, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
-I can make custom printed PBT keycaps. The total charge is from around $30.
+I can make custom printed PBT keycaps. The total charge is from around $30 when COVID-19 went away (nowadays the shipping charge is quite expensive).
 
 ## Installation
 
@@ -61,9 +61,9 @@ You can include QMK keycodes in your KLE file. The detail is later.
 2. Design the height/angle of keys by F360 surface.
 
 The F360 surface is **skeleton surface**. You need a F360 construction plane as **layout plane** too.
-You can specify **key angle surface** to make stepped ("staircase") profile keyboard by uniform profile keycaps (DSA/XDA etc.).
+You can specify **angle shift surface** to make stepped ("staircase") profile keyboard by uniform profile keycaps (DSA/XDA etc.).
 
-You can see how they work by a scaffold set which is built in P2PPCB Composer F360.
+You can see how they work by a scaffold set which is built in PC0.
 Click green **P2P/PCB** icon and enable 'Generate a scaffold set' checkbox in the command dialog.
 
 3. Start a P2PPCB project
@@ -108,7 +108,7 @@ Key switches, stabilizers, and screws should be fixed on their holes. Such holes
 On the other hand, a frame is not so rigorous about defect. Frame should be strong, stiff, and have essential areas to hold parts (internal screw thread, for example).
 Except for essential areas, a frame can have defects (voids) to some extent. Let's call such non-essential area which surrounds essential area as "supporting area".
 
-P2PPCB Composer F360 adopts fill/hole method to form a frame. Fill: make a block. Hole: cut the block.
+PC0 adopts fill/hole method to form a frame. Fill: make a block. Hole: cut the block.
 
 Make a block, how? By connecting essential/supporting areas each other. Where key layout is dense, keys' essential/supporting areas overlap each other. In this case, simple "join" operation is enough.
 Where key layout is sparse, a bridge connects between essential/supporting areas. Bridge is a board parallel to the skeleton surface. 
@@ -142,7 +142,7 @@ Without route data generation, your life will be much harder.
 
 # For developers
 
-If you are familiar with F360 add-in development, you'll find P2PPCB Composer F360 uses a bunch of bizarre hacks.
+If you are familiar with F360 add-in development, you'll find PC0 uses a bunch of bizarre hacks.
 Let's see the hacks.
 
 ## RPA for decals
@@ -207,10 +207,10 @@ pip install -r requirements.txt -t app-packages --extra-index-url ../../pep503/s
 
 # Further development
 
-So far, P2PPCB Composer F360 remains at sketchy quality. It helps you design your own keyboard *in many cases*. In some cases, it annoys you rather than helps you.
-In other cases, it gets stuck in F360's bugs. We need further development for better quality of P2PPCB Composer F360.
+So far, PC0 remains at sketchy quality. It helps you design your own keyboard *in many cases*. In some cases, it annoys you rather than helps you.
+In other cases, it gets stuck in F360's bugs. We need further development for better quality of PC0.
 
-## Why so extraordinarily slow, especially about a large keyboard?
+## Why so extraordinarily slow, especially for a large keyboard?
 
 There are several reasons.
 
@@ -221,7 +221,7 @@ It causes a lot of redundant F360 components. However it doesn't cause O(n^2) co
 
 2. F360 becomes extraordinarily slow when there are 100 or above F360 components in a file.
 
-I don't know why. Autodesk doesn't expect such usage, I guess. `findBRepUsingRay()` function can consume several seconds, so `Move Key` command
+I don't know why. Autodesk doesn't expect such usage, I guess. Especially `findBRepUsingRay()` function can consume several seconds, so `Move Key` command
 is nearly impossible.
 
 3. F360 API's `attributes` scanning is extraordinarily slow.
@@ -240,11 +240,10 @@ But it can be hard to recognize the phenomenon.
 
 ## Custom features
 
-So far, P2PPCB Composer F360 doesn't support parametric modeling. I wish I could edit a skeleton surface and key angle surfaces by parametric modeling.
+So far, PC0 doesn't support parametric modeling. I wish I could edit a skeleton surface and angle shift surfaces by parametric modeling.
 Now (June 2022) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
 I don't expect much, but I'll take a look when it turned into GA.
 
 ## Mac
 
-So far, P2PPCB Composer F360 runs on Windows only. The limitation comes from RPA of decals. If Autodesk prepares APIs for decals,
-Mac will be supported too. Contributions on f360_insert_decal_rpa <https://github.com/hajimen/f360_insert_decal_rpa> will make us happy too.
+So far, PC0 runs on Windows only. The limitation comes from decals. The codes relating to decals are hard to decouple.
