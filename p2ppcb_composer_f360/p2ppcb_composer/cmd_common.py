@@ -438,16 +438,20 @@ class InputLocators:
             self.inp.clearSelection()
             self.inp.tooltip = TOOLTIP_NOT_SELECTED
         else:
-            con = get_context()
-            ent = con.find_by_token(token)[0]
-            if not has_sel_in(self.inp):
-                self.inp.addSelection(ent)
+            es = get_context().find_by_token(token)
+            if len(es) == 0:
+                self.inp.clearSelection()
+                self.inp.tooltip = TOOLTIP_NOT_SELECTED
             else:
-                current_ent = self.inp.selection(0).entity
-                if current_ent != ent:
-                    self.inp.clearSelection()
+                ent = es[0]
+                if not has_sel_in(self.inp):
                     self.inp.addSelection(ent)
-            self.inp.tooltip = ent.name  # type: ignore
+                else:
+                    current_ent = self.inp.selection(0).entity
+                    if current_ent != ent:
+                        self.inp.clearSelection()
+                        self.inp.addSelection(ent)
+                self.inp.tooltip = ent.name  # type: ignore
 
 
 def get_selected_locators(locator_in: ac.SelectionCommandInput):

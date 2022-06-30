@@ -482,7 +482,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
                         li.isSelected = True
                         break
                 flip_in.value = locs[3]
-            self.move_comp_cb.start_transaction(o.transform)
+            self.move_comp_cb.start_transaction(self.get_mainboard_transform())
         else:
             t = self.get_mainboard_transform()
             self.move_comp_cb.start_transaction(t)
