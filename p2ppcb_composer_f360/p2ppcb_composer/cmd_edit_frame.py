@@ -33,6 +33,7 @@ CPN_INTERNAL_FLOOR = 'Internal Floor' + MAGIC
 CNP_FOOT_LOCATORS = '_FL'
 
 AN_MB_LOCATION_INPUTS = 'mbLocationInputs'
+AN_FOOT_OFFSET = 'footOffset'
 
 CHIPPING_BODY_THRESHOLD = 10. * (0.1 ** 3)  # 10 mm^3
 
@@ -667,7 +668,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.move_comp_cb = MoveComponentCommandBlock(self)
         self.move_comp_cb.notify_create(event_args)
         self.offset_cb = OffsetCommandBlock(self)
-        self.offset_cb.b_notify_create('Offset', '0 mm')
+        self.offset_cb.b_notify_create('Offset', fp_occ.comp_attr[AN_FOOT_OFFSET] if AN_FOOT_OFFSET in fp_occ.comp_attr else '0 mm')
 
         if_in = inputs.addBoolValueInput(INP_ID_CHECK_INTERFERENCE_BOOL, 'Check Interference', True)
         if_in.value = False
@@ -790,6 +791,8 @@ class PlaceFootCommandHandler(CommandHandlerBase):
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)
         self.last_num_foot = self.get_num_foot()
+        fp_occ = get_context().child[CN_INTERNAL].child[CN_FOOT_PLACEHOLDERS]
+        fp_occ.comp_attr[AN_FOOT_OFFSET] = self.offset_cb.get_in().value
     
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         if self.last_num_foot != 0:

@@ -17,7 +17,7 @@ INP_ID_KEY_PITCH_D_VAL = 'keyPitchD'
 INP_ID_MAINBOARD = 'mainboard'
 INP_ID_SCAFFOLD_BOOL = 'scaffold'
 
-TOOLTIPS_MAIN_SURFACE = ('Main Surface', 'Specify a surface. It becomes initial preference of skeleton surface and angle shift surface of all keys.\nYou can change the choice afterwards, on each key individually.')
+TOOLTIPS_MAIN_SURFACE = ('Main Surface', 'Specify a surface. It becomes initial preference of skeleton surface and key angle surface of all keys.\nYou can change the choice afterwards, on each key individually.')
 TOOLTIPS_MAIN_LAYOUT_PLANE = ('Main Layout Plane', 'Specify a construction plane to deploy a KLE file.\nYou can change the choice afterwards, on each key individually.')
 
 
@@ -80,7 +80,7 @@ def generate_scaffold():
     ex_in2.setTwoSidesExtent(extent_cm15, extent_cm15)
     alternative_surface = extrudes.add(ex_in2).bodies[0]
     alternative_surface.opacity = 0.2
-    alternative_surface.name = 'Alternative Surface (Angle Shift or Skeleton)'
+    alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
 
     col = CreateObjectCollectionT(af.BRepBody)
     col.add(skeleton_surface)
