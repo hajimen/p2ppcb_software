@@ -65,6 +65,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         _ = inputs.addDropDownCommandInput(INP_ID_WIRE_NAME_DD, 'Wire Name', ac.DropDownStyles.TextListDropDownStyle)
         self.set_wire_in()
 
+        get_context().child[CN_INTERNAL].light_bulb = True
         self.show_billboard()
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:

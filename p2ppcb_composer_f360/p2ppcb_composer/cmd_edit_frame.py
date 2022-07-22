@@ -425,6 +425,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         super().__init__()
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
+        self.last_light_bulb = False
 
     @property
     def cmd_name(self) -> str:
@@ -469,7 +470,10 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         if_in.value = False
 
         inl_occ = con.child[CN_INTERNAL]
+        inl_occ.light_bulb = True
         mp_occ = inl_occ.child.get_real(CN_MISC_PLACEHOLDERS)
+        self.last_light_bulb = mp_occ.light_bulb
+        mp_occ.light_bulb = True
         cn_mainboard = get_cn_mainboard()
         if cn_mainboard in mp_occ.child:
             o = mp_occ.child[cn_mainboard]
@@ -578,15 +582,17 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         self.last_boss = True
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        con = get_context()
+        mp_occ = con.child[CN_INTERNAL].child[CN_MISC_PLACEHOLDERS]
         if self.last_boss:
-            con = get_context()
-            o = con.child[CN_INTERNAL].child[CN_MISC_PLACEHOLDERS].child[get_cn_mainboard()]
+            o = mp_occ.child[get_cn_mainboard()]
             body_finder = BodyFinder()
             for b in body_finder.get(o, AN_FILL):
                 b.isLightBulbOn = False
                 nb = b.copyToComponent(con.comp)
                 nb.isLightBulbOn = True
                 nb.name = BN_MAINBOARD_BOSS
+        mp_occ.light_bulb = self.last_light_bulb
 
 
 FOOT_NAMES = [f'Foot {s}{CNP_FOOT_LOCATORS}' for s in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']]
@@ -598,6 +604,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
         self.last_foot_transforms: ty.Dict[str, ac.Matrix3D]
+        self.last_light_bulb = False
 
     @property
     def cmd_name(self) -> str:
@@ -627,7 +634,10 @@ class PlaceFootCommandHandler(CommandHandlerBase):
             raise BadConditionException('Please generate a frame first.')
 
         inl_occ = con.child[CN_INTERNAL]
+        inl_occ.light_bulb = True
         fp_occ = inl_occ.child.get_real(CN_FOOT_PLACEHOLDERS)
+        self.last_light_bulb = fp_occ.light_bulb
+        fp_occ.light_bulb = True
         f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
         body_finder = BodyFinder()
         for b in body_finder.get(f_occ, AN_PLACEHOLDER):
@@ -795,10 +805,10 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         fp_occ.comp_attr[AN_FOOT_OFFSET] = self.offset_cb.get_in().value
     
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        con = get_context()
+        inl_occ = con.child[CN_INTERNAL]
+        fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
         if self.last_num_foot != 0:
-            con = get_context()
-            inl_occ = con.child[CN_INTERNAL]
-            fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
             fos = [fp_occ.child[fn].child.get_real(CN_FOOT) for fn in FOOT_NAMES[:self.get_num_foot()]]
             body_finder = BodyFinder()
             for o in fos:
@@ -810,6 +820,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
             f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
             for b in body_finder.get(f_occ, AN_FILL):
                 b.isLightBulbOn = False
+        fp_occ.light_bulb = self.last_light_bulb
 
 
 def hole_all_parts(frame: af.BRepBody):

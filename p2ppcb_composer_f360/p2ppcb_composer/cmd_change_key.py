@@ -4,7 +4,7 @@ import p2ppcb_parts_resolver.resolver as parts_resolver
 import adsk.fusion as af
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, \
+from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, CN_KEY_LOCATORS, \
     CN_KEY_PLACEHOLDERS, CURRENT_DIR, BadCodeException, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, \
     AN_KLE_B64, get_context, CN_INTERNAL, key_placeholder_name, load_kle_by_b64, get_part_info, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
@@ -44,6 +44,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         self.pi: parts_resolver.PartsInfo
         self.specs_ops_on_pn: SpecsOpsOnPn
         self.once_shown: ty.Set[str]
+        self.last_light_bulb = False
 
     @property
     def cmd_name(self) -> str:
@@ -75,6 +76,12 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
 
         specifier_in = self.inputs.addStringValueInput(INP_ID_SPECIFIER_STR, 'Specifier', '')
         specifier_in.isVisible = False
+
+        inl_occ = get_context().child[CN_INTERNAL]
+        inl_occ.light_bulb = True
+        key_locators = inl_occ.child[CN_KEY_LOCATORS]
+        self.last_light_bulb = key_locators.light_bulb
+        key_locators.light_bulb = True
 
         self.parts_cb.notify_create(event_args)
         self.parts_cb.show_hide(False)
@@ -232,6 +239,9 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         kd = {n: o.transform for n, o in key_placeholders_occ.child.items()}
         for n, o in key_placeholders_occ.child.items():
             o.transform = kd[n]
+
+        key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
+        key_locators.light_bulb = self.last_light_bulb
 
 
 class CheckKeyAssemblyCommandHandler(CommandHandlerBase):

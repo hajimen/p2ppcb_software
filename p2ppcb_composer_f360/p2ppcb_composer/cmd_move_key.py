@@ -2,7 +2,7 @@ import typing as ty
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 import adsk.fusion as af
-from f360_common import BadCodeException, get_context, CN_INTERNAL, F3Occurrence
+from f360_common import CN_KEY_LOCATORS, BadCodeException, get_context, CN_INTERNAL, F3Occurrence
 from p2ppcb_composer.cmd_common import all_has_sel_ins, get_cis, has_sel_in, AN_LOCATORS_PLANE_TOKEN, TOOLTIP_NOT_SELECTED, InputLocators, \
     get_selected_locators, locator_notify_pre_select, CommandHandlerBase, CheckInterferenceCommandBlock, MoveComponentCommandBlock
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, get_layout_plane_transform, place_key_placeholders
@@ -29,6 +29,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         super().__init__()
         self.move_comp_cb: MoveComponentCommandBlock
         self.check_interference_cb: CheckInterferenceCommandBlock
+        self.last_light_bulb = False
 
     @property
     def cmd_name(self) -> str:
@@ -62,6 +63,12 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         angle_surface_in.addSelectionFilter('SurfaceBodies')
         angle_surface_in.setSelectionLimits(1, 1)
         angle_surface_in.isVisible = False
+
+        inl_occ = get_context().child[CN_INTERNAL]
+        inl_occ.light_bulb = True
+        key_locators = inl_occ.child[CN_KEY_LOCATORS]
+        self.last_light_bulb = key_locators.light_bulb
+        key_locators.light_bulb = True
 
         self.move_comp_cb = MoveComponentCommandBlock(self)
         self.move_comp_cb.notify_create(event_args)
@@ -195,3 +202,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         # n_hit = len(hit_mev) + len(hit_hole) + len(hit_mf)
         # if n_hit > 0:
         #     get_context().ui.messageBox(f'Warning: {n_hit} interference(s) exists among {len(hit_kpns)} key placeholder(s).')
+
+    def notify_destroy(self, event_args: CommandEventArgs) -> None:
+        key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
+        key_locators.light_bulb = self.last_light_bulb
