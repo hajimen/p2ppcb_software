@@ -121,7 +121,6 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             rowcol_in.isVisible = False
             return
         wire_in.isVisible = True
-        ledkey_in.isVisible = True
         rowcol_in.isVisible = True
         wire_in.listItems.add('', True)
         is_first_selected_locators = selected_locators_changed and len(selected_locators) == 1
@@ -139,9 +138,12 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                 break
         is_led = is_led_name(selected_wn) if is_first_selected_locators else ledkey_in.value
 
+        has_led = False
         for wn in rt.get_mainboard_constants().wire_names_rc[rc]:
             if is_led_name(wn) == is_led:
                 wire_in.listItems.add(wn, wn == selected_wn)
+            has_led |= is_led_name(wn)
+        ledkey_in.isVisible = has_led
         if is_first_selected_locators:
             self.get_ledkey_in().value = is_led
 
