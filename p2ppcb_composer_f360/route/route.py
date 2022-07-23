@@ -501,7 +501,7 @@ def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstant
                     kc = 'KC_NO' if c is None else c
                 qmk_str += (kc + ', ')
             qmk_str += '},\n'
-        qmk_str += '    }\n'
+        qmk_str += '    },\n'
     return 'const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {\n' + qmk_str + '};\n', json.dumps(via_dic, indent=2)
 
 
