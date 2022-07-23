@@ -44,7 +44,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Assigns a matrix for key layout. You can select key locators of a source/drain once and assign a source/drain line.'
+        return 'Assigns a matrix for key layout. You can select key locators of a S/D once and assign a S/D line.'
 
     @property
     def resource_folder(self) -> str:
@@ -58,9 +58,9 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
         _ = self.inputs.addBoolValueInput(INP_ID_LEDKEY_BOOL, 'LED key', True)
 
-        rowcol_in = inputs.addRadioButtonGroupCommandInput(INP_ID_ROW_COL_RADIO, 'Source / Drain')
-        rowcol_in.listItems.add('Source', True)
-        rowcol_in.listItems.add('Drain', False)
+        rowcol_in = inputs.addRadioButtonGroupCommandInput(INP_ID_ROW_COL_RADIO, 'S / D')
+        rowcol_in.listItems.add('S', True)
+        rowcol_in.listItems.add('D', False)
 
         _ = inputs.addDropDownCommandInput(INP_ID_WIRE_NAME_DD, 'Wire Name', ac.DropDownStyles.TextListDropDownStyle)
         self.set_wire_in()
@@ -264,7 +264,7 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
                 matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
             else:
-                raise BadConditionException('Assign source/drain to all key locators.')
+                raise BadConditionException('Assign S/D to all key locators.')
 
         mc = rt.get_mainboard_constants()
         if CN_MISC_PLACEHOLDERS not in inl_occ.child or rt.get_cn_mainboard() not in inl_occ.child[CN_MISC_PLACEHOLDERS].child:
@@ -312,7 +312,7 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             f.write(generated_snippet)
         with open(output_dir_path / 'via_keymap.json', 'w') as f:
             f.write(via_json)
-        img_row.save(str(output_dir_path / 'wiring_source.png'))
-        img_col.save(str(output_dir_path / 'wiring_drain.png'))
+        img_row.save(str(output_dir_path / 'wiring_S.png'))
+        img_col.save(str(output_dir_path / 'wiring_D.png'))
 
         con.ui.messageBox('QMK / VIA keymap and wiring diagrams has been generated.', 'P2PPCB')

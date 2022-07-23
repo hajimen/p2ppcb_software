@@ -343,7 +343,7 @@ class TestMatrixRoute(unittest.TestCase):
         #     if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
         #         matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
         #     else:
-        #         raise BadConditionException('Assign source/drain to all key locators.')
+        #         raise BadConditionException('Assign S/D to all key locators.')
         # with open((TEST_PKL_DIR / 'matrix.pkl'), 'wb') as f:
         #     pickle.dump({k: dict(v) for k, v in matrix.items()}, f)
 
