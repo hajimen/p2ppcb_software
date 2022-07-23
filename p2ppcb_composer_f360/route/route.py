@@ -432,7 +432,6 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
                     else:
                         legend_offset = [-legend_w // 2, 0]
                 mirrored_xy = locs[0] + MARGIN
-                # draw.text((img_w - mirrored_xy[0] + legend_offset[0], mirrored_xy[1] + legend_offset[1]), str(pn), fill='black', font=font)
                 draw.multiline_text((img_w - mirrored_xy[0] + legend_offset[0], mirrored_xy[1] + legend_offset[1]), str(pn), fill='black', font=font,
                                     stroke_width=2, stroke_fill='white')
         return img.crop(ImageOps.invert(img).getbbox())
