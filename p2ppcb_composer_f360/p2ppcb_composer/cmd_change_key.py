@@ -4,7 +4,7 @@ import p2ppcb_parts_resolver.resolver as parts_resolver
 import adsk.fusion as af
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, CN_KEY_LOCATORS, \
+from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, CN_KEY_LOCATORS, \
     CN_KEY_PLACEHOLDERS, CURRENT_DIR, BadCodeException, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, \
     AN_KLE_B64, get_context, CN_INTERNAL, key_placeholder_name, load_kle_by_b64, get_part_info, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
@@ -15,6 +15,7 @@ from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, I_ANS_OPTION,
 
 INP_ID_SPECIFIER_STR = 'specifier'
 INP_ID_PATTERN_NAME_STR = 'patternName'
+INP_ID_ENABLE_BOOL = 'enable'
 
 TOOLTIP_SPECIFIER = "Row-dependent caps should have prefix on pattern name, like 'R4 1u'. 'Homing' and 'Spacebar' are common prefix."
 TOOLTIP_PATTERN_NAME = "Usually '1u', '125u', '15u' and so on. There are some special pattern names too, like 'ISO Enter'."
@@ -58,11 +59,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
     def resource_folder(self) -> str:
         return 'Resources/change_key'
 
-    def show_key_placeholders(self, show: bool):
-        con = get_context()
-        key_placeholders_occ = con.child[CN_INTERNAL].child.get_real(CN_KEY_PLACEHOLDERS)
-        key_placeholders_occ.light_bulb = show
-
     def notify_create(self, event_args: CommandCreatedEventArgs):
         self.parts_cb = PartsCommandBlock(self, get_parts_data_path())
         self.pi = get_part_info()
@@ -77,6 +73,9 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         specifier_in = self.inputs.addStringValueInput(INP_ID_SPECIFIER_STR, 'Specifier', '')
         specifier_in.isVisible = False
 
+        enable_in = self.inputs.addBoolValueInput(INP_ID_ENABLE_BOOL, 'Enable', True)
+        enable_in.isVisible = False
+
         inl_occ = get_context().child[CN_INTERNAL]
         inl_occ.light_bulb = True
         key_locators = inl_occ.child[CN_KEY_LOCATORS]
@@ -85,13 +84,15 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
 
         self.parts_cb.notify_create(event_args)
         self.parts_cb.show_hide(False)
-        self.show_key_placeholders(False)
 
     def get_selection_in(self):
         return get_ci(self.inputs, INP_ID_KEY_LOCATOR_SEL, ac.SelectionCommandInput)
 
     def get_specifier_in(self):
         return get_ci(self.inputs, INP_ID_SPECIFIER_STR, ac.StringValueCommandInput)
+
+    def get_enable_in(self):
+        return get_ci(self.inputs, INP_ID_ENABLE_BOOL, ac.BoolValueCommandInput)
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id == INP_ID_KEY_LOCATOR_SEL:
@@ -100,12 +101,14 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         locator_in = self.get_selection_in()
         specifier_in = self.get_specifier_in()
+        enable_in = self.get_enable_in()
         selected_locators = get_selected_locators(locator_in)
         if changed_input.id == INP_ID_KEY_LOCATOR_SEL:
             self.parts_cb.deselect()
             if has_sel_in(locator_in):
                 self.parts_cb.show_hide(True)
-                self.get_specifier_in().isVisible = True
+                specifier_in.isVisible = True
+                enable_in.isVisible = True
                 last_options: ty.List[ty.Optional[str]] = [None for _ in ANS_OPTION]
                 last_specifier: ty.Optional[str] = None
                 last_offset_str: ty.Optional[str] = None
@@ -146,6 +149,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
                     vo_in.value = ''
                 specifier_in.value = last_specifier if same_specifier else ''
                 specifier_in.isEnabled = same_pn
+                enable_in.value = bool(selected_locators[0].comp_attr[AN_LOCATORS_ENABLED])
             else:
                 self.parts_cb.show_hide(False)
                 self.get_specifier_in().isVisible = False
@@ -153,27 +157,30 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
 
         self.parts_cb.b_notify_input_changed(changed_input)
 
-    def get_selected_specifier_options_offset(self):
+    def get_selected_specifier_options_offset_enable(self):
         offset_str = self.parts_cb.get_v_offset_in().value
         selected_options = self.parts_cb.get_selected_options()
         selected_specifier = self.get_specifier_in().value
-        return selected_specifier, selected_options, str(Quantity(offset_str).m_as('cm'))  # type: ignore
+        selected_enable = self.get_enable_in().value
+        return selected_specifier, selected_options, str(Quantity(offset_str).m_as('cm')), selected_enable  # type: ignore
 
     def get_changed_locators(self):
         locator_in = self.get_selection_in()
         selected_locators = get_selected_locators(locator_in)
-        selected_specifier, selected_options, selected_offset_str = self.get_selected_specifier_options_offset()
+        selected_specifier, selected_options, selected_offset_str, selected_enable = self.get_selected_specifier_options_offset_enable()
         changed_locators: ty.List[VirtualF3Occurrence] = []
 
         for kl_occ in selected_locators:
             options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
             specifier = kl_occ.comp_attr[AN_LOCATORS_SPECIFIER]
             offset_str = kl_occ.comp_attr[AN_KEY_V_OFFSET]
-            if options != selected_options or specifier != selected_specifier or offset_str != selected_offset_str:
+            enable = bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED])
+            if options != selected_options or specifier != selected_specifier or offset_str != selected_offset_str or enable != selected_enable:
                 for an, d in zip(ANS_OPTION, selected_options):
                     kl_occ.comp_attr[an] = d
                 kl_occ.comp_attr[AN_LOCATORS_SPECIFIER] = selected_specifier
                 kl_occ.comp_attr[AN_KEY_V_OFFSET] = selected_offset_str
+                kl_occ.comp_attr[AN_LOCATORS_ENABLED] = 'True' if selected_enable else ''
                 changed_locators.append(kl_occ)
 
         return changed_locators
@@ -186,7 +193,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             locator_in = self.get_selection_in()
             specifier_in = self.get_specifier_in()
             selected_locators = get_selected_locators(locator_in)
-            selected_specifier, selected_options, selected_offset_str = self.get_selected_specifier_options_offset()
+            selected_specifier, selected_options, selected_offset_str, enable = self.get_selected_specifier_options_offset_enable()
             if '' in selected_options or '' == selected_offset_str:
                 event_args.areInputsValid = False
                 return
@@ -217,7 +224,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             fill_surrogate()
             con.clear_surrogate()
             con.prepare_parameter_dict.clear()
-        self.show_key_placeholders(True)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         changed_locators = self.get_changed_locators()
@@ -232,8 +238,6 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             fill_surrogate()
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        self.show_key_placeholders(True)
-
         # Bug workaround of F360. Without the code below, change switch orientation -> cancel button occurs wrong result.
         key_placeholders_occ = get_context().child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
         kd = {n: o.transform for n, o in key_placeholders_occ.child.items()}

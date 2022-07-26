@@ -7,7 +7,7 @@ from p2ppcb_parts_resolver.resolver import Part
 import adsk
 import adsk.core as ac
 import adsk.fusion as af
-from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_LOCATORS_I, \
+from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, ANS_OPTION, \
     ATTR_GROUP, CN_DEPOT_CAP_PLACEHOLDER, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, \
     CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, BadCodeException, BodyFinder, CreateObjectCollectionT, \
@@ -105,6 +105,7 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
         specifier = kl_occ.comp_attr[AN_LOCATORS_SPECIFIER]
         i = int(kl_occ.comp_attr[AN_LOCATORS_I])
+        enable = bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED])
         options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
         offset_str = kl_occ.comp_attr[AN_KEY_V_OFFSET]
         specifier_options_offset_joined = specifier + ' ' + ' '.join(options) + ' ' + offset_str
@@ -197,7 +198,7 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         kp_trans.setWithCoordinateSystem(center, nxv, nyv, normal)
 
         kp_occ.transform = kp_trans
-        kp_occ.light_bulb = True
+        kp_occ.light_bulb = enable
 
 
 _BACK_TRANS = ac.Matrix3D.create()

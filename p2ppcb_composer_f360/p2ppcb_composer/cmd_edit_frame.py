@@ -7,9 +7,9 @@ from pint import Quantity
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_FILL, AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
+from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
-    VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER
+    VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
 from route.route import get_cn_mainboard
 
@@ -79,6 +79,8 @@ def collect_body_from_key(an: str):
     key_placeholders_occ = con.child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
     body_finder = BodyFinder()
     for kp_occ in key_placeholders_occ.child.values():
+        if not kp_occ.light_bulb:
+            continue
         for n, o in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for p in o.child.values():
@@ -253,10 +255,16 @@ class FillFrameCommandHandler(CommandHandlerBase):
 
         inl_occ = con.child[CN_INTERNAL]
         inl_occ.light_bulb = True
+        disabled_names = set()
+        for kl_occ in inl_occ.child[CN_KEY_LOCATORS].child.values():
+            if not bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED]):
+                pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
+                i = int(kl_occ.comp_attr[AN_LOCATORS_I])
+                disabled_names.add(key_placeholder_name(i, pattern_name))
         key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
         key_placeholders_occ.light_bulb = True
         for o in key_placeholders_occ.child.values():
-            if not o.light_bulb:
+            if not o.light_bulb and o.name not in disabled_names:
                 self.run_execute = False
                 raise BadConditionException('There is unplaced key(s). Please fix it first.')
 

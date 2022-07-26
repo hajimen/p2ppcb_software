@@ -9,7 +9,7 @@ import p2ppcb_parts_resolver.resolver as parts_resolver
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
-from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_I, \
+from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
     CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, SpecsOpsOnPn, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
@@ -51,6 +51,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                 o.comp_attr[AN_LOCATORS_SPECIFIER] = specifier
                 o.comp_attr[AN_LOCATORS_PATTERN_NAME] = pattern_name
                 o.comp_attr[AN_LOCATORS_I] = str(i)
+                o.comp_attr[AN_LOCATORS_ENABLED] = 'True'
                 for d, an in zip(options, ANS_OPTION):
                     o.comp_attr[an] = d
                 o.comp_attr[AN_KEY_V_OFFSET] = offset_str
