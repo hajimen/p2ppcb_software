@@ -8,7 +8,7 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, MIN_FLOOR_HEIGHT, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
+    CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
 from route.route import get_cn_mainboard
@@ -29,7 +29,7 @@ BN_FRAME = 'Frame' + MAGIC
 BN_FOOT_BOSS = 'Foot Boss' + MAGIC
 BN_MAINBOARD_BOSS = 'Mainboard Boss' + MAGIC
 # CPN: Construction Plane Name
-CPN_INTERNAL_FLOOR = 'Internal Floor' + MAGIC
+CPN_FLOOR = 'Floor' + MAGIC
 CNP_FOOT_LOCATORS = '_FL'
 
 AN_MB_LOCATION_INPUTS = 'mbLocationInputs'
@@ -206,14 +206,14 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
 
     planes = con.comp.constructionPlanes
     plane_in = planes.createInput()
-    plane_z = get_minpoint('z').z - MIN_FLOOR_HEIGHT
+    plane_z = get_minpoint('z').z - FLOOR_CLEARANCE
     plane_in.setByOffset(con.comp.xYConstructionPlane, ac.ValueInput.createByReal(plane_z))
 
-    ifp = planes.itemByName(CPN_INTERNAL_FLOOR)
+    ifp = planes.itemByName(CPN_FLOOR)
     if ifp is not None:
         ifp.deleteMe()
     floor_plane = planes.add(plane_in)
-    floor_plane.name = CPN_INTERNAL_FLOOR
+    floor_plane.name = CPN_FLOOR
     plane_z = floor_plane.geometry.origin.z  # F360's bug workaround
 
     min_point_xy = ac.Point3D.create(get_minpoint('x').x, get_minpoint('y').y, plane_z)
@@ -694,6 +694,10 @@ class PlaceFootCommandHandler(CommandHandlerBase):
     def set_foot_transform(self, offset: float, num_foot: int):
         con = get_context()
         fb = get_frame().boundingBox
+        floor_cp = con.comp.constructionPlanes.itemByName(CPN_FLOOR)
+        if floor_cp is None:
+            raise BadConditionException(f'{CPN_FLOOR} is required. Please run Fill command.')
+        floor_z = floor_cp.geometry.origin.z
         inl_occ = con.child[CN_INTERNAL]
         fp_occ = inl_occ.child.get_real(CN_FOOT_PLACEHOLDERS)
 
@@ -701,7 +705,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
             for foot_name, t in self.last_foot_transforms.items():
                 fo = fp_occ.child[foot_name]
                 nt = t.copy()
-                nt.setCell(2, 3, fb.minPoint.z + offset - MIN_FLOOR_HEIGHT)
+                nt.setCell(2, 3, floor_z + offset)
                 fo.transform = nt
                 fo.light_bulb = True
         else:
@@ -727,7 +731,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
                 t = ac.Matrix3D.create()
                 t.setCell(0, 3, x)
                 t.setCell(1, 3, y)
-                t.setCell(2, 3, fb.minPoint.z + offset - MIN_FLOOR_HEIGHT)
+                t.setCell(2, 3, floor_z + offset)
                 if rot:
                     t.setCell(0, 0, -1.)
                     t.setCell(1, 1, -1.)

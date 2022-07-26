@@ -15,7 +15,7 @@ from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
 import adsk.core as ac
 import adsk.fusion as af
 
-MIN_FLOOR_HEIGHT = 0.2
+FLOOR_CLEARANCE = 0.1
 
 EYE_M3D = ac.Matrix3D.create()
 ORIGIN_P3D = ac.Point3D.create(0, 0, 0)
