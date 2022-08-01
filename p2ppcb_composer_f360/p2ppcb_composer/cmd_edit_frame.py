@@ -76,7 +76,12 @@ class OffsetCommandBlock:
 def collect_body_from_key(an: str):
     con = get_context()
     ret = CreateObjectCollectionT(af.BRepBody)
-    key_placeholders_occ = con.child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
+    inl_occ = con.child[CN_INTERNAL]
+    inl_lb = inl_occ.light_bulb
+    inl_occ.light_bulb = True
+    key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
+    kp_lb = key_placeholders_occ.light_bulb
+    key_placeholders_occ.light_bulb = True
     body_finder = BodyFinder()
     for kp_occ in key_placeholders_occ.child.values():
         if not kp_occ.light_bulb:
@@ -88,6 +93,8 @@ def collect_body_from_key(an: str):
                         rb = b.copyToComponent(con.comp)
                         rb.isLightBulbOn = True
                         ret.add(rb)
+    inl_occ.light_bulb = inl_lb
+    key_placeholders_occ.light_bulb = kp_lb
 
     if ret.count == 0:
         raise BadConditionException(f'The design lacks {an} body in the parts.')
@@ -591,16 +598,18 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         con = get_context()
-        mp_occ = con.child[CN_INTERNAL].child[CN_MISC_PLACEHOLDERS]
-        if self.last_boss:
-            o = mp_occ.child[get_cn_mainboard()]
-            body_finder = BodyFinder()
-            for b in body_finder.get(o, AN_FILL):
-                b.isLightBulbOn = False
-                nb = b.copyToComponent(con.comp)
-                nb.isLightBulbOn = True
-                nb.name = BN_MAINBOARD_BOSS
-        mp_occ.light_bulb = self.last_light_bulb
+        inl_occ = con.child[CN_INTERNAL]
+        if CN_MISC_PLACEHOLDERS in inl_occ.child:
+            mp_occ = inl_occ.child[CN_MISC_PLACEHOLDERS]
+            if self.last_boss:
+                o = mp_occ.child[get_cn_mainboard()]
+                body_finder = BodyFinder()
+                for b in body_finder.get(o, AN_FILL):
+                    b.isLightBulbOn = False
+                    nb = b.copyToComponent(con.comp)
+                    nb.isLightBulbOn = True
+                    nb.name = BN_MAINBOARD_BOSS
+            mp_occ.light_bulb = self.last_light_bulb
 
 
 FOOT_NAMES = [f'Foot {s}{CNP_FOOT_LOCATORS}' for s in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']]
@@ -819,20 +828,21 @@ class PlaceFootCommandHandler(CommandHandlerBase):
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         con = get_context()
         inl_occ = con.child[CN_INTERNAL]
-        fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
-        if self.last_num_foot != 0:
-            fos = [fp_occ.child[fn].child.get_real(CN_FOOT) for fn in FOOT_NAMES[:self.get_num_foot()]]
-            body_finder = BodyFinder()
-            for o in fos:
-                o.light_bulb = True
-                for b in body_finder.get(o, AN_FILL):
-                    nb = b.copyToComponent(con.comp)
-                    nb.isLightBulbOn = True
-                    nb.name = BN_FOOT_BOSS
-            f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
-            for b in body_finder.get(f_occ, AN_FILL):
-                b.isLightBulbOn = False
-        fp_occ.light_bulb = self.last_light_bulb
+        if CN_FOOT_PLACEHOLDERS in inl_occ.child:
+            fp_occ = inl_occ.child[CN_FOOT_PLACEHOLDERS]
+            if self.last_num_foot != 0:
+                fos = [fp_occ.child[fn].child.get_real(CN_FOOT) for fn in FOOT_NAMES[:self.get_num_foot()]]
+                body_finder = BodyFinder()
+                for o in fos:
+                    o.light_bulb = True
+                    for b in body_finder.get(o, AN_FILL):
+                        nb = b.copyToComponent(con.comp)
+                        nb.isLightBulbOn = True
+                        nb.name = BN_FOOT_BOSS
+                f_occ = inl_occ.child[CN_DEPOT_PARTS].child[CN_FOOT]
+                for b in body_finder.get(f_occ, AN_FILL):
+                    b.isLightBulbOn = False
+            fp_occ.light_bulb = self.last_light_bulb
 
 
 def hole_all_parts(frame: af.BRepBody):

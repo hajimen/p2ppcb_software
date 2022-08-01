@@ -148,7 +148,7 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
 
         skeleton_token = kl_occ.comp_attr[AN_LOCATORS_SKELETON_TOKEN]
         skeleton_surface = af.BRepBody.cast(con.find_by_token(skeleton_token)[0])
-        root_kl_trans = get_transformed_mpv3d(locators_occ.raw_occ.transform2, kl_occ.transform)  # transform from root
+        root_kl_trans = get_transformed_mpv3d(kl_occ.transform, locators_occ.raw_occ.transform2)  # transform from root
         zv = get_transformed_mpv3d(ac.Vector3D.create(0., 0., -1.), root_kl_trans)
         orig = get_transformed_mpv3d(ORIGIN_P3D, root_kl_trans)
         hit_points = CreateObjectCollectionT(ac.Point3D)
@@ -373,10 +373,7 @@ def prepare_key_assembly(
         for kp in pka.kps:
             def _on_create_kp(kp_occ: F3Occurrence):
                 cpn = cap_placeholder_name(kp.i, cap_desc, specifier, kp.legend)
-                if cpn in depot_cap_placeholder_occ.child:
-                    cp_occ = depot_cap_placeholder_occ.child[cpn]
-                else:
-                    cp_occ = depot_cap_placeholder_occ.child.new_surrogate(cpn)
+                cp_occ = depot_cap_placeholder_occ.child.get_virtual(cpn)
                 pt = part_trans[Part.Cap].copy()
                 pt.transformBy(offset_trans)
                 o = kp_occ.child.add(cp_occ, pt)

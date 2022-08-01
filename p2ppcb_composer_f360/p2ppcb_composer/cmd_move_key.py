@@ -132,7 +132,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                     t1 = get_layout_plane_transform(lp)
                     t2 = get_layout_plane_transform(orig_lp)
                     t2.invert()
-                    mt = selected_locators[0].transform.copy()
+                    mt = selected_locators[0].raw_occ.transform2.copy()
                     mt.transformBy(t2)
                     mt.transformBy(t1)
                     self.move_comp_cb.start_transaction(mt)

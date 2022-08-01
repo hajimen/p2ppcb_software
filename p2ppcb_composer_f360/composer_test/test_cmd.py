@@ -86,7 +86,7 @@ class TestCmdCommon(unittest.TestCase):
         inl_occ = con.child[CN_INTERNAL]
         key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
         self.assertIsInstance(key_placeholders_occ.child['1u 5_KP'], SurrogateF3Occurrence)
-        self.assertEqual(con.prepare_parameter_dict[PP_KEY_ASSEMBLY_ON_SO]['1u DSA Cherry-style plate mount Front Choc V2 Front StemBottom'].kps[5].legend[9], 'KC_DELETE')
+        self.assertEqual(con.prepare_parameter_dict[PP_KEY_ASSEMBLY_ON_SO]['1u XDA Cherry-style plate mount Front MX Front StemBottom'].kps[5].legend[9], 'KC_DELETE')
         doc.close(False)
 
     def test_prepare_key_assembly(self):
