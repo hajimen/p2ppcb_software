@@ -429,3 +429,10 @@ class TestSetAttribute(unittest.TestCase):
         from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
         execute_command(SetAttributeCommandHandler)
         adsk.autoTerminate(False)
+
+
+class TestRegexSelector(unittest.TestCase):
+    def test_cmd_interactive(self):
+        from regex_selector.regex_selector import RegexSelectCommandHandler
+        execute_command(RegexSelectCommandHandler)
+        adsk.autoTerminate(False)

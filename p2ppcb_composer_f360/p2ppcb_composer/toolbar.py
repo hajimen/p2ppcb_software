@@ -8,6 +8,7 @@ from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler, CheckKe
 from p2ppcb_composer.cmd_matrix_route import AssignMatrixCommandHandler, GenerateRouteCommandHandler
 from p2ppcb_composer.cmd_edit_frame import FillFrameCommandHandler, PlaceMainboardCommandHandler, PlaceFootCommandHandler, HolePartsCommandHandler
 from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
+from regex_selector.regex_selector import RegexSelectCommandHandler
 
 
 TBT_ID_P2PPCB = 'p2ppcbToolbarTab'
@@ -74,6 +75,19 @@ def init_toolbar():
             panel_ctrl = panel.controls.addCommand(get_cmd_def(handler_class))
             panel_ctrl.isPromotedByDefault = promote
 
+    select_panel = tabs.itemById('SolidTab').toolbarPanels.itemById('SelectPanel')  # type: ignore
+    if select_panel is None:
+        raise BadConditionException('Cannot find SelectPanel.')
+    panel_ctrl_id = get_cmd_id(RegexSelectCommandHandler)
+    panel_ctrl = select_panel.controls.itemById(panel_ctrl_id)
+    if panel_ctrl is not None:
+        panel_ctrl.deleteMe()
+        panel_ctrl = select_panel.controls.itemById(panel_ctrl_id)
+        if panel_ctrl is not None:
+            raise BadCodeException(f'{panel_ctrl_id} deleteMe() failed.')
+    panel_ctrl = select_panel.controls.addCommand(get_cmd_def(RegexSelectCommandHandler))
+    panel_ctrl.isPromotedByDefault = False
+
 
 def terminate_toolbar():
     con = get_context()
@@ -82,7 +96,20 @@ def terminate_toolbar():
     design_workspace = con.ui.workspaces.itemById('FusionSolidEnvironment')
     if design_workspace is None:
         return
+
     tabs = design_workspace.toolbarTabs
+
+    select_panel = tabs.itemById('SolidTab').toolbarPanels.itemById('SelectPanel')  # type: ignore
+    if select_panel is None:
+        raise BadConditionException('Cannot find SelectPanel.')
+    panel_ctrl_id = get_cmd_id(RegexSelectCommandHandler)
+    bd = cmd_defs.itemById(panel_ctrl_id)
+    if bd is not None:
+        bd.deleteMe()
+    c = select_panel.controls.itemById(panel_ctrl_id)
+    if c is not None:
+        c.deleteMe()
+
     tab = tabs.itemById(TBT_ID_P2PPCB)
     if tab is None:
         return
