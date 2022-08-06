@@ -91,7 +91,7 @@ def run(context):
     APP = ac.Application.get()
     test_suite = unittest.TestSuite()
 
-    # load_automated_tests(test_suite)
+    load_automated_tests(test_suite)
     # load_manual_tests(test_suite)
     # load_notorious_tests(test_suite)
 
@@ -126,8 +126,8 @@ def run(context):
     # from composer_test.test_cmd import TestSetAttribute
     # test_suite.addTest(TestSetAttribute('test_cmd_interactive'))
 
-    from composer_test.test_cmd import TestRegexSelector
-    test_suite.addTest(TestRegexSelector('test_cmd_interactive'))
+    # from composer_test.test_cmd import TestRegexSelector
+    # test_suite.addTest(TestRegexSelector('test_cmd_interactive'))
 
     runner = unittest.TextTestRunner()
     runner.run(test_suite)

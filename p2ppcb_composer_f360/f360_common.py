@@ -69,6 +69,7 @@ AN_FILL = 'Fill'
 AN_TERRITORY = 'Territory'
 ANS_HOLE_MEV_MF = [AN_HOLE, AN_MEV, AN_MF]
 AN_PLACEHOLDER = 'Placeholder'
+AV_FLIP = 'Flip'
 
 AN_LOCATORS_PATTERN_NAME = 'locatorsPatternName'
 AN_LOCATORS_SPECIFIER = 'locatorsSpecifier'

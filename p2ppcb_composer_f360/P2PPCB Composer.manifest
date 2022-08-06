@@ -6,6 +6,6 @@
 	"description":	{
 		"":	"P2PPCB Composer"
 	},
-	"supportedOS":	"windows|mac",
+	"supportedOS":	"windows",
 	"editEnabled":	true
 }

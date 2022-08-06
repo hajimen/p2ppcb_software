@@ -7,7 +7,7 @@ from pint import Quantity
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
+from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, AV_FLIP, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
@@ -441,6 +441,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
         self.last_light_bulb = False
+        self.flip = False
 
     @property
     def cmd_name(self) -> str:
@@ -456,6 +457,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         self.last_boss = False
+        self.flip = False
         con = get_context()
         hit_frame = False
         for b in list(con.comp.bRepBodies):
@@ -493,7 +495,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         if cn_mainboard in mp_occ.child:
             o = mp_occ.child[cn_mainboard]
             if AN_MB_LOCATION_INPUTS in o.comp_attr:
-                locs = pickle.loads(base64.b64decode(o.comp_attr[AN_MB_LOCATION_INPUTS]))
+                locs = load_mb_location_inputs(o)
                 for ci, v in zip(self.move_comp_cb.get_inputs(), locs[0]):
                     ci.value = v
                 self.offset_cb.get_in().value = f'{locs[1] * 10} mm'
@@ -595,6 +597,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             self.get_flip_in().value,
         ])).decode()
         self.last_boss = True
+        self.flip = self.get_flip_in().value
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         con = get_context()
@@ -604,12 +607,16 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             if self.last_boss:
                 o = mp_occ.child[get_cn_mainboard()]
                 body_finder = BodyFinder()
-                for b in body_finder.get(o, AN_FILL):
+                for b in body_finder.get(o, AN_FILL, AV_FLIP if self.flip else AN_FILL):
                     b.isLightBulbOn = False
                     nb = b.copyToComponent(con.comp)
                     nb.isLightBulbOn = True
                     nb.name = BN_MAINBOARD_BOSS
             mp_occ.light_bulb = self.last_light_bulb
+
+
+def load_mb_location_inputs(o: VirtualF3Occurrence) -> ty.Tuple[ty.Tuple[float, float, float], float, str, bool]:
+    return pickle.loads(base64.b64decode(o.comp_attr[AN_MB_LOCATION_INPUTS]))
 
 
 FOOT_NAMES = [f'Foot {s}{CNP_FOOT_LOCATORS}' for s in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']]
@@ -861,9 +868,15 @@ def hole_all_parts(frame: af.BRepBody):
                 other_occs.append(ph_occ.child[CN_FOOT])
     body_finder = BodyFinder()
     for o in other_occs:
-        for b in body_finder.get(o, AN_HOLE):
-            tb = b.copyToComponent(con.comp)
-            hole_body_col.add(tb)
+        if AN_MB_LOCATION_INPUTS in o.comp_attr:
+            flip = load_mb_location_inputs(o)[3]
+            for b in body_finder.get(o, AN_HOLE, AV_FLIP if flip else AN_HOLE):
+                tb = b.copyToComponent(con.comp)
+                hole_body_col.add(tb)
+        else:
+            for b in body_finder.get(o, AN_HOLE):
+                tb = b.copyToComponent(con.comp)
+                hole_body_col.add(tb)
 
     before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
     frame.name = BN_FRAME

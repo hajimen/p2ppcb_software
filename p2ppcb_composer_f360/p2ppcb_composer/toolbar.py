@@ -1,4 +1,5 @@
 import typing as ty
+import adsk.core as ac
 from f360_common import BadCodeException, BadConditionException, get_context
 from p2ppcb_composer.cmd_common import CommandHandlerBase
 from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
@@ -50,6 +51,8 @@ def init_toolbar():
     con = get_context()
     if not con.ui.isTabbedToolbarUI:
         raise BadConditionException('Classic UI is not supported.')
+    if con.app.preferences.generalPreferences.userLanguage != ac.UserLanguages.EnglishLanguage:
+        raise BadConditionException('F360 user language must be English. Please change it in F360 preferences.')
 
     design_workspace = con.ui.workspaces.itemById('FusionSolidEnvironment')
     if design_workspace is None:
