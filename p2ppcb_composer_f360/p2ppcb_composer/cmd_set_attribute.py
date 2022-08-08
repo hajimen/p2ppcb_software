@@ -99,4 +99,5 @@ class SetAttributeCommandHandler(CommandHandlerBase):
         for b in bodies:
             for a in b.attributes:
                 a.deleteMe()
-            b.attributes.add(ATTR_GROUP, attr_name, attr_value)
+            if len(attr_name) != 0:
+                b.attributes.add(ATTR_GROUP, attr_name, attr_value)

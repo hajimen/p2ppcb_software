@@ -813,12 +813,12 @@ def create_component(acc_comp: VirtualComponent, new_name: str, postfix: ty.Opti
             break
 
 
-def prepare_tmp_dir():
-    tmp = CURRENT_DIR / 'tmp'
+def prepare_tmp_dir(kle_hash: ty.Optional[str] = None):
+    tmp = CURRENT_DIR / 'tmp' if kle_hash is None else CURRENT_DIR / 'tmp' / kle_hash
     if tmp.is_file():
         raise BadConditionException(f'{tmp} should be directory, but a file exists.')
     if not tmp.is_dir():
-        tmp.mkdir()
+        tmp.mkdir(parents=True)
     return tmp
 
 
@@ -832,7 +832,7 @@ def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[S
     if kle_hash in KLE_CACHE:
         return KLE_CACHE[kle_hash]
 
-    tmp = prepare_tmp_dir()
+    tmp = prepare_tmp_dir(kle_hash)
 
     try:
         result = pi.resolve_kle(kle_file, tmp)
