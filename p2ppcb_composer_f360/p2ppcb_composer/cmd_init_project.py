@@ -51,36 +51,48 @@ def initialize():
 def generate_scaffold():
     con = get_context()
 
-    sk = con.root_comp.sketches.add(con.root_comp.yZConstructionPlane)
-    sk.name = 'P2PPCB internal (Scaffold set)'
-    sk.isVisible = False
-    arcs = sk.sketchCurves.sketchArcs
-    arc1 = arcs.addByThreePoints(
-        ac.Point3D.create(-2.5, -4. - 1.4, 0.),
-        ac.Point3D.create(-2., - 1.4, 0.),
-        ac.Point3D.create(-3., 7. - 1.4, 0.))
-    profile1 = con.root_comp.createOpenProfile(arc1, False)
+    planes = con.root_comp.constructionPlanes
+    cp_in = planes.createInput()
+    cp_in.setByAngle(con.root_comp.yConstructionAxis, ac.ValueInput.createByString('10 degree'), con.root_comp.xYConstructionPlane)
+    layout_base_plane = planes.add(cp_in)
+    cp1_in = planes.createInput()
+    cp1_in.setByOffset(layout_base_plane, ac.ValueInput.createByString('3 cm'))
+    layout_plane = planes.add(cp1_in)
+    layout_plane.name = 'Layout Plane'
+    layout_base_plane.deleteMe()
+    cp2_in = planes.createInput()
+    cp2_in.setByAngle(con.root_comp.yConstructionAxis, ac.ValueInput.createByString('100 degree'), con.root_comp.xYConstructionPlane)
+    profile_plane = planes.add(cp2_in)
 
+    im = con.app.importManager
+    skeleton_sketch = af.Sketch.cast(im.importToTarget2(im.createDXF2DImportOptions(str(CURRENT_DIR / 'scaffold_data/skeleton.dxf'), profile_plane), con.root_comp).item(0))
+    skeleton_curves = CreateObjectCollectionT(af.SketchCurve)
+    skeleton_curves.add(skeleton_sketch.sketchCurves.sketchControlPointSplines.item(0))
+    skeleton_curves.add(skeleton_sketch.sketchCurves.sketchControlPointSplines.item(1))
+    skeleton_profile = con.root_comp.createOpenProfile(skeleton_curves, False)
     extrudes = con.root_comp.features.extrudeFeatures
-    ex_in1 = extrudes.createInput(profile1, af.FeatureOperations.NewBodyFeatureOperation)
-    ex_in1.isSolid = False
-    extent_cm15 = af.DistanceExtentDefinition.create(ac.ValueInput.createByString("15 cm"))
-    ex_in1.setTwoSidesExtent(extent_cm15, extent_cm15)
-    skeleton_surface = extrudes.add(ex_in1).bodies[0]
+    ex1_in = extrudes.createInput(skeleton_profile, af.FeatureOperations.NewBodyFeatureOperation)
+    ex1_in.isSolid = False
+    extent_cm4 = af.DistanceExtentDefinition.create(ac.ValueInput.createByString("4 cm"))
+    ex1_in.setTwoSidesExtent(extent_cm4, extent_cm4)
+    skeleton_surface = extrudes.add(ex1_in).bodies[0]
     skeleton_surface.opacity = 0.2
     skeleton_surface.name = 'Main Surface'
+    skeleton_sketch.deleteMe()
 
-    arc2 = arcs.addByThreePoints(
-        ac.Point3D.create(-4., -4. - 1.4, 0.),
-        ac.Point3D.create(-3., - 1.4, 0.),
-        ac.Point3D.create(-5., 7. - 1.4, 0.))
-    profile2 = con.root_comp.createOpenProfile(arc2, False)
-    ex_in2 = extrudes.createInput(profile2, af.FeatureOperations.NewBodyFeatureOperation)
-    ex_in2.isSolid = False
-    ex_in2.setTwoSidesExtent(extent_cm15, extent_cm15)
-    alternative_surface = extrudes.add(ex_in2).bodies[0]
+    alternative_curves = CreateObjectCollectionT(af.SketchCurve)
+    alternative_sketch = af.Sketch.cast(im.importToTarget2(im.createDXF2DImportOptions(str(CURRENT_DIR / 'scaffold_data/alternative.dxf'), profile_plane), con.root_comp).item(0))
+    alternative_curves.add(alternative_sketch.sketchCurves.sketchControlPointSplines.item(0))
+    alternative_curves.add(alternative_sketch.sketchCurves.sketchControlPointSplines.item(1))
+    alternative_profile = con.root_comp.createOpenProfile(alternative_curves, False)
+    ex2_in = extrudes.createInput(alternative_profile, af.FeatureOperations.NewBodyFeatureOperation)
+    ex2_in.isSolid = False
+    ex2_in.setTwoSidesExtent(extent_cm4, extent_cm4)
+    alternative_surface = extrudes.add(ex2_in).bodies[0]
     alternative_surface.opacity = 0.2
     alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
+    alternative_sketch.deleteMe()
+    profile_plane.deleteMe()
 
     col = CreateObjectCollectionT(af.BRepBody)
     col.add(skeleton_surface)
@@ -88,33 +100,23 @@ def generate_scaffold():
     reverse_normals = con.comp.features.reverseNormalFeatures
     _ = reverse_normals.add(col)
 
-    sp = sk.sketchPoints
-    planes = con.root_comp.constructionPlanes
-    cp_in = planes.createInput()
-    cp_in.setByThreePoints(
-        # sp.add(ac.Point3D.create(-5., -4. - 1.4, -15.)),
-        # sp.add(ac.Point3D.create(-5., -4. - 1.4, 1.)),
-        # sp.add(ac.Point3D.create(-5.5, 7. - 1.4, 0.)))
-        sp.add(ac.Point3D.create(-15., -4. - 1.4, 5.)),
-        sp.add(ac.Point3D.create(1., -4. - 1.4, 5.)),
-        sp.add(ac.Point3D.create(0., 7. - 1.4, 5.5)))
-    layout_plane = planes.add(cp_in)
+    cp3_in = planes.createInput()
+    cp3_in.setByOffset(con.root_comp.xYConstructionPlane, ac.ValueInput.createByString('-3 cm'))
+    bridge_plane = planes.add(cp3_in)
+
+    sk_bridge = con.root_comp.sketches.add(bridge_plane)
+    sk_bridge.name = 'Bridge Profile'
+    _ = sk_bridge.sketchCurves.sketchLines.addTwoPointRectangle(
+        ac.Point3D.create(-2., -3., 0.),
+        ac.Point3D.create(2., 6., 0.)
+    )
+    bridge_plane.deleteMe()
+
     layout_plane.displayBounds = ac.BoundingBox2D.create(
-        ac.Point2D.create(0., 0.), ac.Point2D.create(30., 11.), )
+        ac.Point2D.create(-6., -4.), ac.Point2D.create(6., 4.), )
 
     pitch = 1.9
     offset = 0.
-
-    sk_bridge = con.root_comp.sketches.add(con.root_comp.xYConstructionPlane)
-    sk_bridge.name = 'Bridge Profile'
-    _ = sk_bridge.sketchCurves.sketchLines.addTwoPointRectangle(
-        ac.Point3D.create(-14., -4., 0.),
-        ac.Point3D.create(14., 4., 0.)
-    )
-
-    camera = con.app.activeViewport.camera
-    camera.isFitView = True
-    con.app.activeViewport.camera = camera
 
     return pitch, pitch, offset, skeleton_surface, alternative_surface, layout_plane
 
@@ -233,7 +235,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             for sci in self.get_selection_ins():
                 c = 1 if scaffold_disabled else 0
                 sci.setSelectionLimits(c, c)
-            self.inputs.command.doExecutePreview()
+            # self.inputs.command.doExecutePreview()
         elif changed_input.id == INP_ID_MAIN_LAYOUT_PLANE_SEL:
             _, layout_plane_in = self.get_selection_ins()
             if has_sel_in(layout_plane_in):
@@ -279,6 +281,9 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args, False)
+        con = get_context()
+        camera = con.app.activeViewport.camera
+        con.app.activeViewport.camera = camera
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args, True)

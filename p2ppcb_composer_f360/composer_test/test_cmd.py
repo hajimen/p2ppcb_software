@@ -222,7 +222,7 @@ class TestInitProject(unittest.TestCase):
         self.assertIsInstance(alternative_surface, af.BRepBody)
         self.assertIsInstance(layout_plane, af.ConstructionPlane)
         img = capture_viewport()
-        # img.save(CURRENT_DIR / 'test_data/generate_scaffold.png')
+        # img.save(TEST_PNG_DIR / 'generate_scaffold.png')
         doc.close(False)
         self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'generate_scaffold.png'))
 
