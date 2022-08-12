@@ -102,7 +102,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         return get_ci(self.inputs, INP_ID_ROW_COL_RADIO, ac.RadioButtonGroupCommandInput)
 
     def get_rc(self) -> rt.RC:
-        return rt.RC.Row if self.get_rowcol_in().selectedItem.name == 'Source' else rt.RC.Col
+        return rt.RC.Row if self.get_rowcol_in().selectedItem.name == 'S' else rt.RC.Col
 
     def get_wire_in(self):
         return get_ci(self.inputs, INP_ID_WIRE_NAME_DD, ac.DropDownCommandInput)
