@@ -235,7 +235,6 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             for sci in self.get_selection_ins():
                 c = 1 if scaffold_disabled else 0
                 sci.setSelectionLimits(c, c)
-            # self.inputs.command.doExecutePreview()
         elif changed_input.id == INP_ID_MAIN_LAYOUT_PLANE_SEL:
             _, layout_plane_in = self.get_selection_ins()
             if has_sel_in(layout_plane_in):
