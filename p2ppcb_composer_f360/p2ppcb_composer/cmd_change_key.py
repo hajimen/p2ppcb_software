@@ -5,7 +5,7 @@ import adsk.fusion as af
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, ANS_OPTION, CN_KEY_LOCATORS, \
-    CN_KEY_PLACEHOLDERS, CURRENT_DIR, BadCodeException, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, \
+    CN_KEY_PLACEHOLDERS, CURRENT_DIR, BadCodeException, BadConditionException, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, \
     AN_KLE_B64, get_context, CN_INTERNAL, key_placeholder_name, load_kle_by_b64, get_part_info, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import CommandHandlerBase, PartsCommandBlock, \
@@ -269,9 +269,7 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
     def notify_create(self, event_args: CommandCreatedEventArgs):
         con = get_context()
         if con.des.parentDocument.isModified or con.des.parentDocument.isSaved:
-            self.run_execute = False
-            con.ui.messageBox("Please use this command on new and unmodified document.")
-            return
+            raise BadConditionException("Please use this command on new and unmodified document.")
         self.parts_cb = PartsCommandBlock(self)
         con.des.designType = af.DesignTypes.DirectDesignType
         inl_occ = con.child.get_real(CN_INTERNAL)

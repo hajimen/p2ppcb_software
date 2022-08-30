@@ -136,6 +136,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
     def __init__(self) -> None:
         super().__init__()
         self.parts_cb: PartsCommandBlock
+        self.require_cn_internal = False
 
     @property
     def cmd_name(self) -> str:
@@ -143,7 +144,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Initializes a P2PPCB Project. It registers settings for a P2PPCB project. You can run this command twice or more.'
+        return 'Initializes a P2PPCB project. It registers settings for a P2PPCB project. You can run this command twice or more.'
 
     @property
     def resource_folder(self) -> str:
@@ -155,7 +156,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             if con.ui.messageBox('P2PPCB requires direct modeling mode. The design is going to enter direct modeling mode.',
                                  'P2PPCB',
                                  ac.MessageBoxButtonTypes.OKCancelButtonType) != ac.DialogResults.DialogOK:
-                self.run_execute = False
+                self.create_ok = False
                 return
             con.des.designType = af.DesignTypes.DirectDesignType
 

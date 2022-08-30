@@ -115,11 +115,7 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         con = get_context()
 
         if not con.app.activeDocument.isSaved:
-            self.run_execute = False
             raise BadConditionException('Save this document first.')
-        if CN_INTERNAL not in con.child:
-            self.run_execute = False
-            raise BadConditionException('Start a P2PPCB project first.')
 
         file_dlg = con.ui.createFileDialog()
         file_dlg.isMultiSelectEnabled = False
@@ -128,14 +124,13 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         file_dlg.filter = 'KLE File (*.json)'
         
         if file_dlg.showOpen() != ac.DialogResults.DialogOK:
-            self.run_execute = False
+            self.create_ok = False
             return
         kle_file_path = pathlib.Path(file_dlg.filename)
         with open(kle_file_path, 'rb') as f:
             kle_file_content = f.read()
         kle_b64 = base64.b64encode(zlib.compress(kle_file_content)).decode()
         if len(kle_b64.encode('utf-8')) > 2097152:
-            self.run_execute = False
             raise BadConditionException('Sorry, the KLE file is too large.')
         inl_occ = con.child[CN_INTERNAL]
         inl_occ.comp_attr[AN_KLE_B64] = kle_b64
@@ -154,7 +149,6 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         try:
             pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
         except parts_resolver.SpecifierException as e:
-            self.run_execute = False
             raise BadConditionException(f'Specifier "{e.missed_specifier}" is not available.\nAvailable specifiers:\n' + '\n'.join(e.available_specifiers))
 
         if len(pps_part) > 0:
@@ -168,7 +162,6 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
         t = get_layout_plane_transform(lp)
         if t is None:
-            self.run_execute = False
             raise BadConditionException('The layout plane is invalid.')
         self.move_comp_cb.start_transaction(t)
 

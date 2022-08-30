@@ -62,6 +62,8 @@ class _CommandEventHandler(ac.CommandEventHandler):
 
     @catch_exception
     def notify(self, args):
+        if not self.parent.create_ok:
+            return
         event_args = CommandEventArgs.cast(args)
         inputs = event_args.command.commandInputs
         li = self.parent._inputs
@@ -77,7 +79,7 @@ class _ExecuteCommandEventHandler(_CommandEventHandler):
         super().__init__(parent, 'notify_execute')
 
     def notify(self, args):
-        if self.parent.run_execute:
+        if self.parent.create_ok:
             super().notify(args)
 
 
@@ -88,6 +90,8 @@ class _InputChangedHandler(ac.InputChangedEventHandler):  # type: ignore
 
     @catch_exception
     def notify(self, args):
+        if not self.parent.create_ok:
+            return
         event_args = ac.InputChangedEventArgs.cast(args)
         changed_input = event_args.input
         inputs = changed_input.commandInputs
@@ -107,6 +111,8 @@ class _SelectionEventHandler(ac.SelectionEventHandler):  # type: ignore
 
     @catch_exception
     def notify(self, args):
+        if not self.parent.create_ok:
+            return
         event_args = SelectionEventArgs.cast(args)
         active_input = event_args.activeInput
         selection = event_args.selection
@@ -128,6 +134,8 @@ class _ValidateEventHandler(ac.ValidateInputsEventHandler):  # type: ignore
 
     @catch_exception
     def notify(self, args):
+        if not self.parent.create_ok:
+            return
         event_args = ac.ValidateInputsEventArgs.cast(args)
         inputs = event_args.inputs
         li = self.parent._inputs
@@ -142,7 +150,8 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
     def __init__(self) -> None:
         super().__init__()
         self._inputs: ty.Optional[ac.CommandInputs] = None
-        self.run_execute: bool
+        self.create_ok: bool
+        self.require_cn_internal = True
 
     @property
     def cmd_name(self) -> str:
@@ -201,9 +210,16 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
 
         self._inputs = command.commandInputs
         reset_context()
-        self.run_execute = True
+        self.create_ok = True
         try:
+            con = get_context()
+            if self.require_cn_internal and CN_INTERNAL not in con.child:
+                con.ui.messageBox('Please initialize a P2PPCB project first.')
+                self.create_ok = False
+                return
             self.notify_create(event_args)
+        except Exception:
+            self.create_ok = False
         finally:
             self._inputs = None
 

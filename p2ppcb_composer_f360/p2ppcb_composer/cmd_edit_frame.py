@@ -7,7 +7,7 @@ from pint import Quantity
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, AV_FLIP, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
+from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, AN_TEMP, ATTR_GROUP, AV_FLIP, AV_RIGHT, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
 from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
@@ -272,7 +272,6 @@ class FillFrameCommandHandler(CommandHandlerBase):
         key_placeholders_occ.light_bulb = True
         for o in key_placeholders_occ.child.values():
             if not o.light_bulb and o.name not in disabled_names:
-                self.run_execute = False
                 raise BadConditionException('There is unplaced key(s). Please fix it first.')
 
         bridge_in = self.inputs.addBoolValueInput(INP_ID_GENERATE_BRIDGE_BOOL, 'Generate Bridge', True)
@@ -353,7 +352,7 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
     body_finder = BodyFinder()
     for i, mo in enumerate(move_occs):
         for an in [AN_MEV, AN_HOLE, AN_MF]:
-            for b in body_finder.get(mo, an):
+            for b in body_finder.get(mo, an, an):
                 tb = b.copyToComponent(con.comp)
                 tb.isLightBulbOn = False
                 col_misc[an].add(tb)
@@ -383,13 +382,13 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for po in ka_occ.child.values():
                     for an in ANS_HOLE_MEV_MF:
-                        for b in body_finder.get(po, an):
+                        for b in body_finder.get(po, an, an):
                             tb = b.copyToComponent(con.comp)
                             tb.isLightBulbOn = False
                             _append_if_possible(tb, po, an)
     for o in other_occs:
         for an in ANS_HOLE_MEV_MF:
-            for b in body_finder.get(o, an):
+            for b in body_finder.get(o, an, an):
                 tb = b.copyToComponent(con.comp)
                 tb.isLightBulbOn = False
                 _append_if_possible(tb, o, an)
@@ -441,6 +440,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         self.move_comp_cb: MoveComponentCommandBlock
         self.offset_cb: OffsetCommandBlock
         self.last_light_bulb = False
+        self.last_boss = False
         self.flip = False
 
     @property
@@ -457,17 +457,15 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         self.last_boss = False
-        self.flip = False
         con = get_context()
         hit_frame = False
         for b in list(con.comp.bRepBodies):
-            if b.name == BN_FRAME:
+            if b.name.startswith(BN_FRAME):
                 hit_frame = True
             if b.name.startswith(BN_MAINBOARD_BOSS):
                 self.last_boss = True
                 b.deleteMe()
         if not hit_frame:
-            self.run_execute = False
             raise BadConditionException('Please generate a frame first.')
 
         self.move_comp_cb = MoveComponentCommandBlock(self)
@@ -481,7 +479,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         layout_in.listItems.add('Bottom', False)
 
         flip_in = self.inputs.addBoolValueInput(INP_ID_FLIP_BOOL, 'Flip', True)
-        flip_in.value = False
 
         if_in = self.inputs.addBoolValueInput(INP_ID_CHECK_INTERFERENCE_BOOL, 'Check Interference', True)
         if_in.value = False
@@ -504,6 +501,10 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
                         li.isSelected = True
                         break
                 flip_in.value = locs[3]
+                self.flip = locs[3]
+            else:
+                flip_in.value = False
+                self.flip = False
             self.move_comp_cb.start_transaction(self.get_mainboard_transform())
         else:
             t = self.get_mainboard_transform()
@@ -511,9 +512,8 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             mb_occ = inl_occ.child[CN_DEPOT_PARTS].child[cn_mainboard]
             o = mp_occ.child.add(mb_occ, t)
             o.light_bulb = False
-        body_finder = BodyFinder()
-        for b in body_finder.get(o, AN_FILL):
-            b.isLightBulbOn = True
+            flip_in.value = False
+            self.flip = False
 
     def get_layout_in(self):
         return get_ci(self.inputs, INP_ID_MAINBOARD_LAYOUT_RADIO, ac.RadioButtonGroupCommandInput)
@@ -563,7 +563,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
                 self.offset_cb.get_in().value = '2 mm'
                 t = self.get_mainboard_transform()
                 self.move_comp_cb.start_transaction(t)
-            elif changed_input.id == INP_ID_OFFSET_STR:
+            elif changed_input.id == INP_ID_OFFSET_STR or changed_input.id == INP_ID_FLIP_BOOL:
                 t = self.get_mainboard_transform()
                 self.move_comp_cb.start_transaction(t)
             self.move_comp_cb.b_notify_changed_input(changed_input)
@@ -576,6 +576,20 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         self.move_comp_cb.b_notify_execute_preview(event_args, [o])
         return o
 
+    def prepare_temp_body(self, o: F3Occurrence):
+        av = AV_FLIP if self.get_flip_in().value else AV_RIGHT
+        body_finder = BodyFinder()
+        for b in body_finder.get(o, AN_TEMP):
+            b.deleteMe()
+        for an in ANS_HOLE_MEV_MF:
+            for b in body_finder.get(o, an, av):
+                tb = b.copyToComponent(o.raw_occ)
+                a = tb.nativeObject.attributes.itemByName(ATTR_GROUP, an)
+                if a is None:
+                    raise Exception('Bad code.')
+                a.value = an
+                tb.nativeObject.attributes.add(ATTR_GROUP, AN_TEMP, AN_TEMP)
+
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         o = self.execute_common(event_args)
 
@@ -585,11 +599,17 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             if CN_FOOT_PLACEHOLDERS in inl_occ.child:
                 other_occs.extend([o.child.get_real(CN_FOOT) for o in inl_occ.child[CN_FOOT_PLACEHOLDERS].child.values() if isinstance(o, F3Occurrence)])
 
+            self.prepare_temp_body(o)
             hits = check_interference([o], other_occs)
             o.light_bulb = not hits[0]
 
+        body_finder = BodyFinder()
+        for b in body_finder.get(o, AN_FILL, AN_FILL) + body_finder.get(o, AN_FILL, AV_FLIP if self.get_flip_in().value else AV_RIGHT):
+            b.isLightBulbOn = True
+
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         o = self.execute_common(event_args)
+        self.prepare_temp_body(o)
         o.comp_attr[AN_MB_LOCATION_INPUTS] = base64.b64encode(pickle.dumps([
             [ci.value for ci in self.move_comp_cb.get_inputs()],
             self.offset_cb.get_value(),
@@ -607,7 +627,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             if self.last_boss:
                 o = mp_occ.child[get_cn_mainboard()]
                 body_finder = BodyFinder()
-                for b in body_finder.get(o, AN_FILL, AV_FLIP if self.flip else AN_FILL):
+                for b in body_finder.get(o, AN_FILL, AN_FILL) + body_finder.get(o, AN_FILL, AV_FLIP if self.flip else AV_RIGHT):
                     b.isLightBulbOn = False
                     nb = b.copyToComponent(con.comp)
                     nb.isLightBulbOn = True
@@ -649,12 +669,11 @@ class PlaceFootCommandHandler(CommandHandlerBase):
 
         hit_frame = False
         for b in list(con.comp.bRepBodies):
-            if b.name == BN_FRAME:
+            if b.name.startswith(BN_FRAME):
                 hit_frame = True
             if b.name.startswith(BN_FOOT_BOSS):
                 b.deleteMe()
         if not hit_frame:
-            self.run_execute = False
             raise BadConditionException('Please generate a frame first.')
 
         inl_occ = con.child[CN_INTERNAL]

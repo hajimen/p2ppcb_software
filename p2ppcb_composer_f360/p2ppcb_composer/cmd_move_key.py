@@ -116,7 +116,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                 if_in.value = False
             self.check_interference_cb.show(if_in.value)
             locator_in.hasFocus = True
-        elif changed_input.id == INP_ID_LAYOUT_PLANE_SEL or changed_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
+        elif changed_input.id in [INP_ID_LAYOUT_PLANE_SEL, INP_ID_KEY_ANGLE_SURFACE_SEL, INP_ID_SKELETON_SURFACE_SEL]:
             sci = ac.SelectionCommandInput.cast(changed_input)
             if not has_sel_in(sci):
                 sci.tooltip = TOOLTIP_NOT_SELECTED

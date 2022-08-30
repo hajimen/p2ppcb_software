@@ -97,9 +97,6 @@ def run(context):
 
     # Run a command interactively
 
-    # from composer_test.test_cmd import TestCmdCommon
-    # test_suite.addTest(TestTestBase('test_cmd_interactive'))
-
     # from composer_test.test_cmd import TestInitProject
     # test_suite.addTest(TestInitProject('test_cmd_interactive'))
 
