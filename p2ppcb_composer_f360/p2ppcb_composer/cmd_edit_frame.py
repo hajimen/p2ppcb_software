@@ -10,7 +10,7 @@ from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEve
 from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, AN_TEMP, ATTR_GROUP, AV_FLIP, AV_RIGHT, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
     VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
-from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance
+from p2ppcb_composer.cmd_common import CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance, load_mb_location_inputs
 from route.route import get_cn_mainboard
 
 INP_ID_GENERATE_BRIDGE_BOOL = 'generateBridge'
@@ -633,10 +633,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
                     nb.isLightBulbOn = True
                     nb.name = BN_MAINBOARD_BOSS
             mp_occ.light_bulb = self.last_light_bulb
-
-
-def load_mb_location_inputs(o: VirtualF3Occurrence) -> ty.Tuple[ty.Tuple[float, float, float], float, str, bool]:
-    return pickle.loads(base64.b64decode(o.comp_attr[AN_MB_LOCATION_INPUTS]))
 
 
 FOOT_NAMES = [f'Foot {s}{CNP_FOOT_LOCATORS}' for s in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']]

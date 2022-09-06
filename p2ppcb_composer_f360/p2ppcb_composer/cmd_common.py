@@ -1,4 +1,6 @@
+import base64
 from collections import defaultdict
+import pickle
 import pathlib
 import typing as ty
 import adsk.core as ac
@@ -10,6 +12,7 @@ from f360_common import AN_HOLE, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_LOC
     CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, key_assembly_name, key_placeholder_name, catch_exception, reset_context
+from p2ppcb_composer.cmd_edit_frame import AN_MB_LOCATION_INPUTS
 from p2ppcb_parts_resolver import resolver as parts_resolver
 from pint import Quantity
 
@@ -218,8 +221,9 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
                 self.create_ok = False
                 return
             self.notify_create(event_args)
-        except Exception:
+        except Exception as e:
             self.create_ok = False
+            raise e
         finally:
             self._inputs = None
 
@@ -893,3 +897,7 @@ def get_category_appearance():
             raise BadCodeException(f'appearance.f3d is corrupted. It lacks {bn} body.')
         category_appearance[category] = cat_b.appearance
     return category_appearance
+
+
+def load_mb_location_inputs(o: VirtualF3Occurrence) -> ty.Tuple[ty.Tuple[float, float, float], float, str, bool]:
+    return pickle.loads(base64.b64decode(o.comp_attr[AN_MB_LOCATION_INPUTS]))

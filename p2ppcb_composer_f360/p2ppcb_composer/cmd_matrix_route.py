@@ -6,7 +6,7 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, BadCodeException, BadConditionException, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
-from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, has_sel_in
+from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, has_sel_in, load_mb_location_inputs
 from route import route as rt
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
 
@@ -277,6 +277,7 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
         output_dir_path = pathlib.Path(dir_dlg.folder)
 
         mb_occ = inl_occ.child[CN_MISC_PLACEHOLDERS].child.get_real(rt.get_cn_mainboard())
+        flip = load_mb_location_inputs(mb_occ)[3]
         lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
         inv_lp_trans = get_layout_plane_transform(lp)
         inv_lp_trans.invert()
@@ -301,8 +302,8 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             if not start.isEqualToByTolerance(end, 0.01):
                 uv = ac.Point3D.create(start.x + 1., start.y, start.z)
                 mr = con.app.measureManager.measureAngle(uv, start, end)
-                angle = mr.value
-            flat_cable_placements.append(rt.FlatCablePlacement((start.x, start.y), angle, cable))
+                angle = mr.value if end.y < start.y else -mr.value
+            flat_cable_placements.append(rt.FlatCablePlacement((start.x, start.y), angle, cable, flip))
         sk.deleteMe()
         keys_rc, entries_rccp, route_rccp = rt.generate_route(matrix, flat_cable_placements)
         img_row, img_col = rt.draw_wire(keys_rc, entries_rccp, route_rccp)

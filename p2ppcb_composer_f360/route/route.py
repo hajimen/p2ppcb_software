@@ -107,7 +107,7 @@ class FlatCable:
     def add_group(self, wire_group: WireGroup):
         self.groups.append(wire_group)
 
-    def get_entries(self, angle: float, start_xy: ty.Tuple[float, float], center_xy: ty.Tuple[float, float], rc: RC):
+    def get_entries(self, angle: float, start_xy: ty.Tuple[float, float], center_xy: ty.Tuple[float, float], rc: RC, flip: bool):
         pos = []
         nps = []
         nls = []
@@ -121,10 +121,7 @@ class FlatCable:
         entries: ty.Dict[int, Entry] = defaultdict()
         rot = _get_rot(angle)
         start = np.array(start_xy)
-        yu = np.array([0., 1.])
-        pa = np.linalg.norm((yu @ rot) + start)
-        na = np.linalg.norm((yu @ (-rot)) + start)
-        entry_angle = angle + (np.pi / 2 if pa > na else - np.pi / 2)
+        entry_angle = angle + (-np.pi / 2 if flip else np.pi / 2)
         for p, pn, ln in zip(pos, nps, nls):
             rp = (p @ rot) + start
             rp = np.array([rp[0], -rp[1]]) + np.array(center_xy)
@@ -163,6 +160,7 @@ class FlatCablePlacement:
     start: ty.Tuple[float, float]
     angle: float
     cable: FlatCable
+    flip: bool
 
 
 def _get_key_angle(k: Key):
@@ -278,7 +276,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
     entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]] = {}
     center_xy = ((min_xyu[0] + max_xyu[0]) * pitch_w / 2, (min_xyu[1] + max_xyu[1]) * pitch_d / 2)
     for rc, (i_cp, cp) in product(RC, enumerate(cable_placements)):
-        entries = cp.cable.get_entries(cp.angle, cp.start, center_xy, rc)
+        entries = cp.cable.get_entries(cp.angle, cp.start, center_xy, rc, cp.flip)
         if len(entries) == 0:
             continue
         entries_rccp[rc, i_cp] = entries
