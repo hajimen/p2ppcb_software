@@ -253,6 +253,7 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
         super().__init__()
         self.parts_cb: PartsCommandBlock
         self.pi: parts_resolver.PartsInfo
+        self.require_cn_internal = False
 
     @property
     def cmd_name(self) -> str:
