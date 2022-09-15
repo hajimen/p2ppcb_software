@@ -306,7 +306,7 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
             flat_cable_placements.append(rt.FlatCablePlacement((start.x, start.y), angle, cable, flip))
         sk.deleteMe()
         keys_rc, entries_rccp, route_rccp = rt.generate_route(matrix, flat_cable_placements)
-        img_row, img_col = rt.draw_wire(keys_rc, entries_rccp, route_rccp)
+        img_row, img_col = rt.draw_wire(keys_rc, entries_rccp, route_rccp, flat_cable_placements)
         generated_snippet, via_json = rt.generate_keymap(keys_rc, mc)
 
         with open(output_dir_path / 'qmk_keymap.txt', 'w') as f:

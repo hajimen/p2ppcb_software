@@ -12,7 +12,6 @@ from f360_common import AN_HOLE, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_LOC
     CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, key_assembly_name, key_placeholder_name, catch_exception, reset_context
-from p2ppcb_composer.cmd_edit_frame import AN_MB_LOCATION_INPUTS
 from p2ppcb_parts_resolver import resolver as parts_resolver
 from pint import Quantity
 
@@ -30,6 +29,7 @@ AN_MAIN_SWITCH_ORIENTATION = 'mainSwitchOrientation'
 AN_MAIN_KEY_V_ALIGN = 'mainKeyVAlign'
 AN_MAIN_KEY_V_OFFSET = 'mainKeyVOffset'
 ANS_MAIN_OPTION = [AN_MAIN_CAP_DESC, AN_MAIN_STABILIZER_DESC, AN_MAIN_STABILIZER_ORIENTATION, AN_MAIN_SWITCH_DESC, AN_MAIN_SWITCH_ORIENTATION, AN_MAIN_KEY_V_ALIGN]
+AN_MB_LOCATION_INPUTS = 'mbLocationInputs'
 
 
 INP_ID_CAP_DESC_DD = 'capDesc'

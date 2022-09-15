@@ -328,12 +328,19 @@ class TestMatrixRoute(unittest.TestCase):
         execute_command(GenerateRouteCommandHandler)
         adsk.autoTerminate(False)
 
-    def test_generate_route(self):
+    def fcp(self):
         import numpy as np
         from route import route as rt
         from mainboard.Alice import constants
-        doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
         mc = constants()
+        flat_cable_placements: ty.List[rt.FlatCablePlacement] = []
+        flat_cable_placements.append(FlatCablePlacement((4., 0.), np.pi / 2, mc.flat_cables[0], False))
+        flat_cable_placements.append(FlatCablePlacement((0., 6.), 0., mc.flat_cables[1], False))
+        return flat_cable_placements
+
+    def test_generate_route(self):
+        from route import route as rt
+        doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
 
         # from collections import defaultdict
         # from f360_common import BadConditionException, AN_COL_NAME, AN_ROW_NAME
@@ -349,9 +356,7 @@ class TestMatrixRoute(unittest.TestCase):
 
         with open(TEST_PKL_DIR / 'matrix.pkl', 'rb') as f:
             matrix = pickle.load(f)
-        flat_cable_placements: ty.List[rt.FlatCablePlacement] = []
-        flat_cable_placements.append(FlatCablePlacement((4., 0.), np.pi / 2, mc.flat_cables[0]))
-        flat_cable_placements.append(FlatCablePlacement((0., 6.), 0., mc.flat_cables[1]))
+        flat_cable_placements = self.fcp()
         result = rt.generate_route(matrix, flat_cable_placements)
         # with open(TEST_PKL_DIR / 'route.pkl', 'wb') as f:
         #     pickle.dump(result, f)
@@ -363,14 +368,17 @@ class TestMatrixRoute(unittest.TestCase):
     def test_draw_wire(self):
         from PIL import Image, ImageChops
         from route import route as rt
+        doc = open_test_document(TEST_F3D_DIR / 'matrix_route.f3d')
+        flat_cable_placements = self.fcp()
         with open(TEST_PKL_DIR / 'route.pkl', 'rb') as f:
             route = pickle.load(f)
-        img_row, img_col = rt.draw_wire(*route)
+        img_row, img_col = rt.draw_wire(*route, cable_placements=flat_cable_placements)
         # img_row.save(str(TEST_PNG_DIR / 'draw_wire_row.png'))
         # img_col.save(str(TEST_PNG_DIR / 'draw_wire_col.png'))
         for rc, img in zip(['row', 'col'], [img_row, img_col]):
             oracle = Image.open(str(TEST_PNG_DIR / f'draw_wire_{rc}.png'))
             self.assertIsNone(ImageChops.difference(img, oracle).getbbox())
+        doc.close(False)
 
     def test_generate_keymap(self):
         from route import route as rt

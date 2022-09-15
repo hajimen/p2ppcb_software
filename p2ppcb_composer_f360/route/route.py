@@ -22,7 +22,6 @@ from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_I
 from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
-WIRE_PITCH = 0.127
 I_CODE0_LABEL = 9
 N_CODES = 3
 N_QMK_LAYER = 4  # VIA supports 4 layers max.
@@ -99,10 +98,11 @@ def _get_rot(angle):
 class FlatCable:
     WIRE_NAME_N_RE = re.compile(r'.+?(\d+)$')
 
-    def __init__(self, n_wire: int, first_index_in_wire_name: int) -> None:
+    def __init__(self, n_wire: int, first_index_in_wire_name: int, wire_pitch: float) -> None:
         self.n_wire = n_wire
         self.groups: ty.List[WireGroup] = []
         self.first_index_in_wire_name = first_index_in_wire_name
+        self.wire_pitch = wire_pitch
 
     def add_group(self, wire_group: WireGroup):
         self.groups.append(wire_group)
@@ -114,7 +114,7 @@ class FlatCable:
         for g in self.groups:
             if g.rc == rc:
                 for i in range(g.start, g.end):
-                    pos.append((i * WIRE_PITCH, 0.))
+                    pos.append((i * self.wire_pitch, 0.))
                     nps.append(i)
                     nls.append(g.logical_start + i - g.start)
         pos = np.array(pos)
@@ -344,10 +344,13 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
     return keys_rc, entries_rccp, route_rccp
 
 
-def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]], route_rccp: ty.Dict[RC_CP, ty.Dict[int, Line]]):
+def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]], route_rccp: ty.Dict[RC_CP, ty.Dict[int, Line]], cable_placements: ty.List[FlatCablePlacement]):
     MAG = 200
     MARGIN = 200
-    FONT_SIZE = 30
+    FONT_SIZE = 24
+    WIRE_TABLE_ROW = 400
+    WIRE_TABLE_PITCH = 100
+    WIRE_TABLE_MARGIN = 100
     xs: ty.Set[float] = set()
     ys: ty.Set[float] = set()
     wires_pn_rc: ty.Dict[RC, ty.Dict[int, ty.List[ty.Tuple[ty.List[ty.Tuple[float, float]], int]]]] = {RC.Col: {}, RC.Row: {}}
@@ -373,8 +376,63 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
 
     rainbow_cable_colors = [s for s in ['black', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'violet', 'grey', 'white']]
     font = ImageFont.truetype('verdana.ttf', FONT_SIZE)
+    wire_pitch_pnrc: ty.Dict[ty.Tuple[int, RC], float] = {}
+    i_cp_pnrc: ty.Dict[ty.Tuple[int, RC], int] = {}
+    for (rc, i_cp), entries in entries_rccp.items():
+        if len(entries) == 0:
+            continue
+        cp = cable_placements[i_cp]
+        for i_pin, _ in route_rccp[rc, i_cp].items():
+            pn = entries[i_pin].pin_number
+            wire_pitch_pnrc[pn, rc] = cp.cable.wire_pitch
+            i_cp_pnrc[pn, rc] = i_cp
+    wire_table_height = WIRE_TABLE_ROW * (max([i_cp for (_, i_cp), entries in entries_rccp.items() if len(entries) > 0]) + 1)
+    wire_table_width = WIRE_TABLE_PITCH * (max([
+        max([en.pin_number for en in entries.values()])
+        for entries in entries_rccp.values()
+    ]) + 1) + MARGIN * 2
+
+    def _width(pn, rc, bold_rc):
+        return int(wire_pitch_pnrc[pn, rc] * MAG) - 8 if bold_rc == rc else 3, int(wire_pitch_pnrc[pn, rc] * MAG) if bold_rc == rc else 7
 
     def _draw_selective(bold_rc: RC, rcs: ty.List[RC]):
+        img_wt = Image.new('RGB', (wire_table_width, wire_table_height), (255, ) * 3)  # type: ignore
+        draw_wt = ImageDraw.Draw(img_wt)
+        for (rc, i_cp), entries in entries_rccp.items():
+            if len(entries) == 0:
+                continue
+            cp = cable_placements[i_cp]
+            for i_pin, _ in route_rccp[rc, i_cp].items():
+                pn = entries[i_pin].pin_number
+                wt_y = i_cp_pnrc[pn, rc] * WIRE_TABLE_ROW
+                color = rainbow_cable_colors[(pn + 1) % 10]  # Wire number always starts from 1.
+                border_color = 'black' if color == 'grey' else 'grey'
+                width, border_width = _width(pn, rc, bold_rc)
+                draw_wt.line(
+                    (
+                        (WIRE_TABLE_MARGIN + WIRE_TABLE_PITCH * pn, wt_y + WIRE_TABLE_MARGIN + FONT_SIZE + 7),
+                        (WIRE_TABLE_MARGIN + WIRE_TABLE_PITCH * pn, wt_y + WIRE_TABLE_ROW - WIRE_TABLE_MARGIN - FONT_SIZE - 7)),
+                    border_color, width=border_width)  # type: ignore
+                draw_wt.line(
+                    (
+                        (WIRE_TABLE_MARGIN + WIRE_TABLE_PITCH * pn, wt_y + WIRE_TABLE_MARGIN + FONT_SIZE + 7),
+                        (WIRE_TABLE_MARGIN + WIRE_TABLE_PITCH * pn, wt_y + WIRE_TABLE_ROW - WIRE_TABLE_MARGIN - FONT_SIZE - 7)),
+                    color, width=width)  # type: ignore
+                draw_wt.text(
+                    (WIRE_TABLE_MARGIN + WIRE_TABLE_PITCH * pn, wt_y + WIRE_TABLE_MARGIN),
+                    str(pn + 1),
+                    fill='black', font=font, anchor='mt', stroke_width=2, stroke_fill='white'
+                )
+                for wn in get_mainboard_constants().wire_names_rc[rc]:
+                    if cp.cable.get_pin_number(wn, rc) == pn:
+                        draw_wt.text(
+                            (WIRE_TABLE_MARGIN + WIRE_TABLE_PITCH * pn, wt_y + WIRE_TABLE_ROW - WIRE_TABLE_MARGIN - FONT_SIZE),
+                            str(wn),
+                            fill='black', font=font, anchor='mt', stroke_width=2, stroke_fill='white'
+                        )
+                        break
+        img_wt = img_wt.crop(ImageOps.invert(img_wt).getbbox())
+
         img = Image.new('RGB', (int(size[0] * MAG) + MARGIN * 2, int(size[1] * MAG) + MARGIN * 2), (255, ) * 3)  # type: ignore
         keys: ty.List[Key] = []
         for ks in keys_rc[RC.Row].values():
@@ -386,10 +444,10 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
         draw = ImageDraw.Draw(img)
         for rc in rcs:
             for pn, wires in wires_pn_rc[rc].items():
-                pn += 1  # Wire number always starts from 1.
                 last_loc = None
+                color = rainbow_cable_colors[(pn + 1) % 10]
+                border_color = 'black' if color == 'grey' else 'grey'
                 for wire in wires:
-                    color = rainbow_cable_colors[pn % 10]
                     locs = (np.array(wire[0] - offset) * MAG).astype(int)
                     if last_loc is None:
                         pass
@@ -398,8 +456,9 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
                         draw.line((tuple(last_loc + MARGIN), tuple(locs[0] + MARGIN)), color, width=3)  # type: ignore
                     last_loc = locs[-1]
                     if len(locs) > 1:
-                        draw.line(tuple(tuple(i) for i in (locs + MARGIN).tolist()), 'black' if color == 'grey' else 'grey', width=int(WIRE_PITCH * MAG) if bold_rc == rc else 7, joint='curve')  # type: ignore
-                        draw.line(tuple(tuple(i) for i in (locs + MARGIN).tolist()), color, width=int(WIRE_PITCH * MAG) - 8 if bold_rc == rc else 3, joint='curve')  # type: ignore
+                        width, border_width = _width(pn, rc, bold_rc)
+                        draw.line(tuple(tuple(i) for i in (locs + MARGIN).tolist()), border_color, width=border_width, joint='curve')  # type: ignore
+                        draw.line(tuple(tuple(i) for i in (locs + MARGIN).tolist()), color, width=width, joint='curve')  # type: ignore
         img = ImageOps.mirror(img)
         img_w = img.size[0]
         draw = ImageDraw.Draw(img)
@@ -407,16 +466,16 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
             last_pn = -1
             last_printed = False
             for pn, wires in wires_pn_rc[rc].items():
-                pn += 1  # Wire number always starts from 1.
-                if last_pn == pn - 1 and pn > 8 and ((pn % 5) != 0 or last_printed):
-                    last_pn = pn
+                pn1 = pn + 1  # Wire number always starts from 1.
+                if last_pn == pn1 - 1 and pn1 > 8 and ((pn1 % 5) != 0 or last_printed):
+                    last_pn = pn1
                     last_printed = False
                     continue
-                last_pn = pn
+                last_pn = pn1
                 last_printed = True
                 wire = wires[0]
                 locs = (np.array(wire[0] - offset) * MAG).astype(int)
-                legend_w, legend_h = draw.textsize(str(pn), font=font)
+                legend_w, legend_h = draw.textsize(str(pn1), font=font)
                 x = wire[0][1][0] - wire[0][0][0]
                 y = wire[0][1][1] - wire[0][0][1]
                 if abs(x) > abs(y):
@@ -430,9 +489,13 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
                     else:
                         legend_offset = [-legend_w // 2, 0]
                 mirrored_xy = locs[0] + MARGIN
-                draw.multiline_text((img_w - mirrored_xy[0] + legend_offset[0], mirrored_xy[1] + legend_offset[1]), str(pn), fill='black', font=font,
+                draw.multiline_text((img_w - mirrored_xy[0] + legend_offset[0], mirrored_xy[1] + legend_offset[1]), str(pn1), fill='black', font=font,
                                     stroke_width=2, stroke_fill='white')
-        return img.crop(ImageOps.invert(img).getbbox())
+        img = img.crop(ImageOps.invert(img).getbbox())
+        ret = Image.new('RGB', (max([img.size[0], img_wt.size[0]]), img.size[1] + img_wt.size[1] + WIRE_TABLE_MARGIN), (255, ) * 3)  # type: ignore
+        ret.paste(img, (0, 0))
+        ret.paste(img_wt, (0, img.size[1] + WIRE_TABLE_MARGIN))
+        return ret
 
     return _draw_selective(RC.Row, [RC.Col, RC.Row]), _draw_selective(RC.Col, [RC.Row, RC.Col])
 
