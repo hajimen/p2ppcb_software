@@ -206,3 +206,23 @@ class MoveKeyCommandHandler(CommandHandlerBase):
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
         key_locators.light_bulb = self.last_light_bulb
+
+
+class SyncKeyCommandHandler(CommandHandlerBase):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def cmd_name(self) -> str:
+        return 'Sync Key'
+
+    @property
+    def tooltip(self) -> str:
+        return "Synchronizes all key placeholders to their key height/angle surfaces."
+
+    @property
+    def resource_folder(self) -> str:
+        return 'Resources/sync_key'
+
+    def notify_create(self, event_args: CommandCreatedEventArgs):
+        place_key_placeholders(None)

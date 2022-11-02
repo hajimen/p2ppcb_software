@@ -9,7 +9,7 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_MEV, AN_MF, AN_TEMP, ATTR_GROUP, AV_FLIP, AV_RIGHT, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
-    VirtualF3Occurrence, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
+    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, ANS_HOLE_MEV_MF, AN_PLACEHOLDER, key_placeholder_name
 from p2ppcb_composer.cmd_common import AN_MB_LOCATION_INPUTS, CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, get_category_appearance, load_mb_location_inputs
 from route.route import get_cn_mainboard
 
@@ -579,7 +579,8 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         av = AV_FLIP if self.get_flip_in().value else AV_RIGHT
         body_finder = BodyFinder()
         for b in body_finder.get(o, AN_TEMP):
-            b.deleteMe()
+            if b.isValid:
+                b.deleteMe()
         for an in ANS_HOLE_MEV_MF:
             for b in body_finder.get(o, an, av):
                 tb = b.copyToComponent(o.raw_occ)
@@ -608,7 +609,8 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         o = self.execute_common(event_args)
-        self.prepare_temp_body(o)
+        # self.prepare_temp_body(o)
+        capture_position()
         o.comp_attr[AN_MB_LOCATION_INPUTS] = base64.b64encode(pickle.dumps([
             [ci.value for ci in self.move_comp_cb.get_inputs()],
             self.offset_cb.get_value(),
@@ -842,6 +844,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)
+        capture_position()
         self.last_num_foot = self.get_num_foot()
         fp_occ = get_context().child[CN_INTERNAL].child[CN_FOOT_PLACEHOLDERS]
         fp_occ.comp_attr[AN_FOOT_OFFSET] = self.offset_cb.get_in().value
