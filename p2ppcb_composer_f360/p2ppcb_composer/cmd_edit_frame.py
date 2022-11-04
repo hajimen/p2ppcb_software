@@ -887,7 +887,7 @@ def hole_all_parts(frame: af.BRepBody):
     for o in other_occs:
         if AN_MB_LOCATION_INPUTS in o.comp_attr:
             flip = load_mb_location_inputs(o)[3]
-            for b in body_finder.get(o, AN_HOLE, AV_FLIP if flip else AN_HOLE):
+            for b in body_finder.get(o, AN_HOLE, AV_FLIP if flip else AV_RIGHT):
                 tb = b.copyToComponent(con.comp)
                 hole_body_col.add(tb)
         else:

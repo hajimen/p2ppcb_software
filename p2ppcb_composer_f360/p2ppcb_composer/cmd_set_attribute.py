@@ -15,6 +15,7 @@ ANS_PART = [AN_HOLE, AN_FILL, AN_MF, AN_MEV, AN_PLACEHOLDER, AN_TERRITORY]
 class SetAttributeCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
+        self.require_cn_internal = False
 
     @property
     def cmd_name(self) -> str:

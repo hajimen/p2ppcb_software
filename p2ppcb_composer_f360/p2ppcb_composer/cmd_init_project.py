@@ -68,7 +68,6 @@ def generate_scaffold():
     skeleton_sketch = af.Sketch.cast(im.importToTarget2(im.createDXF2DImportOptions(str(CURRENT_DIR / 'scaffold_data/skeleton.dxf'), profile_plane), con.root_comp).item(0))
     skeleton_curves = CreateObjectCollectionT(af.SketchCurve)
     skeleton_curves.add(skeleton_sketch.sketchCurves.sketchControlPointSplines.item(0))
-    skeleton_curves.add(skeleton_sketch.sketchCurves.sketchControlPointSplines.item(1))
     skeleton_profile = con.root_comp.createOpenProfile(skeleton_curves, False)
     extrudes = con.root_comp.features.extrudeFeatures
     ex1_in = extrudes.createInput(skeleton_profile, af.FeatureOperations.NewBodyFeatureOperation)
@@ -83,7 +82,6 @@ def generate_scaffold():
     alternative_curves = CreateObjectCollectionT(af.SketchCurve)
     alternative_sketch = af.Sketch.cast(im.importToTarget2(im.createDXF2DImportOptions(str(CURRENT_DIR / 'scaffold_data/alternative.dxf'), profile_plane), con.root_comp).item(0))
     alternative_curves.add(alternative_sketch.sketchCurves.sketchControlPointSplines.item(0))
-    alternative_curves.add(alternative_sketch.sketchCurves.sketchControlPointSplines.item(1))
     alternative_profile = con.root_comp.createOpenProfile(alternative_curves, False)
     ex2_in = extrudes.createInput(alternative_profile, af.FeatureOperations.NewBodyFeatureOperation)
     ex2_in.isSolid = False
@@ -100,6 +98,12 @@ def generate_scaffold():
     reverse_normals = con.comp.features.reverseNormalFeatures
     _ = reverse_normals.add(col)
 
+    moves = con.root_comp.features.moveFeatures
+    tr = ac.Matrix3D.create()
+    tr.translation = ac.Vector3D.create(0.0, -1.0, 0.0)
+    move_in = moves.createInput(col, tr)
+    moves.add(move_in)
+
     cp3_in = planes.createInput()
     cp3_in.setByOffset(con.root_comp.xYConstructionPlane, ac.ValueInput.createByString('-3 cm'))
     bridge_plane = planes.add(cp3_in)
@@ -107,8 +111,8 @@ def generate_scaffold():
     sk_bridge = con.root_comp.sketches.add(bridge_plane)
     sk_bridge.name = 'Bridge Profile'
     _ = sk_bridge.sketchCurves.sketchLines.addTwoPointRectangle(
-        ac.Point3D.create(-2., -3., 0.),
-        ac.Point3D.create(2., 6., 0.)
+        ac.Point3D.create(-3., -5.5, 0.),
+        ac.Point3D.create(2., 5.5, 0.)
     )
     bridge_plane.deleteMe()
 
