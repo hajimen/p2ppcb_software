@@ -609,7 +609,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         o = self.execute_common(event_args)
-        # self.prepare_temp_body(o)
+        self.prepare_temp_body(o)
         capture_position()
         o.comp_attr[AN_MB_LOCATION_INPUTS] = base64.b64encode(pickle.dumps([
             [ci.value for ci in self.move_comp_cb.get_inputs()],
