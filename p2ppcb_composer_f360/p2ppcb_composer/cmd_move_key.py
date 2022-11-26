@@ -37,7 +37,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return "Moves keys via key locators. You can select key locators, not key placeholders. You can also change the layout plane or the key angle surface of the keys. Inference check can require tens of seconds."
+        return "Moves keys via key locators. You can select key locators, not key placeholders. You can also change the layout plane, skeleton surface, or key angle surface of the keys. Inference check can require tens of seconds."
 
     @property
     def resource_folder(self) -> str:

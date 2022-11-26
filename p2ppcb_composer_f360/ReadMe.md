@@ -1,18 +1,22 @@
 # P2PPCB Composer F360
 
-**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). It helps you design your own keyboard which is built on P2PPCB platform.
+**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). It helps you design your own keyboard
+which is built on P2PPCB platform.
 I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, offer P2PPCB platform.
 
 DISCLAIMER: PC0 is extraordinarily slow for a large keyboard, so far. Around 60 keys is the upper limit in common sense.
+You cannot accelerate PC0 by expensive hardware, because F360's computation is done by only CPU never GPU,
+only single-thread never multi-thread.
 
-DISCLAIMER: So far, PC0 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug and waste much time getting around it.
+DISCLAIMER: So far, PC0 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug
+and waste much time getting around it.
 
 ## Requirements: Just designing a keyboard
 
 - Windows PC, English
 
 F360 runs on Mac too, but PC0 uses RPA to get over the lack of F360 API features. Windows' language should be english
-for RPA.
+for RPA. In this case, RPA is platform-dependent.
 
 Moreover, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package which doesn't run on Mac.
 
@@ -24,22 +28,21 @@ F360 is a proprietary 3D CAD. Autodesk generously offers free plans for hobbyist
 
 You need your own firmware for your own design. PC0 helps you, but you need to be well informed about QMK.
 
-The official codebase lacks RP2040 (Raspberry Pi Pico's MPU) support now, so you need to use a fork like this: <https://github.com/sekigon-gonnoc/qmk_firmware/tree/rp2040>.
-
-Moreover, PC0 uses custom hardware to accommodate large key matrix (16x12). I prepared the codebase which have handles the custom hardware: <https://github.com/hajimen/qmk_firmware/tree/p2ppcb>
+The official codebase of master branch lacks RP2040 (Raspberry Pi Pico's MPU) support now, so you need to use develop branch at least. Moreover, P2PPCB platform's mainboards require special codes for custom hardware. I prepared the codebase which have handles the custom hardware: <https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork it for your own design.
 
 ## Requirements: Building your own design
 
 - A 3D printing service of HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html>
 
-Somos® Ledo 6060 also does a good job.
+Some SLA also does a good job, but some doesn't. The price is very attractive compared to MJF, so it's worth a try if you are going to do
+a lot of trial-and-error iterations. Anyway I recommend you to have a MJF output in your hand to evaluate the quality of others.
 
 There are a lot of 3D printing services of MJF in the world. Shapeways (North America and Europe), DMM.make (Japan), WENEXT (China) etc.
-Pick a good one for you.
+Pick a good one for you. I always use WENEXT.
 
-- P2PPCB parts from DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
+- P2PPCB components from DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
 
-PC0 is free, but the parts aren't :-)
+PC0 is free, but P2PPCB components aren't :-)
 
 - Switches, caps, stabilizers
 
@@ -66,7 +69,7 @@ The F360 surface is **skeleton surface**. You need a F360 construction plane as 
 You can specify **key angle surface** to make a stepped ("staircase") profile keyboard with uniform profile keycaps (DSA/XDA etc.).
 
 You can see how they work by a scaffold set which is built in PC0.
-Click green **P2P/PCB** icon and enable 'Generate a scaffold set' checkbox in the command dialog.
+Click green **P2P/PCB** command icon in P2PPCB tab and enable 'Generate a scaffold set' checkbox in the command dialog.
 
 3. Start a P2PPCB project
 
@@ -77,7 +80,8 @@ You can run this command more than once.
 
 4. Load KLE file
 
-It can consume tens of minutes. F360 isn't very suitable to P2PPCB Composer, but you don't want to pay thousands of USD for CATIA, I guess.
+It can consume tens of minutes for a large keyboard. F360 isn't very suitable to P2PPCB Composer, but you don't want to pay
+thousands of USD for CATIA, I guess.
 
 5. Adjust each key
 
@@ -97,32 +101,42 @@ You need to do this step by F360's features like loft, extrude, etc.
 
 9. **Hole** command
 
-It makes a 3D printable solid body. Right-click the body in the browser, choose **Save As Mesh**, choose STL, and OK. Send the STL file to your 3D printing service.
+It makes a 3D printable solid body. Right-click the body in the browser, choose **Save As Mesh**, choose STL, and OK.
+Send the STL file to your 3D printing service.
 
 10. There is an isolated thin wall? Oh...
 
-MJF cannot print isolated thin walls under 0.8 mm. If it occurs, you need to remove them by F360's features by yourself.
+MJF cannot print isolated thin walls under 0.8 mm. It often occurs on elaborate designs.
+Some 3D printing services accept such STL file if you take on all risks. Some doesn't.
+In the case, you need to remove them by F360's features by yourself.
 
 ## Bridge and fill/hole - MF/MEV method
 
-Switches, stabilizers, and screws should be fixed on their holes on the frame. Such holes must be free of obstruction, otherwise parts will be stuck.
+Switches, stabilizers, and screws should be fixed on their holes on the frame. Such holes must be free of obstruction,
+otherwise parts will be stuck.
 
-On the other hand, a frame itself is not so rigorous about defects. A frame should be strong, stiff, and have essential areas to hold parts (internal screw thread, for example).
-Except for essential areas, a frame can have defects (voids) to some extent. Let's call such non-essential areas which surround essential areas as "supporting areas".
+On the other hand, a frame itself is not so rigorous about defects. A frame should be strong, stiff,
+and have essential areas to hold parts (internal screw thread, for example).
+Except for essential areas, a frame can have defects (voids) to some extent. Let's call such
+non-essential areas which surround essential areas as "supporting areas".
 
 PC0 adopts the fill/hole method to form a frame. Fill: make a block. Hole: cut the block.
 
-Make a block, how? By connecting essential+supporting areas to each other. Where key layout is dense, keys' essential+supporting areas overlap each other. In this case, a simple "join" operation is enough.
-Where key layout is sparse, a bridge should connect between essential+supporting areas. A bridge is a board parallel to the skeleton surface. 
+Make a block, how? By connecting essential+supporting areas to each other. Where key layout is dense,
+keys' essential+supporting areas overlap each other. In this case, a simple "join" operation is enough.
+Where key layout is sparse, a bridge should connect between essential+supporting areas.
+A bridge is a board parallel to the skeleton surface. 
 By joining essential+supporting areas and a bridge, a block has been made. This is **Fill**.
 
 Cutting the block will be obvious. Holes must be void without defect, so the fill/hole method doesn't allow fill-after-hole. This is **Hole**.
 
 After fill/hole, we must check whether essential areas are filled without defects. The must-be-filled area is **MF** (must-filled).
 
-Hole areas don't always equal to their parts. Two parts cannot occupy the same area, but two insert paths can do. An insert path is occupied by a part while assembly,
-but it is left void after once the part has been assembled. A typical case is Cherry-style stabilizer's wire. Thus a hole area can be larger than its part.
-To know the area of a part itself, and to check the interference of parts each other, we need **MEV** (must-exclusively-void) area, in addition to hole area.
+Hole areas don't always equal to their parts. Two parts cannot occupy the same area, but two insert paths can do. 
+An insert path is occupied by a part while assembly, but it is left void after once the part has been assembled.
+A typical case is Cherry-style stabilizer's wire. Thus a hole area can be larger than its part.
+To know the area of a part itself, and to check the interference of parts each other,
+we need **MEV** (must-exclusively-void) area, in addition to hole area.
 
 To reduce inference check range, there is **Territory**. It declares the outer edge of fill-hole areas of a part.
 
@@ -132,8 +146,6 @@ To reduce inference check range, there is **Territory**. It declares the outer e
 
 QMK keycodes are here: <https://github.com/hajimen/qmk_firmware/blob/p2ppcb/docs/keycodes.md>
 
-CAUTION: The QMK keycodes of the latest master branch are not valid in the P2PPCB codebase. The codebase is much older than the latest master branch.
-
 By including the keycodes on your KLE file, P2PPCB can help you much. Just write the keycode (of layer 0) on the key's front-left legend.
 Front-center legend is layer 1, and front-right legend is layer 2.
 
@@ -141,13 +153,16 @@ Front-center legend is layer 1, and front-right legend is layer 2.
 
 Keyboard matrix: <https://github.com/qmk/qmk_firmware/blob/master/docs/how_a_matrix_works.md>
 
+P2PPCB Bob/Charlotte uses S and D instead of row and col. QMK's row and col are dependent from the direction of current
+(ROW2COL and COL2ROW are both capable), but S and D are always S to D.
+
 By assigning a matrix, and by including the keycodes on your KLE file, you can generate route data (QMK keymap and wiring diagrams).
-Without route data generation, your life will be much harder.
+Without route data generation, your life will be much harder. Use **Assign Matrix** command and **Generate Route** command in P2PPCB tab.
 
 ### The limitation of VIA
 
 VIA <https://www.caniusevia.com/> is a useful tool and the P2PPCB codebase is compatible with VIA.
-But there is a limitation: VIA cannot handle the rows and cols above 8. So you should not use above D8/S8
+But there is a limitation: VIA cannot handle the rows and cols above 8. So you should not use D8/S8 or above
 if you are going to use VIA.
 
 ## Advanced features and design
@@ -159,7 +174,7 @@ It looks geeky and good enough for prototyping. But in some cases, you may need 
 
 PC0 is not very helpful for the case, but there is a tool which may help you. While running PC0, You can find
 'Regex Select' command in 'Select' panel. You can make a selection set by regex of the entities' full path name.
-You can do the fill/hole - MF/MEV method with the tool, without 'Fill' and 'Hole' commands.
+You can do the fill/hole method with the tool, without 'Fill' and 'Hole' commands.
 
 ### 'Set Attribute' and 'Check Key Assembly' commands
 
@@ -178,11 +193,14 @@ The hack is modularized as **f360_insert_decal_rpa** <https://github.com/hajimen
 
 ## Unit tests
 
-The F360 script in `composer_test` does unit tests. Please look at `sys.path.append()` and `reimport.py` hack carefully.
+The F360 script in `composer_test` does unit tests. Please look at `sys.path.append()` and `reimport.py`
+hack carefully.
 
-The unit tests don't have good granularity. In reality, they are just regression tests (in preparation for F360's update) and command launchers for debugging.
+The unit tests don't have good granularity. In reality, they are just regression tests
+(in preparation for F360's update) and command launchers for debugging.
 
-`test_generate_route` is quite slow while the VSCode debugger is attached. It comes from cefpython3's behavior under F360 + VSCode debugger. I don't know why.
+`test_generate_route` is quite slow while the VSCode debugger is attached.
+It comes from cefpython3's behavior under F360 + VSCode debugger. I don't know why.
 
 ## Lazy binding by surrogate
 
@@ -191,8 +209,10 @@ Importing should be done in a create event handler or after an execute event.
 Importing in a create event handler breaks the cancel button's behavior (I did it in "Load KLE" command). 
 Importing after an execute event is done by F360 custom event: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-EC785EB6-22A8-4932-B362-395262D802CF>
 
-Anyway, F360 cannot import anything while a command dialog is shown. We need to build/manipulate an object tree before the objects become available.
-In other words, we need lazy binding. Thus I adopted the surrogate method. Objects-in-the-future are represented by surrogates.
+Anyway, F360 cannot import anything while a command dialog is shown.
+We need to build/manipulate an object tree before the objects become available.
+In other words, we need lazy binding. Thus I adopted the surrogate method.
+Objects-in-the-future are represented by surrogates.
 After importing, surrogates are replaced by real objects.
 
 ## How to build `app-packages`
@@ -233,7 +253,8 @@ pip install -r requirements.txt -t app-packages --extra-index-url ../../pep503/s
 
 # Further development
 
-So far, PC0 remains at sketchy quality. It helps you design your own keyboard *in many cases*. In some cases, it annoys you rather than helps you.
+So far, PC0 remains at sketchy quality. It helps you design your own keyboard *in many cases*.
+In some cases, it annoys you rather than helps you.
 In other cases, it gets stuck in F360's bugs. We need further development for better quality of PC0.
 
 ## Why so extraordinarily slow, especially for a large keyboard?
@@ -242,12 +263,15 @@ There are several reasons.
 
 1. F360 API cannot handle decals.
 
-I need to get over the limitation by RPA (extraordinarily slow by its nature) and by manipulating bodies in units of F360 components.
-It causes a lot of redundant F360 components. However it doesn't cause O(n^2) complexity, so our common sense says "no problem", but Autodesk doesn't.
+I need to get over the limitation by RPA (extraordinarily slow by its nature) and
+by manipulating bodies in units of F360 components.
+It causes a lot of redundant F360 components. However it doesn't cause O(n^2) complexity,
+so our common sense says "no problem", but Autodesk doesn't.
 
 2. F360 becomes extraordinarily slow when there are 100 or above F360 components in a file.
 
-I don't know why. Autodesk doesn't expect such usage, I guess. Especially `findBRepUsingRay()` function can consume several seconds, so `Move Key` command
+I don't know why. Autodesk doesn't expect such usage, I guess.
+Especially `findBRepUsingRay()` function can consume several seconds, so `Move Key` command
 is nearly impossible.
 
 3. F360 API's `attributes` scanning is extraordinarily slow.
@@ -267,7 +291,7 @@ But it can be hard to recognize the phenomenon.
 ## Custom features
 
 So far, PC0 doesn't support parametric modeling. I wish I could edit a skeleton surface and key angle surfaces by parametric modeling.
-Now (Aug 2022) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
+Now (Dec 2022) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
 I don't expect much, but I'll take a look when it turns into GA.
 
 ## Mac
