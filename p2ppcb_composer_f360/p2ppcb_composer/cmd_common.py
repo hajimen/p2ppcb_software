@@ -52,8 +52,8 @@ INPS_ID_SHOW_HIDE = [INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV]
 
 TOOLTIP_NOT_SELECTED = 'Not Selected'
 TOOLTIPS_PARTS_DIR = ('Parts Data Dir', 'Parts data dir contains parts data of P2PPCB. Usually p2ppcb_software/p2ppcb_parts_data_f360.')
-TOOLTIPS_STABILIZER_ORIENTATION = ('Stabilizer Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 is not good for this.')
-TOOLTIPS_SWITCH_ORIENTATION = ('Switch Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 is not good for this.')
+TOOLTIPS_STABILIZER_ORIENTATION = ('Stabilizer Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 should be always Front.')
+TOOLTIPS_SWITCH_ORIENTATION = ('Switch Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 should be always Front.')
 TOOLTIPS_V_ALIGN = ('Key V-Align', "The anchor point of vertical alignment. The anchor point is on its skeleton surface.\nStemBottom refers key-up state. TravelBottom refers the cap's top of key-down state.")
 
 

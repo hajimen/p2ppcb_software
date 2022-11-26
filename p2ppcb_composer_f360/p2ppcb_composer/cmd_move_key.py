@@ -218,7 +218,7 @@ class SyncKeyCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return "Synchronizes all key placeholders to their key height/angle surfaces. Run this command after you modified key height/angle surfaces."
+        return "Synchronizes all key placeholders to their skeleton/angle surfaces. Run this command after you modified skeleton/angle surfaces."
 
     @property
     def resource_folder(self) -> str:
