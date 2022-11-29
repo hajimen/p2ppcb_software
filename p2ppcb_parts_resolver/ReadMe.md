@@ -1,9 +1,9 @@
 # p2ppcb_parts_resolver
 
-**p2ppcb_parts_resolver** is a Python library for P2PPCB Composer F360.
+**p2ppcb_parts_resolver** is a Python library for P2PPCB Composer F360 (PC0).
 
 p2ppcb_parts_resolver is independent from Autodesk Fusion 360 (F360), but designed to be used in it.
-The independency is mainly for debugging, and good for porting of P2PPCB Composer F360 to other 3D CADs.
+The independency is mainly for debugging, and good for porting of PC0 to other 3D CADs.
 
 p2ppcb_parts_resolver resolves the design files' names, the part parameter set, and the specifier of the parts of a key.
 The key is represented in a KLE file and annotated by a part description set.
@@ -115,4 +115,4 @@ Those bodies should be tagged as placeholder, and the tag have a string value wh
 They are not parts, but they have parts-dependent parameters.
 
 Decal is F360's feature. We need to adjust the decal parameters to fit each cap type and specifier.
-Wiring is for route data generation. See P2PPCB Composer F360 source code for details.
+Wiring is for route data generation. See PC0 source code for details.

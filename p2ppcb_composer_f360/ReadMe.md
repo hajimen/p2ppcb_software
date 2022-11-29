@@ -20,15 +20,18 @@ for RPA. In this case, RPA is platform-dependent.
 
 Moreover, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package which doesn't run on Mac.
 
-- Autodesk Fusion 360 (F360)
+- Autodesk Fusion 360 (F360) <https://www.autodesk.com/products/fusion-360/overview>
 
-F360 is a proprietary 3D CAD. Autodesk generously offers free plans for hobbyists so far.
+F360 is a proprietary 3D CAD. Autodesk generously offers charge-free plans for hobbyists so far.
 
 - QMK firmware <https://qmk.fm/>
 
 You need your own firmware for your own design. PC0 helps you, but you need to be well informed about QMK.
 
-The official codebase of master branch lacks RP2040 (Raspberry Pi Pico's MPU) support now, so you need to use develop branch at least. Moreover, P2PPCB platform's mainboards require special codes for custom hardware. I prepared the codebase which have handles the custom hardware: <https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork it for your own design.
+The official codebase of master branch lacks RP2040 (Raspberry Pi Pico's MPU) support now,
+so you need to use develop branch at least. Moreover, P2PPCB mainboards
+require special codes for its own hardware. I prepared the codebase which handles the custom hardware:
+<https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork it for your own design.
 
 ## Requirements: Building your own design
 
@@ -37,16 +40,18 @@ The official codebase of master branch lacks RP2040 (Raspberry Pi Pico's MPU) su
 Some SLA also does a good job, but some doesn't. The price is very attractive compared to MJF, so it's worth a try if you are going to do
 a lot of trial-and-error iterations. Anyway I recommend you to have a MJF output in your hand to evaluate the quality of others.
 
-There are a lot of 3D printing services of MJF in the world. Shapeways (North America and Europe), DMM.make (Japan), WENEXT (China) etc.
+There are a lot of 3D printing services of MJF in the world. 
+[Shapeways](https://www.shapeways.com/) (North America and Europe), 
+[DMM.make](https://make.dmm.com/) (Japan), [WENEXT](https://www.wenext.com/) (China), etc.
 Pick a good one for you. I always use WENEXT.
 
 - P2PPCB components from DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
 
 PC0 is free, but P2PPCB components aren't :-)
 
-- Switches, caps, stabilizers
+- Switches, keycaps, stabilizers
 
-If you need custom printed caps for your own design, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
+If you need custom printed keycaps for your own design, ask DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
 I can make custom printed PBT keycaps. The total charge is from around $30 when COVID-19 went away (nowadays the shipping charge is quite expensive).
 
 ## Installation
