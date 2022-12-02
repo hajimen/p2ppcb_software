@@ -18,11 +18,11 @@ from p2ppcb_composer.toolbar import init_toolbar, terminate_toolbar
 
 @catch_exception
 def run(context):
-    print('Run P2PPCB Composer')
+    print('Run P2PPCB Composer F360')
     init_toolbar()
 
 
 @catch_exception
 def stop(context):
     terminate_toolbar()
-    print('Stop P2PPCB Composer')
+    print('Stop P2PPCB Composer F360')

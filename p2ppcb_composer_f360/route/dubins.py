@@ -3,7 +3,7 @@
 Dubins path planner sample code
 
 author Atsushi Sakai(@Atsushi_twi)
-modified by Hajime Nakazato
+modified by NAKAZATO Hajime
 
 """
 import typing as ty

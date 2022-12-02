@@ -80,7 +80,7 @@ More details are here: <https://github.com/hajimen/p2ppcb_software/tree/dev/p2pp
 ## Keycaps
 
 PC0 handles keycaps to check interference and to help your design process.
-The below are available on PC0. You can put other keycaps on your 3D-printed actual keyboards, of course.
+The below are available on PC0. You can put other keycaps on your 3D-printed keyboards, of course.
 
 - XDA (not very good category for precise design, so use this for a rough estimate)
 - DSA
@@ -124,11 +124,11 @@ A mainboard connects USB to matrix wires. Comparison table of the three mainboar
 I don't recommend **Alice** in most cases. It is only good for R&D laboratories which have HP's MJF 3D printer.
 If you use a 3D printing service, go Bob or Charlotte.
 
-![Alice Wire Harness](https://user-images.githubusercontent.com/1212166/204482063-080e00e3-34a9-44c6-9837-83c2bb0c8a61.jpg)
+![Alice Wire Harness Set](https://user-images.githubusercontent.com/1212166/204482063-080e00e3-34a9-44c6-9837-83c2bb0c8a61.jpg)
 
 Alice accepts female Dupont wire as matrix wire. It is cheaper and more convenient than IDC ribbon cable of **Bob** / **Charlotte**.
 Dupont wire is not very reliable, but enough for trial-and-error iterations of a design process.
-A wire harness (the image above) is available for high reliability, but it is quite expensive.
+A wire harness set (the image above) is available for high reliability, but it is quite expensive.
 
 You might think IDC ribbon cable is available for Alice. I thought so too.
 But 1.27 mm pitch cable (common thing) is too thick for a single IDC contact. I failed to make it reliable.
@@ -156,7 +156,7 @@ which ChibiOS doesn't have. The code is RP2040 only, sorry.)
 A matrix wire connects a mainboard to contacts.
 
 Alice accepts a female Dupont wire as a matrix wire. It is a general-purpose part, not a P2PPCB component.
-A wire harness for Alice is available as a P2PPCB component, but it is not recommended in most cases.
+A wire harness set for Alice is available as a P2PPCB component, but it is not recommended in most cases.
 
 Bob and Charlotte accept 1.00 mm pitch IDC ribbon rainbow cable as matrix wire. The pitch is not very common.
 These are P2PPCB components. When you build a keyboard, tear off bonding of wires (easily tearable), and use it as single wires.
@@ -200,7 +200,7 @@ Rubber sole is also indispensable. P2PPCB platform has a dedicated foot kit.
 
 # Starter Kit
 
-P2PPCB platform requires so many parts for building an actual keyboard.
+P2PPCB platform requires so many parts for building an real keyboard.
 
 - Specialty hand tool for single IDC contact (bit and handle)
 - Mainboard
@@ -219,3 +219,8 @@ So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdriver). J
 you can test P2PPCB hardware by hand.
 
 TODO link to item
+
+# Discussions
+
+If you have any questions, or require anything further of me, please feel free to join the discussions:
+<https://github.com/hajimen/p2ppcb_software/discussions>

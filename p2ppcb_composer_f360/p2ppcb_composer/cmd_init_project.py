@@ -210,7 +210,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
                     inp.listItems[0].isSelected = True
 
         scaffold_in = self.inputs.addBoolValueInput(INP_ID_SCAFFOLD_BOOL, 'Generate a scaffold set', True)
-        scaffold_in.tooltip = 'Start with a scaffold set instead of your original set.'
+        scaffold_in.tooltip = 'Start with a scaffold set instead of your own set.'
         if all_has_sel_ins([main_in, layout_plane_in]) and all([inp.selectedItem.name != '' for inp in self.parts_cb.get_option_ins()]):
             scaffold_in.isVisible = False
 

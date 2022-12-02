@@ -1,7 +1,7 @@
 {
 	"autodeskProduct":	"Fusion360",
 	"type":	"script",
-	"author":	"",
+	"author":	"NAKAZATO Hajime",
 	"description":	{
 		"":	"Gathers bodies in components of imported STEP file and moves them into the root component."
 	},
