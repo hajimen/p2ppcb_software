@@ -3,7 +3,7 @@ import adsk.core as ac
 from f360_common import BadCodeException, BadConditionException, get_context
 from p2ppcb_composer.cmd_common import CommandHandlerBase
 from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
-from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler
+from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler, ExtractKleFileCommandHandler
 from p2ppcb_composer.cmd_move_key import MoveKeyCommandHandler, SyncKeyCommandHandler
 from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler, CheckKeyAssemblyCommandHandler
 from p2ppcb_composer.cmd_matrix_route import AssignMatrixCommandHandler, GenerateRouteCommandHandler
@@ -15,7 +15,7 @@ from regex_selector.regex_selector import RegexSelectCommandHandler
 TBT_ID_P2PPCB = 'p2ppcbToolbarTab'
 
 PANEL_CLASSES: ty.List[ty.Tuple[str, str, ty.List[ty.Tuple[ty.Type, bool]]]] = [
-    ('p2ppcbInitializeToolbarPanel', 'Initialize', [(InitializeP2ppcbProjectCommandHandler, True), (LoadKleFileCommandHandler, True)]),
+    ('p2ppcbInitializeToolbarPanel', 'Initialize', [(InitializeP2ppcbProjectCommandHandler, True), (LoadKleFileCommandHandler, True), (ExtractKleFileCommandHandler, False)]),
     ('p2ppcbEditKeyToolbarPanel', 'Edit Key', [(MoveKeyCommandHandler, True), (ChangeKeyDescsCommandHandler, True), (SyncKeyCommandHandler, True)]),
     ('p2ppcbMatrixToolbarPanel', 'Matrix', [(AssignMatrixCommandHandler, True), (GenerateRouteCommandHandler, True)]),
     ('p2ppcbFillHoleToolbarPanel', 'Fill/Hole', [(FillFrameCommandHandler, True), (HolePartsCommandHandler, True)]),

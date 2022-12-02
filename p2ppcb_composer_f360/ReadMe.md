@@ -193,6 +193,9 @@ By assigning a matrix, and by including the keycodes on your KLE file, you can g
 (QMK keymap and wiring diagrams) and VIA keymap.
 Without them, your life will be much harder. Use **Assign Matrix** command and **Generate Route** command in P2PPCB tab.
 
+The route data generation of split keyboards is not supported. You need to combine two keymaps into one by yourself.
+The example is shown in <https://github.com/hajimen/qmk_firmware/blob/p2ppcb/keyboards/p2ppcb/charlotte/keymaps/ntcs/keymap.c>.
+
 ## Advanced features and design
 
 ### 'Regex Select' command
@@ -200,9 +203,9 @@ Without them, your life will be much harder. Use **Assign Matrix** command and *
 You can make a fully operating keyboard which have just a frame, no cover.
 It is good enough for prototyping. But in some cases, you may need a cover.
 
-PC0 is not very helpful for the case, but there is a tool which may help you. While running PC0, You can find
+PC0 is not very helpful for the case, but there is a tool which may help you. When PC0 is enabled, You can find
 **Regex Select** command in **Select** panel. You can make a selection set by regex of the entities' full path name.
-You can do the fill/hole method with the tool manually, without **Fill** and **Hole** commands.
+You can do the fill/hole method with this tool manually, without **Fill** and **Hole** commands.
 
 ### 'Set Attribute' and 'Check Key Assembly' commands
 

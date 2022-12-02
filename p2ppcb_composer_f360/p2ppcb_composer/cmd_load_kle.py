@@ -189,3 +189,42 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
         place_key_placeholders()
 
         event_args.isValidResult = True
+
+
+class ExtractKleFileCommandHandler(CommandHandlerBase):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def cmd_name(self) -> str:
+        return 'Extract KLE'
+
+    @property
+    def tooltip(self) -> str:
+        return "Extracts KLE's JSON file from F360 file."
+
+    @property
+    def resource_folder(self) -> str:
+        return 'Resources/extract_kle'
+
+    def notify_create(self, event_args: CommandCreatedEventArgs):
+        con = get_context()
+
+        inl_occ = con.child[CN_INTERNAL]
+
+        if AN_KLE_B64 not in inl_occ.comp_attr:
+            raise BadConditionException('KLE file is not loaded.')
+
+        kle_b64 = inl_occ.comp_attr[AN_KLE_B64]
+        kle_file_content = zlib.decompress(base64.b64decode(kle_b64))
+
+        dir_dlg = con.ui.createFolderDialog()
+        dir_dlg.title = 'Choose Output Folder'
+        if dir_dlg.showDialog() != ac.DialogResults.DialogOK:
+            return
+        output_dir_path = pathlib.Path(dir_dlg.folder)
+
+        with open(output_dir_path / 'extracted_kle.json', 'w+b') as f:
+            f.write(kle_file_content)
+
+        con.ui.messageBox('KLE file has been extracted as extracted-kle.json.', 'P2PPCB')
