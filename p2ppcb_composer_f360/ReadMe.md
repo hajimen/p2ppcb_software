@@ -68,7 +68,7 @@ Now "P2PPCB" tab should appear on F360 menu.
 
 https://user-images.githubusercontent.com/1212166/205190084-6b400099-2b3c-4de8-aa02-cd9ade1af381.mp4
 
-## Overview of Operation
+## Overview of operation
 
 1. Design your own key layout by KLE <http://www.keyboard-layout-editor.com/> and download the deliverable by JSON. The file is a KLE file.
 
@@ -78,6 +78,7 @@ You can include QMK keycodes in your KLE file. The details are later.
 
 The F360 surface is **skeleton surface**. You need a F360 construction plane as **layout plane** too.
 You can specify **key angle surface** to make a stepped ("staircase") profile keyboard with uniform profile keycaps (DSA/XDA etc.).
+**Main surface** in **Initialize** command dialog is skeleton and angle surface both.
 
 You can get the example of them by a scaffold set which is built in PC0.
 Click green **P2P/PCB** command icon in P2PPCB tab and enable **Generate a scaffold set** checkbox in the command dialog.
@@ -205,7 +206,7 @@ It is good enough for prototyping. But in some cases, you may need a cover.
 
 PC0 is not very helpful for the case, but there is a tool which may help you. When PC0 is enabled, You can find
 **Regex Select** command in **Select** panel. You can make a selection set by regex of the entities' full path name.
-You can do the fill/hole method with this tool manually, without **Fill** and **Hole** commands.
+You can do the fill/hole method with this tool manually, without **Fill** / **Hole** commands.
 
 ### 'Set Attribute' and 'Check Key Assembly' commands
 
