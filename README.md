@@ -39,6 +39,7 @@ Just a 3D-printed frame, and the software helps your CAD operation much.
 
 [Kailh socket](https://www.aliexpress.com/item/32959301642.html) connects switch to PCB.
 There is nothing to solder by yourself, even in the case of split keyboards.
+(But if you need to connect a debugger, soldering is required.)
 
 ## All softwares are open-source or charge-free for hobbyists
 
@@ -200,9 +201,9 @@ Rubber sole is also indispensable. P2PPCB platform has a dedicated foot kit.
 
 # Starter Kit
 
-P2PPCB platform requires so many parts for building an real keyboard.
+P2PPCB platform requires so many parts for building a real keyboard.
 
-- Specialty hand tool for single IDC contact (bit and handle)
+- Specialty hand tool for single IDC contact (special bit and common handle)
 - Mainboard
 - Contact-to-socket assembly
 - Matrix wire
