@@ -10,13 +10,13 @@ The dimension is shown in `p2ppcb_composer_f360/*.f3d`.
 
 - MPU: STM32F072C8U6
 - USB type-C
-- All IDC terminals are shrouded headers, 2.54 mm pitch. (The IDC cable pitch is 1.27 mm)
+- All IDC terminals are shrouded headers, 2.54 mm pitch.
 
 ## Bob / Charlotte
 
 - MPU: RP2040
 - Micro USB type-B
-- The IDC terminal is a shrouded header, 2.00 mm pitch. (The IDC cable pitch is 1.00 mm)
+- The IDC terminal is a shrouded header, 2.00 mm pitch.
 
 Bob's shrouded header: <https://lcsc.com/product-detail/IDC-Connectors_Wcon-3111-30SG0BK00T1_C783804.html>
 
@@ -24,11 +24,21 @@ Charlotte's: <https://lcsc.com/product-detail/IDC-Connectors_Wcon-3111-36SG0BK00
 
 - The pin header J1 for debugger is not implemented. Solder 1x5 pin header if you need it.
 
-# Wire Harness for Alice
+# Matrix Wire
+
+## Wire Harness for Alice
 
 Length: 1 m
 
 Connector: <https://www.digikey.com/en/products/detail/hirose-electric-co-ltd/HIF3BA-30D-2-54C-63/12758629>
+
+## IDC ribbon cable for Bob / Charlotte
+
+Length: 60 cm
+
+Connector of Bob: <https://lcsc.com/product-detail/IDC-Connectors_Wcon-5222-30YPS0BW01_C843027.html>
+
+Connector of Charlotte: <https://lcsc.com/product-detail/IDC-Connectors_span-style-background-color-ff0-Wcon-span-5222-36YPS0BW01_C843029.html>
 
 # Contact-to-Socket Assembly
 
