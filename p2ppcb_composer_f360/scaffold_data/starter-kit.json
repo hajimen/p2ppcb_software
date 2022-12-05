@@ -1,13 +1,77 @@
 [
-[{x:1,a:0},"\n\n\nHome\nKC_HOME"],
-[{y:-0.75,x:2},"\n\n\nUp\nKC_PAGE_UP\n\n\nPage"],
-[{y:-0.75},"~\n`\n\n\nKC_GRAVE"],
-[{y:-0.5,x:1},"\n\n\nEnd\nKC_END"],
-[{y:-0.75,x:2},"\n\n\nDown\nKC_PAGE_DOWN\n\n\nPage"],
-[{y:-0.75},"\n\n\nDel\nKC_DELETE"],
-[{y:-0.25,x:2},"\n\n\nCtrl\nOSM(MOD_RCTL)"],
-[{y:-0.25,x:1,a:3},"↑\n\n\n\nKC_UP"],
-[{y:-0.75,x:2},"→\n\n\n\nKC_RIGHT"],
-[{y:-0.75},"←\n\n\n\nKC_LEFT"],
-[{y:-0.5,x:1},"↓\n\n\n\nKC_DOWN"]
+  [
+    {
+      "x": 1,
+      "a": 0
+    },
+    "\n\n\nHome\nKC_HOME"
+  ],
+  [
+    {
+      "y": -0.75,
+      "x": 2
+    },
+    "\n\n\nUp\nKC_PAGE_UP\n\n\nPage"
+  ],
+  [
+    {
+      "y": -0.75
+    },
+    "\n\n\nF2\nKC_F2"
+  ],
+  [
+    {
+      "y": -0.5,
+      "x": 1
+    },
+    "\n\n\nEnd\nKC_END"
+  ],
+  [
+    {
+      "y": -0.75,
+      "x": 2
+    },
+    "\n\n\nDown\nKC_PAGE_DOWN\n\n\nPage"
+  ],
+  [
+    {
+      "y": -0.75
+    },
+    "\n\n\nDel\nKC_DELETE"
+  ],
+  [
+    {
+      "y": -0.25,
+      "x": 2
+    },
+    "\n\n\nCtrl\nOSM(MOD_RCTL)\n\n\nOSM-"
+  ],
+  [
+    {
+      "y": -0.25,
+      "x": 1,
+      "a": 3
+    },
+    "↑\n\n\n\nKC_UP"
+  ],
+  [
+    {
+      "y": -0.75,
+      "x": 2
+    },
+    "→\n\n\n\nKC_RIGHT"
+  ],
+  [
+    {
+      "y": -0.75
+    },
+    "←\n\n\n\nKC_LEFT"
+  ],
+  [
+    {
+      "y": -0.5,
+      "x": 1
+    },
+    "↓\n\n\n\nKC_DOWN"
+  ]
 ]

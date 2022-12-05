@@ -1,6 +1,6 @@
 # p2ppcb_parts_data
 
-See p2ppcb_parts_resolver's ReadMe.md.
+See `p2ppcb_parts_resolver`'s `ReadMe.md`.
 
 ## `UseStabilizer` parameter
 

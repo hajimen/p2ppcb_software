@@ -181,6 +181,13 @@ We can read a switch by giving voltage lower than the Vf. About driving, a resis
 Even when the switch is close, the resistor makes enough voltage to drive the LED which is connected
 in parallel to the switch-resistor. Reading and driving are multiplexed by time division in high frequency like PWM.)
 
+### Single IDC Contact Push Mount
+
+<img width="704" alt="Single IDC Contact Push Mount" src="https://user-images.githubusercontent.com/1212166/205607683-697694b7-b2b8-42c0-b508-0daa7677686f.PNG">
+
+To Push a wire to a single IDC contact, this mount helps you. Insert the cuboid end to the switch hole of a frame.
+You can get this component by printing the F3D file: `p2ppcb_component_reference/contact-to-socket/Single IDC Contact Push Mount.f3d`.
+
 ## Qwiic-to-TRRS Assembly
 
 ![Qwiic-to-TRRS](https://user-images.githubusercontent.com/1212166/204488371-f274d0c1-be72-4f98-81a5-a561463c563b.jpg)
@@ -204,8 +211,9 @@ Rubber sole is also indispensable. P2PPCB platform has a dedicated foot kit.
 P2PPCB platform requires so many parts for building a real keyboard.
 
 - Specialty hand tool for single IDC contact (special bit and common handle)
-- Mainboard
+- Mainboard (with screws)
 - Contact-to-socket assembly
+- Single IDC contact push mount
 - Matrix wire
 - Foot kit
 - Key switch
@@ -217,9 +225,17 @@ In these parts, difficult-to-reuse is only matrix wire and frame. You can reuse 
 up to three times (according to Kyocera AVX. I guess a lot more actually).
 
 So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdriver). Just getting this kit,
-you can test P2PPCB hardware by hand.
+you can build and test a P2PPCB-based keyboard by hand.
 
 TODO link to item
+
+# Technical Details
+
+This repository contains a lot of technical details of P2PPCB platform. You'll need them when you go deep.
+
+`p2ppcb_component_reference`: P2PPCB component
+
+`p2ppcb_starter_kit_reference`: P2PPCB Starter Kit
 
 # Discussions
 

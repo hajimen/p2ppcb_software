@@ -103,9 +103,12 @@ https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b
 
 5. Adjust each key
 
-You can move each key, or change the switch / cap / stabilizer / etc. of each key. A bit bizarre behavior can occur in **Change Key** command.
+You can move each key, of course.
 
 https://user-images.githubusercontent.com/1212166/205190738-955e6beb-f937-490e-a4c4-32c4ce18899b.mp4
+
+Also you can change the switch / cap / stabilizer / etc. of each key by **Change Key** command.
+A bit bizarre behavior can occur in the command. Check the video below.
 
 https://user-images.githubusercontent.com/1212166/205191054-84a16ef2-c920-4fa9-a5d0-66a4c00a2914.mp4
 
@@ -172,8 +175,9 @@ To know the area of a part itself, and to check the interference of parts each o
 we need **MEV** (must-exclusively-void) area, in addition to hole area.
 
 To reduce inference check range, there is **Territory**. It declares the outer edge of fill-hole areas of a part.
+You don't find it in usual operation.
 
-**Placeholder** will be obvious.
+**Placeholder** will be obvious. It is for developers only too.
 
 ## QMK keycodes in your KLE file
 
@@ -196,6 +200,14 @@ Without them, your life will be much harder. Use **Assign Matrix** command and *
 
 The route data generation of split keyboards is not supported. You need to combine two keymaps into one by yourself.
 The example is shown in <https://github.com/hajimen/qmk_firmware/blob/p2ppcb/keyboards/p2ppcb/charlotte/keymaps/ntcs/keymap.c>.
+
+## Show all available caps
+
+You can find several `test.json` files in `p2ppcb_parts_data_f360/parameters/*/`. They are KLE files
+and contain all available caps of each profile. Load it by **Load KLE** command and see the result.
+
+By inspecting `test.json` with KLE, you can grab how to specify row (in the case of row-dependent profile) and special
+caps like ISO Enter.
 
 ## Advanced features and design
 
@@ -236,7 +248,7 @@ It comes from cefpython3's behavior under F360 + VSCode debugger. I don't know w
 
 ## Lazy binding by surrogate
 
-F360 command cannot import F360 components, from the end of a create event to the end of an execute event. 
+From the end of a create event to the end of an execute event, F360 command cannot import F360 components. 
 Importing should be done in a create event handler or after an execute event.
 Importing in a create event handler breaks the cancel button's behavior (I did it in **Load KLE** command). 
 Importing after an execute event is done by F360 custom event: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-EC785EB6-22A8-4932-B362-395262D802CF>
