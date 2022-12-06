@@ -16,6 +16,7 @@ class SetAttributeCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
         self.require_cn_internal = False
+        self.require_cn_key_locators = False
 
     @property
     def cmd_name(self) -> str:

@@ -128,11 +128,11 @@ If you use a 3D printing service, go Bob or Charlotte.
 ![Alice Wire Harness Set](https://user-images.githubusercontent.com/1212166/204482063-080e00e3-34a9-44c6-9837-83c2bb0c8a61.jpg)
 
 Alice accepts female Dupont wire as matrix wire. It is cheaper and more convenient than IDC ribbon cable of **Bob** / **Charlotte**.
-Dupont wire is not very reliable, but enough for trial-and-error iterations of a design process.
+A Dupont wire is not very reliable, but enough for trial-and-error iterations of a design process.
 A wire harness set (the image above) is available for high reliability, but it is quite expensive.
 
 You might think IDC ribbon cable is available for Alice. I thought so too.
-But 1.27 mm pitch cable (common thing) is too thick for a single IDC contact. I failed to make it reliable.
+But 1.27 mm pitch ribbon cable (common thing) is too thick for a single IDC contact. I failed to make it reliable.
 (This is a big reason why I need to make Bob and Charlotte.)
 
 ### Bob
@@ -140,12 +140,15 @@ But 1.27 mm pitch cable (common thing) is too thick for a single IDC contact. I 
 ![Bob](https://user-images.githubusercontent.com/1212166/204481608-7f183b4c-1801-4136-88ea-a06abbbf45b7.jpg)
 
 **Bob** is the smallest and cheapest but lacks many functions.
+You can configure most thing with VIA <https://www.caniusevia.com/>.
+With Bob, you can live without QMK firmware configuration in most cases.
 
 ### Charlotte
 
 ![Charlotte](https://user-images.githubusercontent.com/1212166/204481740-dc1d4314-9420-4dec-b742-34981c9d06d9.jpg)
 
 If you need split keyboard / switch LED / Qwiic connector, **Charlotte** is recommended.
+If you go Charlotte, QMK firmware is a compulsory subject.
 
 (You might wonder how Charlotte uses I2C for split keyboards. I implemented I2C slave mode
 which ChibiOS doesn't have. The code is RP2040 only, sorry.)
@@ -160,7 +163,8 @@ Alice accepts a female Dupont wire as a matrix wire. It is a general-purpose par
 A wire harness set for Alice is available as a P2PPCB component, but it is not recommended in most cases.
 
 Bob and Charlotte accept 1.00 mm pitch IDC ribbon rainbow cable as matrix wire. The pitch is not very common.
-These are P2PPCB components. When you build a keyboard, tear off bonding of wires (easily tearable), and use it as single wires.
+These are P2PPCB components. When you build a keyboard, tear off the bonding of wires (easily tearable),
+and use them as single wires.
 
 ## Contact-to-Socket Assembly
 

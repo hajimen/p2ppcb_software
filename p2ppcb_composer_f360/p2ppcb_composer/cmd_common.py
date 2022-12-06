@@ -155,6 +155,7 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
         self._inputs: ty.Optional[ac.CommandInputs] = None
         self.create_ok: bool
         self.require_cn_internal = True
+        self.require_cn_key_locators = True
 
     @property
     def cmd_name(self) -> str:
@@ -218,6 +219,10 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
             con = get_context()
             if self.require_cn_internal and CN_INTERNAL not in con.child:
                 con.ui.messageBox('Please initialize a P2PPCB project first.')
+                self.create_ok = False
+                return
+            if self.require_cn_key_locators and CN_KEY_LOCATORS not in con.child[CN_INTERNAL].child:
+                con.ui.messageBox('Please load KLE first.')
                 self.create_ok = False
                 return
             self.notify_create(event_args)

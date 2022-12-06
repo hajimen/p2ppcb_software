@@ -141,6 +141,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         super().__init__()
         self.parts_cb: PartsCommandBlock
         self.require_cn_internal = False
+        self.require_cn_key_locators = False
 
     @property
     def cmd_name(self) -> str:

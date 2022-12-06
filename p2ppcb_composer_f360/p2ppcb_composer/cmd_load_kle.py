@@ -98,6 +98,7 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
         self.move_comp_cb: MoveComponentCommandBlock
+        self.require_cn_key_locators = False
 
     @property
     def cmd_name(self) -> str:
