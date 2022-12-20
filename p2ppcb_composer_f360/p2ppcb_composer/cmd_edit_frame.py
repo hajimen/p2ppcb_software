@@ -582,7 +582,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             if b.isValid:
                 b.deleteMe()
         for an in ANS_HOLE_MEV_MF:
-            for b in body_finder.get(o, an, av):
+            for b in body_finder.get(o, an, av) + body_finder.get(o, an, an):
                 tb = b.copyToComponent(o.raw_occ)
                 a = tb.nativeObject.attributes.itemByName(ATTR_GROUP, an)
                 if a is None:
@@ -609,7 +609,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         o = self.execute_common(event_args)
-        self.prepare_temp_body(o)
         capture_position()
         o.comp_attr[AN_MB_LOCATION_INPUTS] = base64.b64encode(pickle.dumps([
             [ci.value for ci in self.move_comp_cb.get_inputs()],
@@ -887,7 +886,7 @@ def hole_all_parts(frame: af.BRepBody):
     for o in other_occs:
         if AN_MB_LOCATION_INPUTS in o.comp_attr:
             flip = load_mb_location_inputs(o)[3]
-            for b in body_finder.get(o, AN_HOLE, AV_FLIP if flip else AV_RIGHT):
+            for b in body_finder.get(o, AN_HOLE, AV_FLIP if flip else AV_RIGHT) + body_finder.get(o, AN_HOLE, AN_HOLE):
                 tb = b.copyToComponent(con.comp)
                 hole_body_col.add(tb)
         else:

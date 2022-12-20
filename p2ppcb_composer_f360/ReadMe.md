@@ -209,6 +209,11 @@ and contain all available caps of each profile. Load it by **Load KLE** command 
 By inspecting `test.json` with KLE, you can grab how to specify row (in the case of row-dependent profile) and special
 caps like ISO Enter.
 
+## F360's bug on parametric modeling
+
+In some cases parametric modeling is better than direct modeling, especially for making a cover. In parametric modeling, 
+the placeholders of keys slip sometimes. This is F360's bug. In that case, Run **Sync Key** command.
+
 ## Advanced features and design
 
 ### 'Regex Select' command

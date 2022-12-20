@@ -153,7 +153,7 @@ If you go Charlotte, QMK firmware is a compulsory subject.
 (You might wonder how Charlotte uses I2C for split keyboards. I implemented I2C slave mode
 which ChibiOS doesn't have. The code is RP2040 only, sorry.)
 
-## Matrix Wire
+## Matrix Wire Cable
 
 ![36-pin 1.00 mm pitch IDC ribbon rainbow cable](https://user-images.githubusercontent.com/1212166/204482169-f5ddf0f1-f670-47e1-9cb6-9a9a42c60313.jpg)
 
@@ -179,7 +179,7 @@ are available.
 
 ![Contact-to-Socket](https://user-images.githubusercontent.com/1212166/204484257-108bf20a-2522-4053-b8ea-9a14f05be936.jpg)
 
-(You might wonder how LED and switch both are driven / read by only a pair of wires.
+(You might wonder how a LED and a switch both are driven / read by only a pair of wires.
 By utilizing the forward voltage (Vf) of LEDs. Under its Vf, a LED does not flow current (no light, of course).
 We can read a switch by giving voltage lower than the Vf. About driving, a resistor is connected in series to a switch.
 Even when the switch is close, the resistor makes enough voltage to drive the LED which is connected
@@ -189,7 +189,7 @@ in parallel to the switch-resistor. Reading and driving are multiplexed by time 
 
 <img width="704" alt="Single IDC Contact Push Mount" src="https://user-images.githubusercontent.com/1212166/205607683-697694b7-b2b8-42c0-b508-0daa7677686f.PNG">
 
-To Push a wire to a single IDC contact, this mount helps you. Insert the cuboid end to the switch hole of a frame.
+To push a wire to a single IDC contact, this mount helps you. Insert the cuboid end to the switch hole of a frame.
 You can get this component by printing the F3D file: `p2ppcb_component_reference/contact-to-socket/Single IDC Contact Push Mount.f3d`.
 
 ## Qwiic-to-TRRS Assembly
@@ -201,7 +201,7 @@ Qwiic-to-TRRS assembly is available as a P2PPCB component. TRRS cable is a gener
 
 (No P2PPCB component for USART split keyboards of Alice. Connect by female / female Dupont wire or solder a terminal which you like.)
 
-## Foot Kit
+## Adjustable Foot Kit
 
 ![Foot Spacers](https://user-images.githubusercontent.com/1212166/204488560-f9f35b51-4cd7-4369-bd15-2f8b73eed9d3.jpg)
 
@@ -218,17 +218,17 @@ P2PPCB platform requires so many parts for building a real keyboard.
 - Mainboard (with screws)
 - Contact-to-socket assembly
 - Single IDC contact push mount
-- Matrix wire
-- Foot kit
+- Matrix wire cable
+- Adjustable foot kit
 - Key switch
 - Keycap
 - 3D-printed frame
-- Philips screwdriver :-)
+- A Philips and a slotted screwdrivers :-)
 
 In these parts, difficult-to-reuse is only matrix wire and frame. You can reuse Contact-to-socket assembly
 up to three times (according to Kyocera AVX. I guess a lot more actually).
 
-So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdriver). Just getting this kit,
+So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdrivers). Just getting this kit,
 you can build and test a P2PPCB-based keyboard by hand.
 
 TODO link to item
