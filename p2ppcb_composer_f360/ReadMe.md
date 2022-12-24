@@ -211,7 +211,7 @@ caps like ISO Enter.
 
 ## F360's bug on parametric modeling
 
-In some cases parametric modeling is better than direct modeling, especially for making a cover. In parametric modeling, 
+In some cases parametric modeling is better than direct modeling, especially for making a cover. In parametric modeling mode, 
 the placeholders of keys slip sometimes. This is F360's bug. In that case, Run **Sync Key** command.
 
 ## Advanced features and design

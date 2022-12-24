@@ -582,7 +582,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
             if b.isValid:
                 b.deleteMe()
         for an in ANS_HOLE_MEV_MF:
-            for b in body_finder.get(o, an, av) + body_finder.get(o, an, an):
+            for b in body_finder.get(o, an, av):
                 tb = b.copyToComponent(o.raw_occ)
                 a = tb.nativeObject.attributes.itemByName(ATTR_GROUP, an)
                 if a is None:

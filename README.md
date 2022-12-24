@@ -225,7 +225,7 @@ P2PPCB platform requires so many parts for building a real keyboard.
 - 3D-printed frame
 - A Philips and a slotted screwdrivers :-)
 
-In these parts, difficult-to-reuse is only matrix wire and frame. You can reuse Contact-to-socket assembly
+In these parts, difficult-to-reuse is only matrix wire and frame. You can reuse contact-to-socket assembly
 up to three times (according to Kyocera AVX. I guess a lot more actually).
 
 So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdrivers). Just getting this kit,

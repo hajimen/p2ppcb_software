@@ -6,9 +6,9 @@ to make elaborate and real-world (not mass-producing) products.
 The "NTCS" is "Near TKL Conservative Split". 
 It is conservative because it accepts ready-made keycap sets (should be row-independent uniform profile like XDA or DSA) 
 for common US-ASCII TKL (87 keys) keyboards. It hides several obsolete keys (Pause, Scroll Lock, Print Screen, Caps Lock, Insert, Menu)
-to a QMK layer but all other TKL keys are there, so "Near TKL".
+under QMK layer 1 but all other TKL keys are there, so "Near TKL".
 
-You can use it as an example of your design, a test specimen for evaluating P2PPCB platform in the real world, 
+You can use it as a reference of your design, a test specimen for evaluating P2PPCB platform in the real world, 
 or just for fun.
 
 # Covered and Naked style
@@ -30,7 +30,7 @@ I recommend mimicking the structure on your own design.
 
 # How to Assemble
 
-Parts List
+## Parts List
 
 - P2PPCB mainboard Charlotte set: 2 sets
 - P2PPCB matrix wire cable for Charlotte: 2 pcs
@@ -46,12 +46,42 @@ Parts List
 - Cherry-style plate mount stabilizer for 2u: 4 pcs
 - P2PPCB NTCS frames and covers, printed by MJF PA12: 1 set
 
+## Precision Test
+
+![Precision Marks](https://user-images.githubusercontent.com/1212166/209415583-0d614ed5-e443-4265-84e2-5a9159c72551.PNG)
+
+You can find these bulges on the covers of NTCS. They are precision marks to verify the precision of 3D printing results.
+If you use MJF, nothing to care about it. But if not, the marks are useful. 
+Get a M3 screw or 3.0 mm drill bit, and try to push it (the chuck side or the tail) into a gap between three bulges, 
+like the figure below.
+
+<img width="398" alt="Capture" src="https://user-images.githubusercontent.com/1212166/209415763-1a1ac968-f855-432b-82f8-1d7e7763d093.PNG">
+
+Seven bulges consist a section, and two sections are paired side-by-side. 
+The diameter of the green translucent cylinder shown in the figure above is 2.9 mm or 3.1 mm in the drawings. 
+One of the section of a pair is 2.9 mm, and the other is 3.1 mm. Therefore, if a 3D printing 
+result is enough precise, you can easily push 3.0 mm cylinder into all six gaps of 3.1 mm section, 
+and cannot put into any gaps of 2.9 mm section.
+
+The section pairs are installed on XY, XZ, and YZ planes of a cover because many 3D printers have anisotropy. 
+If your 3D printing result fails the test, you might be going to face a problem while assembling.
+
+## Tightening Screws and Warp Countermeasure
+
+First of all: Please note that MJF is fragile against small screws like M2.6. 
+The tightening force should be much smaller than common screws. Just stopping rattling is enough. 
+It cannot bear too many tightening-loosening iterations. 
+(BTW in this aspect SLA is better than MJF.)
+
 I assume that you have already assembled a P2PPCB starter kit. There will be no hard part before
-fastening the frame with the cover. The fastening is a bit tricky. Put the frame in the cover, and:
+fastening the frame with the cover (please check the operation before fastening). 
+The fastening is a bit tricky, because the design is the countermeasure of the warping of 3D printing results.
+
+Put the frame in the cover, and:
 
 1. Put M2.6 x 7 mm screws on the holes of the cover wall. Don't tighten, just drive a bit.
 2. Put a M2.6 x 7 mm screw on the hole at the center of the cover bottom. Tighten it.
-3. See if the cover bottom is entirely flat. If not flat, the feet will rattle. It is very common because 3D-printing result always warps.
+3. See if the cover bottom is entirely flat. If not flat, the feet will rattle. It is very common because 3D-printing results always warp.
 4. By pushing or pulling the frame to the cover, make the cover bottom flat, and tighten the screws of the wall.
 
 # How to Use
@@ -59,18 +89,18 @@ fastening the frame with the cover. The fastening is a bit tricky. Put the frame
 The keycaps are row-independent uniform profile. So you can reallocate all 1u keycaps as you like.
 You can remap keycode by VIA, of course.
 
-Left and right bodies both have a Micro USB type-B connector. You can choose whichever you like and connect to your PC.
+Left and right bodies both have a Micro USB type-B connector. You can choose one whichever you like and connect it to your PC.
 
-The hole on the cover around the USB connector is for BOOTSEL button of Raspberry Pi Pico. You can press BOOTSEL button via the hole
+The hole on the cover near the USB connector is for BOOTSEL button of Raspberry Pi Pico. You can press BOOTSEL button via the hole
 to write new firmware.
 
 The LED keys in front of the space keys are for Caps Lock / Scroll Lock indicator. 
-I map LANG2 / LANG1 on them (useful keys for Japanese) in QMK layer 0. 
+I map LANG2 / LANG1 on them (useful keys for Japanese input) in QMK layer 0. 
 
 The finger assignment shown in the figure below might look odd. 
-"Typing method" says that you should press number row keys by four fingers including pinky,
-but I think it is outdated rubbish from the age of non-electric typewriters and professional typists. They didn't use wrist rests
-because they should hit keys with adequate even force, like a pianist. If the hitting force is not uneven, the thickness of the letters 
+"Typing method" says that you should press "1/!" key by your pinky finger,
+but I think it is outdated rubbish from the age of non-electric typewriters and professional typists. They didn't use wrist rests 
+because they should hit keys with adequate even force, like a pianist. If the hitting force is uneven, the thickness of the letters 
 becomes uneven. It was considered not the workmanship of a professional typist. So they hit keys by their shoulders and arms, 
 not palms and fingers. In this case, the shortness of the pinky finger is not a 
 problem because the upper arm moves and covers all the keys on a keyboard. 
@@ -81,7 +111,7 @@ There was no room for wrist rests, like a piano.
 Today we live on another planet. 
 NTCS has built-in wrist rests. It doesn't assume shoulder-and-arm typing. Long fingers should press distant keys.
 
-![Finger Assignment](https://user-images.githubusercontent.com/1212166/208006012-58058656-3112-46b4-acbe-6c67344bbc96.png)
+![Finger Assignment](https://user-images.githubusercontent.com/1212166/208791474-8c6c3ea0-70e5-4856-b384-1191193a8042.png)
 
 # The Design Process of NTCS
 
@@ -106,9 +136,9 @@ Built-in wrist rests can be uncommonly high-profile.
 
 - Wedge-shaped gaps between keytops
 
-My dear keyboard people, please stop to fill a keyboard with keytops. It is a quite common mistake
-in this industry. Key separation (pushing down a key without interfering other keys) is much more 
-important than keytop largeness, and key separation requires gaps between keytops each other.
+My dear keyboard people, please stop filling a keyboard with keytops. It is a quite common mistake
+in this industry. Key separation (pushing down a key without interfering with other keys) is much more 
+important than keytop largeness, and key separation requires gaps between keytops.
 Your habit might say "Gaps between keytops are ugly". Please break the habit now.
 
 NTCS's wedge angle is much acuter than TK1's. TK1's angle is more bizarre and attractive, but I've come to 
@@ -116,15 +146,15 @@ the conclusion that it is not good for typing.
 
 - Small space key and Shift keys by thumbs
 
-These ideas are very common even before TK1. Maltron's keyboard in 1980 had a small space key,
-and Fujitsu's "親指シフト" (Thumb Shift) keyboard in 1980 had Shift keys by thumbs (the space key was small too). 
+These ideas are very common even before TK1. Maltron's keyboard in 1980 had a small space key.
+Fujitsu's "親指シフト" (Thumb Shift) keyboard in 1980 had Shift keys by thumbs (the space key was small too). 
 I feel curious why these ideas are rarely seen in a (bizarre) keyboard today.
 
 - Arrow keys under main cluster (right hand only)
 
 Symmetric arrow keys are the big charm of TK1. I tried to mimic it by placing Home / End / PgUp / PgDn instead of 
-red arrows in left hand, but when I tested the layout with prototype, I realized it is a bad idea. 
-All navigation keys should be assigned to right hand because left hand should do copy paste.
+red arrows on the left hand part, but when I tested the layout with several prototypes, I realized it is a bad idea. 
+All navigation keys should be assigned to the right hand because the left hand should focus copy paste.
 
 - How about other ideas?
 
@@ -146,7 +176,7 @@ TRON keyboard TK1 was a part of a such new ecosystem "BTRON", but it failed. Fro
 I think an ultimate keyboard will be not profitable, not widely available, not even very good for most people in the real world, 
 even if it is mass-produced and its price is around common keyboards'. An ultimate keyboard is the same kind of 
 exotic cars. Its price can be several hundred times of common products', but it is inferior to common products 
-in most aspects.)
+in most aspects even without counting the price.)
 
 Swapping keycaps is a great recreation. It is much harder with custom keycap based keyboards. 
 A ready-made keycap set is a great product of the existing ecosystem.
@@ -165,8 +195,8 @@ easily, with any combination, by one hand. (I think multi-pressing of modifier k
 a bad idea of the existing ecosystem, but NTCS is not an ultimate keyboard.) Because of this requirement, 
 yet another modifier key (i.e. QMK layer) is hard to use heavily. Ctrl+Shift+F5 is a very familiar shortcut in Visual Studio, 
 but if F5 is hidden by yet another modifier (YAM) key, Ctrl+Shift+YAM+5 should be easy to press. 
-In typing Japanese, F7 is very frequently used key. YAM+7 should be easy to press like Shift+7. 
-I think it is impossible to fulfill all requirements like them under the all prerequisites above.
+In typing Japanese, F7 is a very frequently used key. YAM+7 should be easy to press like Shift+7. 
+I think it is impossible to fulfill all requirements like them under all the prerequisites above.
 
 Under different prerequisites, heavy use of YAM key can be a good design because it can reduce keys on a keyboard. 
 
@@ -201,12 +231,12 @@ https://user-images.githubusercontent.com/1212166/207769963-8871a65c-baf6-4fd5-8
 The first trial of covered style. I adopted the start point 2 from this iteration.
 
 - Small space key should be in front of V. Shift key should be the right neighbor of the space key.
-- Q should be pressed by ring finger.
-- Thumb keys should be more lower.
+- Q should be pressed by a ring finger.
+- Thumb keys should be lower.
 - Ctrl key should be a thumb key.
 
-I don't mention about the problem of covered style. Just mimic the final result about it.
-And I don't mention about right hand too. It will be redundant.
+I don't mention the problem of covered style. Just mimic the conclusion shown in the F3D files of NTCS.
+And I don't mention the right hand part too. It will be redundant.
 
 ## Iteration 3
 
@@ -218,7 +248,7 @@ The first trial of built-in wrist rests. I thought of taking a video at this tim
 The material is SLA of WENEXT. It is much cheaper than MJF. Built-in wrist rests takes up much space,
 and it makes 3D printing much more pricey.
 
-- The position of Alt key is not a good idea.
+- The position of the Alt key is not a good idea.
 - Pressing the space key interferes End key.
 - Wrist rests are too long in front-back direction.
 - Shift and Ctrl keys should be more back a bit.
@@ -233,7 +263,7 @@ https://user-images.githubusercontent.com/1212166/207805898-d4af1ae7-47c4-46dc-a
 https://user-images.githubusercontent.com/1212166/207806336-694a83c3-6f9b-410a-8993-eb757cfd567e.mp4
 
 - Shift key should be more front a bit.
-- LANG1 should be lower. Pressing Ctrl key interferes.
+- LANG1 should be lower. Pressing the Ctrl key interferes.
 - Symmetric layout of arrow keys (Home / End / PgUp / PgDn - Left / Right / Up / Down) is a bad idea.
 
 ## Iteration 5
@@ -259,12 +289,12 @@ https://user-images.githubusercontent.com/1212166/207817925-683ccf40-5cc8-40d5-9
 
 # How to Mimic the Structure of NTCS
 
-It is far from straightforward. If you feel it is too tedious, please ask me. I can make a covered style design 
-from your naked style design. It costs, of course. It is a tedious job even for me.
+It is far from straightforward. If you feel it is too tedious, please ask me. I can make a covered style 
+from your naked style F3D file. It costs, of course.
 
 The basic story is the Fill/Hole method. You should do the method manually to the cover.
 In the F3D file of NTCS, on the object browser, expand `P2PPCB Internal/Foot Placeholders mU0jU/Foot A_FL:1/Foot_P:2/Bodies`.
-You'll find `Foot Fill Cover` body. `Cover Boss.*/Bodies` and `Adjust Boss.*/Bodies` also has bodies with such names. 
+You'll find a `Foot Fill Cover` body. `Cover Boss.*/Bodies` and `Adjust Boss.*/Bodies` also has bodies with such names. 
 
 **Regex Select** command in **Select** panel in SOLID tab will help you. You can see the results of the command 
 in "Selection Sets" of the object browser.
