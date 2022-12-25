@@ -1,0 +1,186 @@
+[
+  [
+    {
+      "x": 4.5,
+      "a": 0
+    },
+    "@\n2\n\n\nKC_2",
+    "#\n3\n\n\nKC_3"
+  ],
+  [
+    {
+      "y": -0.75,
+      "x": 6.5
+    },
+    "$\n4\n\n\nKC_4"
+  ],
+  [
+    {
+      "y": -0.25,
+      "x": 4.5
+    },
+    "W\n\n\n\nKC_W",
+    "E\n\n\n\nKC_E"
+  ],
+  [
+    {
+      "x": 4.75
+    },
+    "S\n\n\n\nKC_S",
+    "D\n\n\n\nKC_D"
+  ],
+  [
+    {
+      "x": 5.25
+    },
+    "X\n\n\n\nKC_X"
+  ],
+  [
+    {
+      "y": 1,
+      "x": 2.5
+    },
+    "F1\n\n\nMenu\nKC_F1\n\n\n\n\n\n\nKC_APPLICATION",
+    "F2\n\n\nPrtScr\nKC_F2\n\n\n\n\n\n\nKC_PRINT_SCREEN",
+    "F3\n\n\nPause\nKC_F3\n\n\n\n\n\n\nKC_PAUSE",
+    "F4\n\n\nSysRq\nKC_F4"
+  ],
+  [
+    {
+      "x": 2.5
+    },
+    "F5\n\n\n\nKC_F5",
+    "F6\n\n\n\nKC_F6",
+    "F7\n\n\n\nKC_F7",
+    "F8\n\n\n\nKC_F8"
+  ],
+  [
+    {
+      "x": 2.5
+    },
+    "F9\n\n\n\nKC_F9",
+    "F10\n\n\n\nKC_F10",
+    "F11\n\n\n\nKC_F11",
+    "F12\n\n\n\nKC_F12"
+  ],
+  [
+    {
+      "r": 15,
+      "rx": 6.25,
+      "ry": 4,
+      "y": -3.75,
+      "x": 0.5
+    },
+    "%\n5\n\n\nKC_5",
+    "^\n6\n\n\nKC_6"
+  ],
+  [
+    "R\n\n\n\nKC_R",
+    "T\n\n\n\nKC_T",
+    {
+      "w": 1.5
+    },
+    "|\n\\\n\n\nKC_BACKSLASH"
+  ],
+  [
+    {
+      "x": 0.25,
+      "n": true
+    },
+    "F\n\n\n\nKC_F",
+    "G\n\n\n\nKC_G",
+    "\"\n'\n\n\nKC_QUOTE"
+  ],
+  [
+    "C\n\n\n\nKC_C",
+    "V\n\n\n\nKC_V",
+    "B\n\n\n\nKC_B"
+  ],
+  [
+    {
+      "x": 1.5,
+      "a": 3,
+      "w": 1.25
+    },
+    "\n\n\n\nKC_SPACE"
+  ],
+  [
+    {
+      "x": 1.75,
+      "a": 0
+    },
+    "LANG2\n\n\nCapsLk\nKC_LANGUAGE_2\n\n\n\n\n\n\nKC_CAPS_LOCK"
+  ],
+  [
+    {
+      "r": 25,
+      "y": -3.5,
+      "x": 3.25,
+      "w": 1.25
+    },
+    "Win\n\n\n\nKC_RIGHT_GUI\n\n\n\n\n\n\nKC_RIGHT_GUI"
+  ],
+  [
+    {
+      "x": 3,
+      "w": 2.25
+    },
+    "Shift\n\n\n\nKC_LEFT_SHIFT\n\n\n\n\n\n\nKC_LEFT_SHIFT"
+  ],
+  [
+    {
+      "x": 3.25,
+      "h": 1.25
+    },
+    "Ctrl\n\n\n\nKC_LEFT_CTRL\n\n\n\n\n\n\nKC_LEFT_CTRL",
+    {
+      "h": 1.25
+    },
+    "Alt\n\n\n\nKC_LEFT_ALT\n\n\n\n\n\n\nKC_LEFT_ALT"
+  ],
+  [
+    {
+      "r": -6,
+      "rx": 5.25,
+      "y": -3.5,
+      "x": -1.5
+    },
+    "!\n1\n\n\nKC_1"
+  ],
+  [
+    {
+      "y": -0.5,
+      "x": -2.5
+    },
+    "Esc\n\n\n\nKC_ESCAPE"
+  ],
+  [
+    {
+      "y": -0.5,
+      "x": -1.5
+    },
+    "Q\n\n\n\nKC_Q"
+  ],
+  [
+    {
+      "y": -0.5,
+      "x": -2.5,
+      "h": 1.5
+    },
+    "Tab\n\n\n\nKC_TAB"
+  ],
+  [
+    {
+      "y": -0.5,
+      "x": -1.5
+    },
+    "A\n\n\n\nKC_A"
+  ],
+  [
+    {
+      "x": -2
+    },
+    "Del\n\n\nIns\nKC_DELETE\n\n\n\n\n\n\nKC_INSERT",
+    "Z\n\n\n\nKC_Z"
+  ]
+]
