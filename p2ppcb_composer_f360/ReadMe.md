@@ -189,7 +189,7 @@ Front-center legend is layer 1, and front-right legend is layer 2. You can see t
 
 ## Keyboard matrix
 
-Keyboard matrix: <https://github.com/qmk/qmk_firmware/blob/master/docs/how_a_matrix_works.md>
+Keyboard matrix: <https://github.com/hajimen/qmk_firmware/blob/p2ppcb/docs/how_a_matrix_works.md>
 
 P2PPCB Bob/Charlotte uses S and D instead of row and col. QMK's row and col are dependent from the direction of current 
 (ROW2COL and COL2ROW are both capable), but S and D are always S to D.

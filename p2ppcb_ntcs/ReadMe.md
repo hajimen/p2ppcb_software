@@ -30,6 +30,9 @@ I recommend mimicking the structure on your own design.
 
 # How to Assemble
 
+If you feel hard to prepare all parts / components and assemble them, please ask me via email.
+The price is $1000 without switches, keycaps, and the shipping charge.
+
 ## Parts List
 
 - P2PPCB mainboard Charlotte set: 2 sets
@@ -45,6 +48,7 @@ I recommend mimicking the structure on your own design.
 - Blank 1.25u keycap: 2 pcs
 - Cherry-style plate mount stabilizer for 2u: 4 pcs
 - P2PPCB NTCS frames and covers, printed by MJF PA12: 1 set
+- (Optional) Single IDC contact accessory cap 609176001415000: 168 pcs
 
 ## Precision Test
 
@@ -66,9 +70,34 @@ and cannot put into any gaps of 2.9 mm section.
 The section pairs are installed on XY, XZ, and YZ planes of a cover because many 3D printers have anisotropy. 
 If your 3D printing result fails the test, you might be going to face a problem while assembling.
 
-## Tightening Screws and Warp Countermeasure
+## Write Firmware
 
-First of all: Please note that MJF is fragile against small screws like M2.6. 
+At the time of shipment, mainboards' firmware is starter kit's. You need to write NTCS firmware to the mainboards.
+The firmware file is `p2ppcb_charlotte_ntcs.uf2` in this directory.
+
+Unplug USB, push down BOOTSEL button, and plug USB. You'll find `RPI RP2` drive on your PC.
+Copy the firmware file to the drive. The mainboard automatically resets itself, and it becomes NTCS.
+
+You should write it on left and right both, of course.
+
+## Single IDC Contact Accessory Cap
+
+For P2PPCB Starter Kit, there are no covers on single IDC contacts. This is enough reliable 
+while the keyboard is in a laboratory. If you find a disconnection, just fix it by the tool.
+It is quite rare.
+
+But in the real world, sometimes "quite rare" is not enough. The accessory cap ensures the reliability. 
+When you finish an operation test by VIA, apply the caps on the contacts. Long nose pliers will help you.
+
+CAUTION: Once you applied a cap, you cannot remove it without damaging the contact-to-socket assembly. 
+Carefully check the operation before applying.
+
+CAUTION: If you use non-genuine matrix wire, the cap may not be applicable. 1.2 mm diameter is the upper limit of the thickness.
+The tear-offed wire of a common ribbon cable (1.27 mm pitch) exceeds the limit.
+
+## Tightening Screws and Warp Correction
+
+First of all: Please note that **MJF is fragile against small screws like M2.6**. 
 The tightening force should be much smaller than common screws. Just stopping rattling is enough. 
 It cannot bear too many tightening-loosening iterations. 
 (BTW in this aspect SLA is better than MJF.)
@@ -87,7 +116,10 @@ Put the frame in the cover, and:
 # How to Use
 
 The keycaps are row-independent uniform profile. So you can reallocate all 1u keycaps as you like.
-You can remap keycode by VIA, of course.
+You can remap keycode by VIA, of course. The draft definition file for VIA is here: 
+<https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_ntcs/via_keymap.json>
+
+TODO movie
 
 Left and right bodies both have a Micro USB type-B connector. You can choose one whichever you like and connect it to your PC.
 
@@ -159,7 +191,7 @@ All navigation keys should be assigned to the right hand because the left hand s
 - How about other ideas?
 
 As you can see, I didn't adopt many ideas in TK1. Symmetric and column-staggered layout, 
-built-in drawing tablet, 3-bank shift (left and right Shift key works differently), 
+built-in drawing tablet, 3-bank typewriter style shift (left and right Shift key works differently), 
 16 mm pitch, etc. Yeah TK1 is the pinnacle of 1980s' bizarre keyboards. 
 I miss them, but this is a design process.
 
@@ -192,7 +224,8 @@ decision because it changes the design completely.
 
 For example, by prioritizing keyboard shortcuts, all modifier keys should be easy to press simultaneously, 
 easily, with any combination, by one hand. (I think multi-pressing of modifier keys is 
-a bad idea of the existing ecosystem, but NTCS is not an ultimate keyboard.) Because of this requirement, 
+a bad idea of the existing ecosystem (commands should be invoked when the keys are released, just like mice and touchscreens), 
+but NTCS is not an ultimate keyboard.) Because of this requirement, 
 yet another modifier key (i.e. QMK layer) is hard to use heavily. Ctrl+Shift+F5 is a very familiar shortcut in Visual Studio, 
 but if F5 is hidden by yet another modifier (YAM) key, Ctrl+Shift+YAM+5 should be easy to press. 
 In typing Japanese, F7 is a very frequently used key. YAM+7 should be easy to press like Shift+7. 
