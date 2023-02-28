@@ -149,7 +149,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Initializes a P2PPCB project. It registers settings for a P2PPCB project. You can run this command twice or more.'
+        return 'Initializes a P2PPCB project. It registers settings for a P2PPCB project. You can run this command two or more times.'
 
     @property
     def resource_folder(self) -> str:

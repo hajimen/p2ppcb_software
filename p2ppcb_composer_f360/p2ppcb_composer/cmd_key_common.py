@@ -477,7 +477,7 @@ def _check_intra_key_assembly_interference(ka_occ_list: ty.List[VirtualF3Occurre
             msg = f'Key Assembly {ka_occ.name} has interference between its parts. You should avoid the combination of the parts.\n\n' + '\n'.join(result_str_list)
             error_messages.append(msg)
         if hit_bug:
-            msg = f'You came across a bug of Fusion 360 while checking Key Assembly {ka_occ.name}. The interference check overlooks something.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251'
+            msg = f'You have encountered a bug of Fusion 360 while checking Key Assembly {ka_occ.name}. The interference check overlooks something.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251'
             error_messages.append(msg)
 
     return error_messages

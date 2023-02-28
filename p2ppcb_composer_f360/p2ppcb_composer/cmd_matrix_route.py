@@ -44,7 +44,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Assigns a matrix for key layout. You can select key locators of a S/D once and assign a S/D line.'
+        return 'Assigns a matrix for the key layout. You can select key locators of a S/D once and assign a S/D line.'
 
     @property
     def resource_folder(self) -> str:
@@ -316,4 +316,4 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
         img_row.save(str(output_dir_path / 'wiring_S.png'))
         img_col.save(str(output_dir_path / 'wiring_D.png'))
 
-        con.ui.messageBox('QMK / VIA keymap and wiring diagrams has been generated.', 'P2PPCB')
+        con.ui.messageBox('QMK / VIA keymap and wiring diagrams have been generated.', 'P2PPCB')

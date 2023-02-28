@@ -106,7 +106,7 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return "Loads KLE's JSON file. It can require tens of minutes for large layouts, especially first time (cache file helps you after first time). You may see a dialog box which tells you the start/finish of RPA work (cache file helps). Cancel button of this command doesn't work as cancel."  # noqa
+        return "Loads KLE's JSON file. It can take tens of minutes for large layouts, especially the first time (cache file helps you after the first time). You may see a dialog box telling you the start/finish of RPA work (cache file helps). Cancel button of this command doesn't work as cancel."  # noqa
 
     @property
     def resource_folder(self) -> str:

@@ -130,7 +130,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         for st in set([a.value for a in con.find_attrs(AN_LOCATORS_SKELETON_TOKEN)]):
             sss = con.find_by_token(st)
             if len(sss) == 0:
-                raise BadConditionException('Skeleton Surface has been deleted after it was specified.')
+                raise BadConditionException('The skeleton surface has been deleted after it was specified.')
             skeleton_surface = af.BRepBody.cast(sss[0])
             col.clear()
             for f in skeleton_surface.faces:
@@ -428,7 +428,7 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
                 _show(ir.entityOne, io1, an1)
                 _show(ir.entityTwo, io2, an2)
     if hit_bug:
-        con.ui.messageBox('You came across a bug of Fusion 360. The interference check overlooks something.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')
+        con.ui.messageBox('You have encountered a bug of Fusion 360. The interference check overlooks something.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')
 
     return hits
 
@@ -931,7 +931,7 @@ class HolePartsCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Holes all parts, including the mainboard and feet. You can print the frame body after this command.'
+        return 'Holes all parts, including the mainboard and the feet. You can print the frame body after this command.'
 
     @property
     def resource_folder(self) -> str:

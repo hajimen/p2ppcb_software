@@ -29,7 +29,7 @@ F3D_DIRNAME = 'f3d'
 
 ATTR_GROUP = 'P2PPCB'
 
-# F360 cannot have two same component names. To avoid name collision to user, MAGIC is added after CN for P2PPCB.
+# F360 cannot have two identical component names. To avoid name collision for the user, MAGIC is added after CN for P2PPCB.
 MAGIC = ' mU0jU'
 
 # PN: Parameter Name
@@ -165,8 +165,8 @@ class F3OccurrenceDict(ty.MutableMapping[str, VirtualF3Occurrence]):
     def __init__(self, parent: ty.Union[af.Component, VirtualF3Occurrence]) -> None:
         super().__init__()  # It overwrites get() method.
 
-        # In case of isinstance(parent, af.Component), self.surrogate_occs never has elements.
-        # This is just for code simplicity.
+        # In the case of isinstance(parent, af.Component), self.surrogate_occs never has elements.
+        # This is just to simplify the code.
         self.surrogate_occs: ty.Union[ty.List[SurrogateF3Occurrence], SurrogateOccurrences] = []
 
         if isinstance(parent, af.Component):
@@ -279,7 +279,7 @@ class F3OccurrenceDict(ty.MutableMapping[str, VirtualF3Occurrence]):
 
     def get_real(self, name: str, on_create: ty.Callable = _DO_NOTHING) -> 'F3Occurrence':
         '''
-        Creates new occurrence when it doesn't have a child of the name. Always real, never surrogate.
+        Creates a new occurrence if it doesn't have a child of the name. Always real, never surrogate.
         on_create: Call when created.
         '''
         if self.parent_comp is None:
@@ -686,8 +686,8 @@ def reset_context(des: ty.Optional[af.Design] = None):
 
 class BodyFinder:
     '''
-    F360 API is extraordinarily slow about scanning of attributes. So I need to use adsk.core.Product.findAttributes()
-    to find a adsk.fusion.BRepBody object which has an attribute name.
+    F360 API is extraordinarily slow when scanning on attributes. So I need to use adsk.core.Product.findAttributes()
+    to find an adsk.fusion.BRepBody object that has an attribute name.
     '''
     def __init__(self) -> None:
         self.cache: ty.Dict[str, ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]]] = {}
@@ -717,7 +717,7 @@ class BodyFinder:
 
 class BadCodeException(Exception):
     '''
-    An exception for Pylance hinting. By removing forbidden code paths explicitly, Pylance does a good job.
+    An exception to Pylance hinting. By explicitly removing forbidden code paths, Pylance does a good job.
     '''
     def __init__(self, message=''):
         m = '' if len(message) == 0 else '\n' + message

@@ -525,9 +525,11 @@ def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstant
                 nr.append(f'{k.i_logical_row},{k.i_logical_col}')
                 i_kle += 1
             elif isinstance(e, dict):
-                if 'a' in e:
-                    del e['a']
-                nr.append(e)
+                ne = {}
+                for k in ['x', 'x2', 'y', 'y2', 'rx', 'ry', 'w', 'w2', 'h', 'h2']:
+                    if k in e:
+                        ne[k] = e[k]
+                nr.append(ne)
             else:
                 nr.append(e)
         kle_json.append(nr)
@@ -536,7 +538,6 @@ def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstant
         'name': con.des.parentDocument.name,
         'vendorId': '0xFEED',  # https://github.com/tmk/tmk_keyboard/issues/150
         'productId': mbc.product_id,
-        'lighting': 'none',
         'matrix': {
             'rows': mbc.n_logical_rc[RC.Row], 'cols': mbc.n_logical_rc[RC.Col]
         },

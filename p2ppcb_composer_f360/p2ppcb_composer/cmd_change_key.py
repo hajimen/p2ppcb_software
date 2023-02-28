@@ -17,7 +17,7 @@ INP_ID_SPECIFIER_STR = 'specifier'
 INP_ID_PATTERN_NAME_STR = 'patternName'
 INP_ID_ENABLE_BOOL = 'enable'
 
-TOOLTIP_SPECIFIER = "Row-dependent caps should have prefix on pattern name, like 'R4 1u'. 'Homing' and 'Spacebar' are common prefix."
+TOOLTIP_SPECIFIER = "Row-dependent caps should have prefix on pattern name, like 'R4 1u'. 'Homing' and 'Spacebar' are the common prefix."
 TOOLTIP_PATTERN_NAME = "Usually '1u', '125u', '15u' and so on. There are some special pattern names too, like 'ISO Enter'."
 
 CUSTOM_EVENT_ID_PREPARE_PARTS = 'prepare_parts'
@@ -53,7 +53,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return "Changes key assemblies, i.e. the orientation, the vertical alignment, the types of the parts. You can select key locators, not key placeholders. You cannot change key pattern, i.e. '2u', 'ISO Enter'. You cannot see preview of changed key assemblies when you specify unused parts."  # noqa
+        return "Changes key assemblies, i.e. the orientation, the vertical alignment, the types of the parts. You can select key locators, not key placeholders. You cannot change key pattern, i.e. '2u', 'ISO Enter'. You cannot see the preview of the changed key assemblies if you specify unused parts."  # noqa
 
     @property
     def resource_folder(self) -> str:
@@ -262,7 +262,7 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Assembles a key assembly from a specifier, pattern name, and part descriptions. This command tells you interferences caused by inadequate parts combination. You can use this command to debug your parts data and check a combination which is not usual.'
+        return 'Assembles a key assembly from a specifier, pattern name, and part descriptions. This command tells you interferences caused by inadequate part combination. You can use this command to debug your part data and check an unusual combination.'
 
     @property
     def resource_folder(self) -> str:
@@ -317,7 +317,7 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
             event_args.areInputsValid = False
             specifier_in.isValueError = True
             pattern_name_in.isValueError = True
-            specifier_in.tooltip = 'Specifier must contain pattern name.'
+            specifier_in.tooltip = 'Specifier must contain the pattern name.'
             return
         self.parts_cb.notify_validate(event_args)
         if not event_args.areInputsValid:

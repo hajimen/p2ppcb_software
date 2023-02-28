@@ -24,7 +24,7 @@ class SetAttributeCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return "Sets attributes on part's F3D body. You should be informed about fill/hole MF/MEV method."
+        return "Sets attributes on part's F3D body. You should be informed about Fill/Hole-MF/MEV method."
 
     @property
     def resource_folder(self) -> str:

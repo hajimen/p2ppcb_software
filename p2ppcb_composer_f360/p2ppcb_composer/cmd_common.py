@@ -51,10 +51,10 @@ INP_ID_Y_DV = 'distanceY'
 INPS_ID_SHOW_HIDE = [INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV]
 
 TOOLTIP_NOT_SELECTED = 'Not Selected'
-TOOLTIPS_PARTS_DIR = ('Parts Data Dir', 'Parts data dir contains parts data of P2PPCB. Usually p2ppcb_software/p2ppcb_parts_data_f360.')
+TOOLTIPS_PARTS_DIR = ('Parts Data Dir', 'Parts data dir contains the parts data of P2PPCB. Usually p2ppcb_software/p2ppcb_parts_data_f360.')
 TOOLTIPS_STABILIZER_ORIENTATION = ('Stabilizer Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 should be always Front.')
 TOOLTIPS_SWITCH_ORIENTATION = ('Switch Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 should be always Front.')
-TOOLTIPS_V_ALIGN = ('Key V-Align', "The anchor point of vertical alignment. The anchor point is on its skeleton surface.\nStemBottom refers key-up state. TravelBottom refers the cap's top of key-down state.")
+TOOLTIPS_V_ALIGN = ('Key V-Align', "The anchor point of the vertical alignment. The anchor point is on its skeleton surface.\nStemBottom refers key-up state. TravelBottom refers the cap's top of key-down state.")
 
 
 class _CommandEventHandler(ac.CommandEventHandler):
@@ -403,14 +403,14 @@ class PartsCommandBlock:
             con = get_context()
             fd = con.ui.createFolderDialog()
             fd.initialDirectory = str(self.parts_data_path)
-            fd.title = 'Choose Parts Info Dir'
+            fd.title = 'Choose parts data Dir'
             if fd.showDialog() != ac.DialogResults.DialogOK:
                 return
             path = pathlib.Path(fd.folder)
             try:
                 self.set_parts_data_path(path)
             except Exception:
-                con.ui.messageBox('The directory is not Parts Info dir.')
+                con.ui.messageBox('The directory is not parts data dir.')
 
     def deselect(self):
         for inp in self.get_option_ins():
@@ -573,7 +573,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         inf_in = con.des.createInterferenceInput(col)
         inf_results = con.des.analyzeInterference(inf_in)
         if inf_results is None:
-            con.ui.messageBox(f'You came across a bug of Fusion 360. The interference check is invalid about MEV - MEV of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand\n{right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
+            con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MEV - MEV of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand\n{right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
             return []
         return list(inf_results)
 
@@ -589,7 +589,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
             inf_in = con.des.createInterferenceInput(col)
             inf_results = con.des.analyzeInterference(inf_in)
             if inf_results is None:
-                con.ui.messageBox(f'You came across a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
+                con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
                 continue
             ret.extend(inf_results)
         return ret

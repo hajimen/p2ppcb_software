@@ -26,7 +26,7 @@ class RegexSelectCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Make a selection set of bRepBodies/occurrences by regex of full path. The path separator before occurrences is +, before bRepBodies is ?.'
+        return 'Makes a selection set of bRepBodies/occurrences by regex of full path. The path separator before occurrences is +, before bRepBodies is ?.'
 
     @property
     def resource_folder(self) -> str:
