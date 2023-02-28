@@ -1,8 +1,7 @@
 {
   "name": "P2PPCB NTCS",
-  "vendorId": "0xFEED",
+  "vendorId": "FEED",
   "productId": "0x9605",
-  "lighting": "none",
   "matrix": {
     "rows": 36,
     "cols": 12
@@ -93,8 +92,7 @@
       ],
       [
         {
-          "x": 0.25,
-          "n": true
+          "x": 0.25
         },
         "2,4",
         "2,5",
@@ -326,9 +324,6 @@
         },
         "20,0",
         "20,1",
-        {
-          "n": true
-        },
         "20,2"
       ],
       [
