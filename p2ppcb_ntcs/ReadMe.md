@@ -15,7 +15,9 @@ or just for fun.
 
 P2PPCB platform is mainly for rapid prototyping, so it adopts "naked style" as its usual products. This is an example of the naked style:
 
-TODO photos
+![Naked style 1](https://user-images.githubusercontent.com/1212166/223884622-39fb7f13-f122-4abf-98a7-62fd1bab328f.jpg)
+
+![Naked style 2](https://user-images.githubusercontent.com/1212166/223884690-81c0ba6f-90c2-4a8e-ae31-295ae04dcca4.jpg)
 
 In naked style, the wires are exposed. It is good for rapid prototyping because it is enough for testing in a lab.
 Making a cover is a waste of time and money in this case.
@@ -23,7 +25,7 @@ Making a cover is a waste of time and money in this case.
 The real world requires a covered style. Once you are confident with your own design in your lab with the naked style, you can bring it 
 into the real world with the covered style.
 
-TODO photos
+![Covered style](https://user-images.githubusercontent.com/1212166/223887875-9ccec73b-69ee-4c0e-9a9c-8b3fb7aff4e8.jpg)
 
 P2PPCB NTCS keyboard shows an example of covered style. The structure is thoroughly tested by the real 3D printing results.
 I recommend you to imitate the structure on your own design.
@@ -48,7 +50,7 @@ The price is $1000 without switches, keycaps, and the shipping charge.
 - Blank 1.25u keycap: 2 pcs
 - Cherry-style plate mount stabilizer for 2u: 4 pcs
 - P2PPCB NTCS frames and covers, printed by MJF PA12: 1 set
-- (Optional) Single IDC contact accessory cap 609176001415000: 168 pcs
+- (Optional) Kyocera AVX single IDC contact accessory cap 609176001415000: 168 pcs
 
 ## Precision check
 
@@ -87,7 +89,7 @@ while the keyboard is in the lab. If you find a disconnection, just fix it with 
 It is quite rare.
 
 But in the real world, sometimes "quite rare" is not enough. The accessory cap ensures the reliability. 
-When you finish an operation test with VIA, apply the caps on the contacts. Long nose pliers will help you.
+When you finish an operation test successfully, apply the caps on the contacts. Long nose pliers will help you.
 
 CAUTION: Once you apply a cap, you cannot remove it without damaging the contact-to-socket assembly. 
 Check the operation carefully before applying.
@@ -181,7 +183,6 @@ the conclusion that it is not good for typing.
 
 These ideas were very common even before TK1. Maltron's keyboard in 1980 had a small space key.
 Fujitsu's "親指シフト" (Thumb Shift) keyboard in 1980 had Shift keys with thumbs (the space key was also small). 
-I am curious why these ideas are rarely seen in a (bizarre) keyboard today.
 
 - Arrow keys under the main cluster (right side only)
 

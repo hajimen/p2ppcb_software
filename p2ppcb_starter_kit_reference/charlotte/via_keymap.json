@@ -1,8 +1,7 @@
 {
   "name": "P2PPCB Starter Kit Charlotte",
-  "vendorId": "0xFEED",
+  "vendorId": "FEED",
   "productId": "0x9605",
-  "lighting": "none",
   "matrix": {
     "rows": 18,
     "cols": 12

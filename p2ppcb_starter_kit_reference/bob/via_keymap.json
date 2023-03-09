@@ -1,8 +1,7 @@
 {
   "name": "P2PPCB Starter Kit Bob",
-  "vendorId": "0xFEED",
+  "vendorId": "FEED",
   "productId": "0xde26",
-  "lighting": "none",
   "matrix": {
     "rows": 16,
     "cols": 12

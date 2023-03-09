@@ -15,7 +15,7 @@ Hand tools:
 - (Optional) Key switch puller
 - (Optional) Digital multimeter
 
-TODO photo
+![Hand tools](https://user-images.githubusercontent.com/1212166/223644826-3b770b9c-8dd4-4a55-8b35-bde6ccc00fea.jpg)
 
 VIA: <https://www.caniusevia.com/>
 
@@ -27,24 +27,28 @@ Please check the contents of the kit with the included paper manuals.
 
 Tear a fragment of a contact-to-socket assembly from a full board.
 
-TODO video
+https://user-images.githubusercontent.com/1212166/223646746-8ab56e6a-60d3-4587-8ffc-27e4f80802d5.mov
 
 Insert the fragment into the hole in the frame.
 
 CAUTION (Charlotte): Look at the wiring diagram! There is an LED fragment. Don't insert 
 the normal fragment into the hole.
 
-TODO video
+https://user-images.githubusercontent.com/1212166/223647008-41a2cce3-f3a8-4095-b10f-7d3f8a6ce913.mov
 
 Push it into the hole with the flat screwdriver.
 
-TODO video
+https://user-images.githubusercontent.com/1212166/223648865-bf569a75-6fc2-442b-8305-fc646b1283ee.mov
+
+The result should be like this:
+
+https://user-images.githubusercontent.com/1212166/223649365-13185463-47a5-4ad2-a7eb-a47b0a8cba95.mov
 
 ### 4. Assemble a mainboard to the frame
 
 Pay attention to the direction.
 
-TODO photo
+https://user-images.githubusercontent.com/1212166/223650886-23f14d98-9855-4501-9a1c-a5af57097b62.mov
 
 **CAUTION: MJF (the material of the frame) is fragile against small screws!** 
 The tightening force should be much less than for normal screws. Just enough to stop rattling. 
@@ -66,7 +70,11 @@ TODO photo
 Again, look carefully at the wiring diagram. But it is difficult. So the kit bundles two 
 matrix wiring cables :-).
 
-TODO video
+https://user-images.githubusercontent.com/1212166/223652054-34629ded-7a83-4f41-a15c-5276e1920c53.mov
+
+The jig helps you.
+
+https://user-images.githubusercontent.com/1212166/223654861-1e51b0ce-4438-439f-9aec-14645ebf921c.mov
 
 If you find that you go wrong, carefully pull out the wire, and strengthen the damaged points of the wire 
 with Scotch tape or something.
@@ -78,11 +86,15 @@ Don't bend wires at contacts.
 
 Just push it.
 
-TODO video
+https://user-images.githubusercontent.com/1212166/223880715-38a6497c-7b95-4a4e-988e-679835631a97.mov
 
-It may look easy, but sometimes it fails like below. Please push it perpendicularly.
+It may look easy, but sometimes it fails like below. Please make sure that the leads of the key switches are straight before assembling.
 
-TODO photo
+![Bad switch](https://user-images.githubusercontent.com/1212166/223880997-2dc6577d-440c-463e-bc9c-94f3d4491235.jpg)
+
+### 9. Assemble feet to the frame
+
+https://user-images.githubusercontent.com/1212166/223882839-7949211d-c44f-41d8-993c-a2fe876bee1c.mov
 
 ### 9. Check the operation with VIA
 
