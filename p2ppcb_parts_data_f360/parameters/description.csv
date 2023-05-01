@@ -8,12 +8,15 @@ Cap,Choc V1,choc_v1_cap
 Stabilizer,Cherry-style plate mount,cherry_stabilizer
 Stabilizer,Costar,costar_stabilizer
 Stabilizer,Choc V1,choc_v1_stabilizer
+Stabilizer,Gateron LP,gateron_lp_stabilizer
 Switch,MX,mx
 Switch,Choc V1,choc_v1
 Switch,Choc V2,choc_v2
+Switch,Gateron LP,gateron_lp
 PCB,MX,mx_pcb
 PCB,Choc V1,choc_pcb
 PCB,Choc V2,choc_pcb
+PCB,Gateron LP,gateron_lp_pcb
 Decal,XDA,xda/decal
 Decal,DSA,decal_common_19mm
 Decal,Junana MX,junana/decal
@@ -24,3 +27,4 @@ Decal,Key Locator,decal_key_locator
 Wiring,MX,wiring_mx_pcb
 Wiring,Choc V1,wiring_choc_pcb
 Wiring,Choc V2,wiring_choc_pcb
+Wiring,Gateron LP,wiring_gateron_lp_pcb

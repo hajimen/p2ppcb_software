@@ -117,5 +117,5 @@ class RegexSelectCommandHandler(CommandHandlerBase):
         self.execute_common()
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
-        self.execute_common()
+        # self.execute_common()
         get_context().app.executeTextCommand('NuComponents.CreateSelectionGroupCmd')
