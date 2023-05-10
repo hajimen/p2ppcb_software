@@ -237,6 +237,11 @@ I think it is impossible to fulfill all of these requirements under all of the p
 
 Under different prerequisites, heavy use of YAM key can be a good design because it can reduce the number of keys on a keyboard. 
 
+## Starting point 4: Stateless (as far as I can)
+
+I hate intangible states. The downfall of keyboards started when the latching mechanism of Caps Lock key was substituted by LEDs.
+One-shot modifier of QMK is a kind of intangible states.
+
 ## Other ideas stolen from various keyboards
 
 - Del key at the left edge

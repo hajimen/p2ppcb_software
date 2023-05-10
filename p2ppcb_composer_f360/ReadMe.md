@@ -5,7 +5,7 @@ based on P2PPCB platform <https://github.com/hajimen/p2ppcb_software>.
 I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, provide P2PPCB platform.
 
 DISCLAIMER: PC0 is extraordinarily slow for a large keyboard, so far. Around 60 keys is a reasonable limit.
-You cannot speed up PC0 a lot with expensive hardware, because F360's computation is done only by CPU, never by GPU,
+You cannot speed up PC0 a lot with expensive hardware, because F360's computation is mostly done only by CPU, never by GPU,
 only single-thread, never multi-thread.
 
 DISCLAIMER: So far, PC0 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug
@@ -226,6 +226,10 @@ PC0 is not very helpful in this case, but there is a tool that can help you. Whe
 **Regex Select** command in the **Select** panel. You can make a selection set by regex of the full path name of the entities.
 You can do Fill/Hole method manually with this tool, without using **Fill** / **Hole** commands.
 
+CAUTION: For a bug of Fusion 360, you cannot repeat **Search** now. If you failed to type right string in the first trial,
+press **Cancel** button and run **Regex Select** command again.
+The bug: <https://forums.autodesk.com/t5/fusion-360-api-and-scripts/selectionsets-add-doesn-t-work-when-the-entity-is-proxy/m-p/11914208>
+
 ### 'Set Attribute' and 'Check Key Assembly' commands
 
 See the tooltips for each command. Creating a part's data requires deep knowledge, including F360's bug.
@@ -325,7 +329,7 @@ is almost impossible on a large keyboard.
 
 I tried to find a good workaround, but failed.
 
-## F360's bugs that annoy you or get you stuck
+## F360's bugs that can annoy you or get you stuck
 
 In some cases, interference check doesn't work:
 <https://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251>
@@ -334,6 +338,13 @@ In some cases, `importToTarget()` corrupts the imported component. See `p2ppcb_p
 The bug is erratic and non-reproducible. I suspect it has something to do with CPU usage.
 When it occurs, `P2PPCB Cache` file is corrupted. Remove the file and try again.
 But it can be difficult to detect the phenomenon.
+
+Attributes of native objects can be destruct by some irrelevant operations: 
+<https://forums.autodesk.com/t5/fusion-360-support/attributes-of-native-objects-corrupt-by-removing-a-component/m-p/11909404>
+You cannot import `P2PPCB Internal` component from other files for this reason. Import will corrupt attributes.
+
+A component by Insert Derive goes wrong about decal:
+<https://forums.autodesk.com/t5/fusion-360-support/a-component-by-insert-derive-goes-wrong-about-decal/m-p/11913925>
 
 ## Custom features
 
