@@ -297,39 +297,42 @@ def prepare_key_assembly(
 
         parts_data_path = get_parts_data_path()
 
+        def _prepare_cap(new_name: ty.Optional[str]):
+            new_pp_cap = parts_depot.PreparePartParameter(
+                str(parts_data_path / F3D_DIRNAME / part_filename[Part.Cap]),
+                new_name,
+                part_parameters[Part.Cap],
+                part_placeholder.get(Part.Cap, 'Placeholder')
+            )
+            pp_cap = None
+            for p in pps_part:
+                same = True
+                for pn in ['part_source_filename', 'new_name', 'model_parameters', 'placeholder']:
+                    same = same and (getattr(p, pn) == getattr(new_pp_cap, pn))
+                if same:
+                    pp_cap = p
+                    break
+            if pp_cap is None:
+                new_pp_cap.cap_placeholder_parameters = parts_depot.CapPlaceholderParameter(
+                    pi.resolve_decal(specifier, cap_desc),
+                    []
+                )
+                pp_cap = new_pp_cap
+                pps_part.append(pp_cap)
+            if pp_cap.cap_placeholder_parameters is None:
+                raise BadCodeException()
+            pp_cap.cap_placeholder_parameters.names_images.extend([
+                (
+                    cap_placeholder_name(kp.i, cap_desc, specifier, kp.legend),
+                    None if specs_ops[kp.i][1] is None else specs_ops[kp.i][1].image_file_path  # type: ignore
+                )
+                for kp in pka.kps
+            ])
+
         def _on_surrogate_parts(p: Part):
             if p == Part.Cap:
                 def _on_surrogate_cap(occ: SurrogateF3Occurrence):
-                    new_pp_cap = parts_depot.PreparePartParameter(
-                        str(parts_data_path / F3D_DIRNAME / part_filename[Part.Cap]),
-                        occ.name,
-                        part_parameters[Part.Cap],
-                        part_placeholder.get(Part.Cap, 'Placeholder')
-                    )
-                    pp_cap = None
-                    for p in pps_part:
-                        same = True
-                        for pn in ['part_source_filename', 'new_name', 'model_parameters', 'placeholder']:
-                            same = same and (getattr(p, pn) == getattr(new_pp_cap, pn))
-                        if same:
-                            pp_cap = p
-                            break
-                    if pp_cap is None:
-                        new_pp_cap.cap_placeholder_parameters = parts_depot.CapPlaceholderParameter(
-                            pi.resolve_decal(specifier, cap_desc),
-                            []
-                        )
-                        pp_cap = new_pp_cap
-                        pps_part.append(pp_cap)
-                    if pp_cap.cap_placeholder_parameters is None:
-                        raise BadCodeException()
-                    pp_cap.cap_placeholder_parameters.names_images.extend([
-                        (
-                            cap_placeholder_name(kp.i, cap_desc, specifier, kp.legend),
-                            None if specs_ops[kp.i][1] is None else specs_ops[kp.i][1].image_file_path  # type: ignore
-                        )
-                        for kp in pka.kps
-                    ])
+                    _prepare_cap(occ.name)
                 return _on_surrogate_cap
             else:
                 def _on_surrogate_part(occ: SurrogateF3Occurrence):
@@ -370,8 +373,11 @@ def prepare_key_assembly(
         ka_occ = depot_key_assembly_occ.child.get_virtual(
             key_assembly_name(specifier, cap_desc, stabilizer_desc, stabilizer_orientation.name, switch_desc, switch_orientation.name, align_to.name),
             on_surrogate=_on_surrogate_ka)
+
+        prepare_cap_required = False
         for kp in pka.kps:
             def _on_create_kp(kp_occ: F3Occurrence):
+                nonlocal prepare_cap_required
                 cpn = cap_placeholder_name(kp.i, cap_desc, specifier, kp.legend)
                 cp_occ = depot_cap_placeholder_occ.child.get_virtual(cpn)
                 pt = part_trans[Part.Cap].copy()
@@ -380,12 +386,17 @@ def prepare_key_assembly(
                 o.light_bulb = True
                 o = kp_occ.child.add(ka_occ, offset_trans)
                 o.light_bulb = True
+                prepare_cap_required = isinstance(cp_occ, SurrogateF3Occurrence)
 
             kpn = key_placeholder_name(kp.i, pattern_name)
             surrogate_kp_occ = key_placeholders_occ.child[kpn]
             if not isinstance(surrogate_kp_occ, SurrogateF3Occurrence):
                 raise BadCodeException(f'Key Placeholder name: {kpn} should be a surrogate.')
             surrogate_kp_occ.replace(on_create=_on_create_kp)
+
+        if prepare_cap_required and isinstance(ka_occ, F3Occurrence):
+            # key assembly already exists. Prepare cap placeholder separately.
+            _prepare_cap(None)
 
     pp_ka_on_so.clear()
     return pps_part

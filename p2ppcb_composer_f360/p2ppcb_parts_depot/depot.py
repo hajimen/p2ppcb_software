@@ -58,7 +58,7 @@ class PrepareKeyLocatorParameter:
 @dataclass
 class PreparePartParameter:
     part_source_filename: str
-    new_name: str
+    new_name: ty.Optional[str]
     model_parameters: ty.Dict[str, Quantity]
     placeholder: ty.Union[str, None] = None
     cap_placeholder_parameters: ty.Union[CapPlaceholderParameter, None] = None
@@ -484,7 +484,7 @@ class PartsDepot:
                 acs.clear()
             o = container.pop()
             o.light_bulb = is_visible
-            return o
+            return
 
         if self.cache_doc_is_modified:
             old_ver = self.cache_doc.dataFile.versionNumber
@@ -513,14 +513,15 @@ class PartsDepot:
             for fp_hash, cp_img_cpdp_hashes, new_name, names_images in zip(
                 self.fp_hashes, self.cp_img_cpdp_hashes_on_fps, self.new_name_on_fps, self.names_images_on_fps
             ):
-                n = PCN_DEPOT_PORTING + new_name + CNP_DEPOT_PORTING
-                if n not in fixed_acc_occ.child:
-                    copy_paste_new(
-                        fixed_root_occ.child.get_real(fp_hash + CNP_FIXED),
-                        fixed_acc_occ,
-                        n,
-                        False
-                    )
+                if new_name is not None:
+                    n = PCN_DEPOT_PORTING + new_name + CNP_DEPOT_PORTING
+                    if n not in fixed_acc_occ.child:
+                        copy_paste_new(
+                            fixed_root_occ.child.get_real(fp_hash + CNP_FIXED),
+                            fixed_acc_occ,
+                            n,
+                            False
+                        )
                 if cp_img_cpdp_hashes is not None and names_images is not None:
                     cp_pp_occ = cp_root_occ.child[fp_hash + CNP_CAP_PLACEHOLDER]
                     for cp_img_cpdp_hash, (name, _) in zip(cp_img_cpdp_hashes, names_images):
