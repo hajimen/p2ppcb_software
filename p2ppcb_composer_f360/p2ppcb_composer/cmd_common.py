@@ -531,7 +531,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
     temp_occ = inl_occ.child.get_real(CN_TEMP)
     temp_occ.light_bulb = True
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
-    volatile_attr: list[tuple[af.BRepBody, dict[str, str]]] = []
+    volatile_attr: list[tuple[af.BRepBody, dict[str, str]]] = []  # Attributes of Fusion 360 is too slow.
     body_finder = BodyFinder()
 
     def _set_volatile_attrs(body: af.BRepBody, attrs: dict[str, str]):
@@ -552,25 +552,28 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                 return a[attr_name]
         raise BadCodeException(f'volatile attribute of {body.name} not found.')
 
+    tb_count = 0
+
     def _get_temp_body(orig_body: af.BRepBody, part_name: str, attrs: dict[str, str]):
-        # Why do we need temporary BRepBody:
+        # Why do we need temporary BRepBody?
         # analyzeInterference() returns nativeObject as entityOne and entityTwo. They have no information about the assemblyContext (components).
         # So we cannot show source bodies without making temporary BRepBody.
-        # About TemporaryBRepManager, it lacks attributes.
+        # About TemporaryBRepManager, it cannot be the source of analyzeInterference().
+        # If we do, it raises "RuntimeError: 2 : InternalValidationError : pComponent".
+        nonlocal tb_count
         PROF.tick()
         for ob, tb in cache_temp_body:
             if ob == orig_body:
+                PROF.tick()
                 return tb
         PROF.tick()
         tb = orig_body.copyToComponent(temp_occ.raw_occ)  # This line is deadly slow.
         PROF.tick()
+        tb_count += 1
         tb.isLightBulbOn = False
         attrs[VAN_PART_NAME] = part_name
-        PROF.tick()
         _set_volatile_attrs(tb, attrs)
-        PROF.tick()
         cache_temp_body.append((orig_body, tb))
-        PROF.tick()
         return tb
 
     col = CreateObjectCollectionT(af.BRepBody)
@@ -601,30 +604,20 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         return list(inf_results)
 
     def _check_mf_hole(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
-        PROF.tick()
         ret: ty.List[af.InterferenceResult] = []
         for hole in body_finder.get(right_part_occ, AN_HOLE):
-            PROF.tick()
             col.clear()
             col.add(_get_temp_body(hole, right_part_occ.name, {VAN_LR: VAV_RIGHT, VAN_CATEGORY_NAME: AN_HOLE}))
-            PROF.tick()
             for mf in body_finder.get(left_part_occ, AN_MF):
-                PROF.tick()
                 col.add(_get_temp_body(mf, left_part_occ.name, {VAN_LR: VAV_LEFT, VAN_CATEGORY_NAME: AN_MF}))
-                PROF.tick()
-            PROF.tick()
             if len(col) < 2:
                 continue
-            PROF.tick()
             inf_in = con.des.createInterferenceInput(col)
-            PROF.tick()
             inf_results = con.des.analyzeInterference(inf_in)
-            PROF.tick()
             if inf_results is None:
                 con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
                 continue
             ret.extend(inf_results)
-        PROF.tick()
         return ret
 
     def _get_lb_rb(ir: af.InterferenceResult):
@@ -643,8 +636,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                         raise BadConditionException(f'{pn} lacks Territory body.')
                     selected_kp_territories.append(_get_temp_body(territory_body[0], pn, {VAN_KP_NAME: kpn}))
 
-    PROF.tick()
-    intersect_pairs: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
+    intersect_pairs: set[tuple[tuple[str, str], tuple[str, str]]] = set()
     for kpn, kp_occ in key_placeholders_occ.child.items():
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
@@ -657,31 +649,23 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                         if _get_names(st.nativeObject)[0] == kpn:
                             continue
                         if st.boundingBox.intersects(cb.boundingBox):
-                            intersect_pairs.append((st, _get_temp_body(cb, pn, {VAN_KP_NAME: kpn})))
+                            intersect_pairs.add((_get_names(st.nativeObject), (kpn, pn)))
 
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
     hit_mf: ty.List[af.BRepBody] = []
     hit_kpns: ty.Set[str] = set()
 
-    PROF.tick()
-    for left_tb, right_tb in intersect_pairs:
-        left_kpn, left_pn = _get_names(left_tb.nativeObject)
-        right_kpn, right_pn = _get_names(right_tb.nativeObject)
-        left_part_occ = _get_part_occ(left_kpn, left_pn)
-        right_part_occ = _get_part_occ(right_kpn, right_pn)
+    for left, right in intersect_pairs:
+        left_part_occ = _get_part_occ(*left)
+        right_part_occ = _get_part_occ(*right)
         hit = False
-        PROF.tick()
         if category_enables[AN_MEV]:
-            PROF.tick()
             for ir in _check_mev_mev(left_part_occ, right_part_occ):
                 hit = True
                 hit_mev.extend(_get_lb_rb(ir))
-        PROF.tick()
         if category_enables[AN_MF] or category_enables[AN_HOLE]:
-            PROF.tick()
             for ir in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
-                PROF.tick()
                 hit = True
                 lb, rb = _get_lb_rb(ir)
                 if category_enables[AN_MF]:
@@ -691,13 +675,13 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     raise BadConditionException(f'The part data is corrupted. Two MF bodies are interfering. The part name: {rpn}')
                 if category_enables[AN_HOLE]:
                     hit_hole.append(rb)
-            PROF.tick()
         if hit:
-            hit_kpns.add(left_kpn)
-            hit_kpns.add(right_kpn)
+            hit_kpns.add(left[0])
+            hit_kpns.add(right[0])
 
     PROF.tick()
     print(PROF.get_log())
+    print(tb_count)
 
     return hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body
 
