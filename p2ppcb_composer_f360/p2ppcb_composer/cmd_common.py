@@ -606,12 +606,25 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
     def _check_mf_hole(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
         ret: ty.List[af.InterferenceResult] = []
         for hole in body_finder.get(right_part_occ, AN_HOLE):
+            # To avoid slow _get_temp_body(), check interference by proxy first.
+            col.clear()
+            col.add(hole)
+            for mf in body_finder.get(left_part_occ, AN_MF):
+                col.add(mf)
+            if len(col) < 2:
+                continue
+            inf_in = con.des.createInterferenceInput(col)
+            inf_results = con.des.analyzeInterference(inf_in)
+            if inf_results is None:
+                con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
+                continue
+            if len(inf_results) == 0:
+                continue
+
             col.clear()
             col.add(_get_temp_body(hole, right_part_occ.name, {VAN_LR: VAV_RIGHT, VAN_CATEGORY_NAME: AN_HOLE}))
             for mf in body_finder.get(left_part_occ, AN_MF):
                 col.add(_get_temp_body(mf, left_part_occ.name, {VAN_LR: VAV_LEFT, VAN_CATEGORY_NAME: AN_MF}))
-            if len(col) < 2:
-                continue
             inf_in = con.des.createInterferenceInput(col)
             inf_results = con.des.analyzeInterference(inf_in)
             if inf_results is None:
