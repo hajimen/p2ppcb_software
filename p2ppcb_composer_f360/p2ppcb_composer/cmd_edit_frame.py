@@ -372,8 +372,10 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
         
         for tb, _, an in move_refs:
             if an == target_category and tb.boundingBox.intersects(fixed_body.boundingBox):
-                col_kp_other[category].add(fixed_body)
-                fixed_refs.append((fixed_body, parent_occ, category))
+                b = fixed_body.copyToComponent(con.comp)
+                b.isLightBulbOn = False
+                col_kp_other[category].add(b)
+                fixed_refs.append((b, parent_occ, category))
                 return
 
     for kp_occ in inl_occ.child[CN_KEY_PLACEHOLDERS].child.values():
@@ -382,20 +384,15 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
                 for po in ka_occ.child.values():
                     for an in ANS_HOLE_MEV_MF:
                         for b in body_finder.get(po, an, an):
-                            tb = b.copyToComponent(con.comp)
-                            tb.isLightBulbOn = False
-                            _append_if_possible(tb, po, an)
+                            _append_if_possible(b, po, an)
     for o in other_occs:
         for an in ANS_HOLE_MEV_MF:
             for b in body_finder.get(o, an, an):
-                tb = b.copyToComponent(con.comp)
-                tb.isLightBulbOn = False
-                _append_if_possible(tb, o, an)
+                _append_if_possible(b, o, an)
     category_appearance = get_category_appearance()
     hits = [False, ] * len(move_occs)
 
-    def _resolve(ent: ac.Base):
-        temp_body = af.BRepBody.cast(ent)
+    def _resolve(temp_body: af.BRepBody):
         for b, i, an in move_refs:
             if b == temp_body:
                 return i, an
@@ -404,8 +401,7 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
                 return o, an
         raise BadCodeException()
 
-    def _show(ent: ac.Base, io: ty.Union[int, VirtualF3Occurrence], an: str):
-        b = af.BRepBody.cast(ent)
+    def _show(b: af.BRepBody, io: ty.Union[int, VirtualF3Occurrence], an: str):
         b.isLightBulbOn = True
         b.appearance = category_appearance[an]
         if isinstance(io, int):
@@ -422,11 +418,13 @@ def check_interference(move_occs: ty.List[F3Occurrence], other_occs: ty.List[F3O
             hit_bug = True
             continue
         for ir in inf_results:
-            io1, an1 = _resolve(ir.entityOne)
-            io2, an2 = _resolve(ir.entityTwo)
+            left = af.BRepBody.cast(ir.entityOne)
+            right = af.BRepBody.cast(ir.entityTwo)
+            io1, an1 = _resolve(left)
+            io2, an2 = _resolve(right)
             if isinstance(io1, int) or isinstance(io2, int):
-                _show(ir.entityOne, io1, an1)
-                _show(ir.entityTwo, io2, an2)
+                _show(left, io1, an1)
+                _show(right, io2, an2)
     if hit_bug:
         con.ui.messageBox('You have encountered a bug of Fusion 360. The interference check overlooks something.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')
 
