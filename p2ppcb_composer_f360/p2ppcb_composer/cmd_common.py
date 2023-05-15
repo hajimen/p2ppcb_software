@@ -510,6 +510,8 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
 
 
 def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dict[str, bool]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[str], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+    from f360_common import PROF
+    PROF.reset()
     con = get_context()
     inl_occ = con.child[CN_INTERNAL]
     locators_occ = inl_occ.child[CN_KEY_LOCATORS]
@@ -519,35 +521,56 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
         using_ka_names.add(key_assembly_name(specifier, *options))
 
-    def _get_attr_value(body: af.BRepBody, attr_name: str):
-        a = body.attributes.itemByName(ATTR_GROUP, attr_name)
-        if a is None:
-            raise BadCodeException()
-        return a.value
-
-    AN_PART_NAME = 'part_name'
-    AN_KP_NAME = 'kp_name'
-    AN_BODY_NAME = 'body_name'
-    AN_CATEGORY_NAME = 'category_name'
-    AN_LR = 'left_right'
-    AV_LEFT = 'left'
-    AV_RIGHT = 'right'
+    VAN_PART_NAME = 'part_name'
+    VAN_KP_NAME = 'kp_name'
+    VAN_CATEGORY_NAME = 'category_name'
+    VAN_LR = 'left_right'
+    VAV_LEFT = 'left'
+    VAV_RIGHT = 'right'
     CN_TEMP = 'temp' + MAGIC
     temp_occ = inl_occ.child.get_real(CN_TEMP)
     temp_occ.light_bulb = True
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
+    volatile_attr: list[tuple[af.BRepBody, dict[str, str]]] = []
     body_finder = BodyFinder()
 
-    def _get_temp_body(orig_body: af.BRepBody, part_name: str, attrs: ty.List[ty.Tuple[str, str]]):
+    def _set_volatile_attrs(body: af.BRepBody, attrs: dict[str, str]):
+        if body.nativeObject is not None:
+            body = body.nativeObject
+        for b, a in volatile_attr:
+            if b == body:
+                a.clear()
+                a.update(attrs)
+                return
+        volatile_attr.append((body, attrs))
+
+    def _get_volatile_attr_value(body: af.BRepBody, attr_name: str):
+        if body.nativeObject is not None:
+            body = body.nativeObject
+        for b, a in volatile_attr:
+            if b == body:
+                return a[attr_name]
+        raise BadCodeException(f'volatile attribute of {body.name} not found.')
+
+    def _get_temp_body(orig_body: af.BRepBody, part_name: str, attrs: dict[str, str]):
+        # Why do we need temporary BRepBody:
+        # analyzeInterference() returns nativeObject as entityOne and entityTwo. They have no information about the assemblyContext (components).
+        # So we cannot show source bodies without making temporary BRepBody.
+        # About TemporaryBRepManager, it lacks attributes.
+        PROF.tick()
         for ob, tb in cache_temp_body:
             if ob == orig_body:
                 return tb
-        tb = orig_body.copyToComponent(temp_occ.raw_occ)
-        attrs.append((AN_BODY_NAME, orig_body.name))
-        attrs.append((AN_PART_NAME, part_name))
-        for n, v in attrs:
-            tb.nativeObject.attributes.add(ATTR_GROUP, n, v)
+        PROF.tick()
+        tb = orig_body.copyToComponent(temp_occ.raw_occ)  # This line is deadly slow.
+        PROF.tick()
+        tb.isLightBulbOn = False
+        attrs[VAN_PART_NAME] = part_name
+        PROF.tick()
+        _set_volatile_attrs(tb, attrs)
+        PROF.tick()
         cache_temp_body.append((orig_body, tb))
+        PROF.tick()
         return tb
 
     col = CreateObjectCollectionT(af.BRepBody)
@@ -555,7 +578,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
 
     def _get_names(entity):
         brep = af.BRepBody.cast(entity)
-        return _get_attr_value(brep, AN_KP_NAME), _get_attr_value(brep, AN_PART_NAME)
+        return _get_volatile_attr_value(brep, VAN_KP_NAME), _get_volatile_attr_value(brep, VAN_PART_NAME)
 
     def _get_part_occ(kpn: str, pn: str):
         for n, c_kp_occ in key_placeholders_occ.child[kpn].child.items():
@@ -565,9 +588,9 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
 
     def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
         col.clear()
-        for po, lr in zip([left_part_occ, right_part_occ], [AV_LEFT, AV_RIGHT]):
+        for po, lr in zip([left_part_occ, right_part_occ], [VAV_LEFT, VAV_RIGHT]):
             for b in body_finder.get(po, AN_MEV):
-                col.add(_get_temp_body(b, po.name, [(AN_LR, lr)]))
+                col.add(_get_temp_body(b, po.name, {VAN_LR: lr}))
         if len(col) < 2:
             return []
         inf_in = con.des.createInterferenceInput(col)
@@ -578,26 +601,36 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         return list(inf_results)
 
     def _check_mf_hole(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
+        PROF.tick()
         ret: ty.List[af.InterferenceResult] = []
         for hole in body_finder.get(right_part_occ, AN_HOLE):
+            PROF.tick()
             col.clear()
-            col.add(_get_temp_body(hole, right_part_occ.name, [(AN_LR, AV_RIGHT), (AN_CATEGORY_NAME, AN_HOLE)]))
+            col.add(_get_temp_body(hole, right_part_occ.name, {VAN_LR: VAV_RIGHT, VAN_CATEGORY_NAME: AN_HOLE}))
+            PROF.tick()
             for mf in body_finder.get(left_part_occ, AN_MF):
-                col.add(_get_temp_body(mf, left_part_occ.name, [(AN_LR, AV_LEFT), (AN_CATEGORY_NAME, AN_MF)]))
+                PROF.tick()
+                col.add(_get_temp_body(mf, left_part_occ.name, {VAN_LR: VAV_LEFT, VAN_CATEGORY_NAME: AN_MF}))
+                PROF.tick()
+            PROF.tick()
             if len(col) < 2:
                 continue
+            PROF.tick()
             inf_in = con.des.createInterferenceInput(col)
+            PROF.tick()
             inf_results = con.des.analyzeInterference(inf_in)
+            PROF.tick()
             if inf_results is None:
                 con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
                 continue
             ret.extend(inf_results)
+        PROF.tick()
         return ret
 
     def _get_lb_rb(ir: af.InterferenceResult):
         xb = af.BRepBody.cast(ir.entityOne)
         yb = af.BRepBody.cast(ir.entityTwo)
-        return (xb, yb) if _get_attr_value(xb, AN_LR) == AV_LEFT else (yb, xb)
+        return (xb, yb) if _get_volatile_attr_value(xb, VAN_LR) == VAV_LEFT else (yb, xb)
 
     selected_kp_territories: ty.List[af.BRepBody] = []
     for kpn in selected_kpns:
@@ -608,8 +641,9 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     territory_body = body_finder.get(part_occ, AN_TERRITORY)
                     if len(territory_body) == 0:
                         raise BadConditionException(f'{pn} lacks Territory body.')
-                    selected_kp_territories.append(_get_temp_body(territory_body[0], pn, [(AN_KP_NAME, kpn)]))
+                    selected_kp_territories.append(_get_temp_body(territory_body[0], pn, {VAN_KP_NAME: kpn}))
 
+    PROF.tick()
     intersect_pairs: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
     for kpn, kp_occ in key_placeholders_occ.child.items():
         for n, c_kp_occ in kp_occ.child.items():
@@ -623,37 +657,47 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                         if _get_names(st.nativeObject)[0] == kpn:
                             continue
                         if st.boundingBox.intersects(cb.boundingBox):
-                            intersect_pairs.append((st, _get_temp_body(cb, pn, [(AN_KP_NAME, kpn)])))
+                            intersect_pairs.append((st, _get_temp_body(cb, pn, {VAN_KP_NAME: kpn})))
 
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
     hit_mf: ty.List[af.BRepBody] = []
     hit_kpns: ty.Set[str] = set()
 
+    PROF.tick()
     for left_tb, right_tb in intersect_pairs:
         left_kpn, left_pn = _get_names(left_tb.nativeObject)
         right_kpn, right_pn = _get_names(right_tb.nativeObject)
         left_part_occ = _get_part_occ(left_kpn, left_pn)
         right_part_occ = _get_part_occ(right_kpn, right_pn)
         hit = False
+        PROF.tick()
         if category_enables[AN_MEV]:
+            PROF.tick()
             for ir in _check_mev_mev(left_part_occ, right_part_occ):
                 hit = True
                 hit_mev.extend(_get_lb_rb(ir))
+        PROF.tick()
         if category_enables[AN_MF] or category_enables[AN_HOLE]:
+            PROF.tick()
             for ir in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
+                PROF.tick()
                 hit = True
                 lb, rb = _get_lb_rb(ir)
                 if category_enables[AN_MF]:
                     hit_mf.append(lb)
-                if _get_attr_value(rb, AN_CATEGORY_NAME) != AN_HOLE:
-                    rpn = _get_attr_value(rb, AN_PART_NAME)[:len(CNP_PARTS)]
+                if _get_volatile_attr_value(rb, VAN_CATEGORY_NAME) != AN_HOLE:
+                    rpn = _get_volatile_attr_value(rb, VAN_PART_NAME)[:len(CNP_PARTS)]
                     raise BadConditionException(f'The part data is corrupted. Two MF bodies are interfering. The part name: {rpn}')
                 if category_enables[AN_HOLE]:
                     hit_hole.append(rb)
+            PROF.tick()
         if hit:
             hit_kpns.add(left_kpn)
             hit_kpns.add(right_kpn)
+
+    PROF.tick()
+    print(PROF.get_log())
 
     return hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body
 
