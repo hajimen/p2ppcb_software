@@ -103,6 +103,9 @@ def run(context):
     # from composer_test.test_cmd import TestLoadKle
     # test_suite.addTest(TestLoadKle('test_cmd_interactive'))
 
+    # from composer_test.test_cmd import TestMoveKey
+    # test_suite.addTest(TestMoveKey('test_cmd_interactive'))
+
     # from composer_test.test_cmd import TestChangeKeyDescs
     # test_suite.addTest(TestChangeKeyDescs('test_cmd_interactive_change_key_descs'))
     # test_suite.addTest(TestChangeKeyDescs('test_cmd_interactive_check_key_assembly'))

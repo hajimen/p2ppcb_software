@@ -9,7 +9,7 @@ from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEve
     SelectionEventArgs, ValidateInputsEventArgs, Selection
 from f360_common import AN_HOLE, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, AN_TERRITORY, ANS_OPTION, \
     ATTR_GROUP, BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, CNP_PARTS, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
+    CNP_KEY_ASSEMBLY, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, key_assembly_name, key_placeholder_name, catch_exception, reset_context
 from p2ppcb_parts_resolver import resolver as parts_resolver
@@ -510,8 +510,6 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
 
 
 def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dict[str, bool]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[str], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
-    from f360_common import PROF
-    PROF.reset()
     con = get_context()
     inl_occ = con.child[CN_INTERNAL]
     locators_occ = inl_occ.child[CN_KEY_LOCATORS]
@@ -521,62 +519,23 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
         using_ka_names.add(key_assembly_name(specifier, *options))
 
-    VAN_PART_NAME = 'part_name'
-    VAN_KP_NAME = 'kp_name'
-    VAN_CATEGORY_NAME = 'category_name'
-    VAN_LR = 'left_right'
-    VAV_LEFT = 'left'
-    VAV_RIGHT = 'right'
     CN_TEMP = 'temp' + MAGIC
     temp_occ = inl_occ.child.get_real(CN_TEMP)
     temp_occ.light_bulb = True
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
-    volatile_attr: list[tuple[af.BRepBody, dict[str, str]]] = []  # Attributes of Fusion 360 is too slow.
     body_finder = BodyFinder()
 
-    def _set_volatile_attrs(body: af.BRepBody, attrs: dict[str, str]):
-        if body.nativeObject is not None:
-            body = body.nativeObject
-        for b, a in volatile_attr:
-            if b == body:
-                a.clear()
-                a.update(attrs)
-                return
-        volatile_attr.append((body, attrs))
-
-    def _get_volatile_attr_value(body: af.BRepBody, attr_name: str):
-        if body.nativeObject is not None:
-            body = body.nativeObject
-        for b, a in volatile_attr:
-            if b == body:
-                return a[attr_name]
-        raise BadCodeException(f'volatile attribute of {body.name} not found.')
-
-    tb_count = 0
-
-    def _get_temp_body(orig_body: af.BRepBody, part_name: str, attrs: dict[str, str]):
-        nonlocal tb_count
-        PROF.tick()
+    def _get_temp_body(orig_body: af.BRepBody):
         for ob, tb in cache_temp_body:
             if ob == orig_body:
-                PROF.tick()
                 return tb
-        PROF.tick()
         tb = orig_body.copyToComponent(temp_occ.raw_occ)  # This line is deadly slow.
-        PROF.tick()
-        tb_count += 1
         tb.isLightBulbOn = False
-        attrs[VAN_PART_NAME] = part_name
-        _set_volatile_attrs(tb, attrs)
         cache_temp_body.append((orig_body, tb))
         return tb
 
     col = CreateObjectCollectionT(af.BRepBody)
     key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
-
-    def _get_names(entity):
-        brep = af.BRepBody.cast(entity)
-        return _get_volatile_attr_value(brep, VAN_KP_NAME), _get_volatile_attr_value(brep, VAN_PART_NAME)
 
     def _get_part_occ(kpn: str, pn: str):
         for n, c_kp_occ in key_placeholders_occ.child[kpn].child.items():
@@ -633,12 +592,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
             ])
         return ret
 
-    def _get_lb_rb(ir: af.InterferenceResult):
-        xb = af.BRepBody.cast(ir.entityOne)
-        yb = af.BRepBody.cast(ir.entityTwo)
-        return (xb, yb) if _get_volatile_attr_value(xb, VAN_LR) == VAV_LEFT else (yb, xb)
-
-    selected_kp_territories: ty.List[af.BRepBody] = []
+    selected_kp_territories: list[tuple[af.BRepBody, str, str]] = []
     for kpn in selected_kpns:
         kp_occ = key_placeholders_occ.child[kpn]
         for n, c_kp_occ in kp_occ.child.items():
@@ -648,8 +602,7 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     if len(territory_body) == 0:
                         raise BadConditionException(f'{pn} lacks Territory body.')
                     cb = territory_body[0]
-                    _set_volatile_attrs(cb, {VAN_PART_NAME: pn, VAN_KP_NAME: kpn})
-                    selected_kp_territories.append(cb)
+                    selected_kp_territories.append((cb, kpn, pn))
 
     intersect_pairs: set[tuple[tuple[str, str], tuple[str, str]]] = set()
     for kpn, kp_occ in key_placeholders_occ.child.items():
@@ -660,11 +613,11 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     if len(territory_body) == 0:
                         raise BadConditionException(f'{pn} lacks Territory body.')
                     cb = territory_body[0]
-                    for st in selected_kp_territories:
-                        if _get_names(st)[0] == kpn:
+                    for st, st_kpn, st_pn in selected_kp_territories:
+                        if st_kpn == kpn:
                             continue
-                        if st.boundingBox.intersects(cb.boundingBox):
-                            intersect_pairs.add((_get_names(st), (kpn, pn)))
+                        if st.boundingBox.intersects(cb.boundingBox):  # this line is slow.
+                            intersect_pairs.add(((st_kpn, st_pn), (kpn, pn)))
 
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
@@ -678,21 +631,17 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         if category_enables[AN_MEV]:
             for mevs in _check_mev_mev(left_part_occ, right_part_occ):
                 hit = True
-                hit_mev.extend([_get_temp_body(b, b.name, {}) for b in mevs])
+                hit_mev.extend([_get_temp_body(b) for b in mevs])
         if category_enables[AN_MF] or category_enables[AN_HOLE]:
             for mf, hole in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
                 hit = True
                 if category_enables[AN_MF]:
-                    hit_mf.append(_get_temp_body(mf, mf.name, {}))
+                    hit_mf.append(_get_temp_body(mf))
                 if category_enables[AN_HOLE]:
-                    hit_hole.append(_get_temp_body(hole, hole.name, {}))
+                    hit_hole.append(_get_temp_body(hole))
         if hit:
             hit_kpns.add(left[0])
             hit_kpns.add(right[0])
-
-    PROF.tick()
-    print(PROF.get_log())
-    print(tb_count)
 
     return hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body
 

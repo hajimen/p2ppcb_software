@@ -37,7 +37,7 @@ class TestCmdCommon(unittest.TestCase):
             self.assertListEqual(hit_hole, [])
             self.assertListEqual(hit_mf, [])
             self.assertEqual(len(hit_kpns), 2)
-            self.assertEqual(len(cache_temp_body), 20)
+            self.assertEqual(len(cache_temp_body), 2)
         doc.close(False)
 
     def test_check_layout_plane(self):
