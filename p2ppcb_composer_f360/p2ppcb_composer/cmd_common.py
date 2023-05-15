@@ -555,11 +555,6 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
     tb_count = 0
 
     def _get_temp_body(orig_body: af.BRepBody, part_name: str, attrs: dict[str, str]):
-        # Why do we need temporary BRepBody?
-        # analyzeInterference() returns nativeObject as entityOne and entityTwo. They have no information about the assemblyContext (components).
-        # So we cannot show source bodies without making temporary BRepBody.
-        # About TemporaryBRepManager, it cannot be the source of analyzeInterference().
-        # If we do, it raises "RuntimeError: 2 : InternalValidationError : pComponent".
         nonlocal tb_count
         PROF.tick()
         for ob, tb in cache_temp_body:
@@ -589,11 +584,26 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                 return c_kp_occ.child[pn]
         raise BadCodeException()
 
-    def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
+    def _inf_results(inf_results: af.InterferenceResults):
+        ret: list[tuple[af.BRepBody, af.BRepBody]] = []
+        for ir in inf_results:
+            left: ty.Optional[af.BRepBody] = None
+            right: ty.Optional[af.BRepBody] = None
+            for b in col:
+                if b.nativeObject == ir.entityOne:
+                    left = b
+                if b.nativeObject == ir.entityTwo:
+                    right = b
+            if left is None or right is None:
+                raise BadCodeException()
+            ret.append((left, right))
+        return ret
+
+    def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence) -> list[tuple[af.BRepBody, af.BRepBody]]:
         col.clear()
-        for po, lr in zip([left_part_occ, right_part_occ], [VAV_LEFT, VAV_RIGHT]):
+        for po in [left_part_occ, right_part_occ]:
             for b in body_finder.get(po, AN_MEV):
-                col.add(_get_temp_body(b, po.name, {VAN_LR: lr}))
+                col.add(b)
         if len(col) < 2:
             return []
         inf_in = con.des.createInterferenceInput(col)
@@ -601,12 +611,11 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         if inf_results is None:
             con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MEV - MEV of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand\n{right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
             return []
-        return list(inf_results)
+        return _inf_results(inf_results)
 
     def _check_mf_hole(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
-        ret: ty.List[af.InterferenceResult] = []
+        ret: list[tuple[af.BRepBody, af.BRepBody]] = []
         for hole in body_finder.get(right_part_occ, AN_HOLE):
-            # To avoid slow _get_temp_body(), check interference by proxy first.
             col.clear()
             col.add(hole)
             for mf in body_finder.get(left_part_occ, AN_MF):
@@ -618,19 +627,10 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
             if inf_results is None:
                 con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
                 continue
-            if len(inf_results) == 0:
-                continue
-
-            col.clear()
-            col.add(_get_temp_body(hole, right_part_occ.name, {VAN_LR: VAV_RIGHT, VAN_CATEGORY_NAME: AN_HOLE}))
-            for mf in body_finder.get(left_part_occ, AN_MF):
-                col.add(_get_temp_body(mf, left_part_occ.name, {VAN_LR: VAV_LEFT, VAN_CATEGORY_NAME: AN_MF}))
-            inf_in = con.des.createInterferenceInput(col)
-            inf_results = con.des.analyzeInterference(inf_in)
-            if inf_results is None:
-                con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
-                continue
-            ret.extend(inf_results)
+            ret.extend([
+                (left, right) if left.nativeObject.attributes.itemByName(ATTR_GROUP, AN_HOLE) is None else (right, left)
+                for left, right in _inf_results(inf_results)
+            ])
         return ret
 
     def _get_lb_rb(ir: af.InterferenceResult):
@@ -647,7 +647,9 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                     territory_body = body_finder.get(part_occ, AN_TERRITORY)
                     if len(territory_body) == 0:
                         raise BadConditionException(f'{pn} lacks Territory body.')
-                    selected_kp_territories.append(_get_temp_body(territory_body[0], pn, {VAN_KP_NAME: kpn}))
+                    cb = territory_body[0]
+                    _set_volatile_attrs(cb, {VAN_PART_NAME: pn, VAN_KP_NAME: kpn})
+                    selected_kp_territories.append(cb)
 
     intersect_pairs: set[tuple[tuple[str, str], tuple[str, str]]] = set()
     for kpn, kp_occ in key_placeholders_occ.child.items():
@@ -659,10 +661,10 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
                         raise BadConditionException(f'{pn} lacks Territory body.')
                     cb = territory_body[0]
                     for st in selected_kp_territories:
-                        if _get_names(st.nativeObject)[0] == kpn:
+                        if _get_names(st)[0] == kpn:
                             continue
                         if st.boundingBox.intersects(cb.boundingBox):
-                            intersect_pairs.add((_get_names(st.nativeObject), (kpn, pn)))
+                            intersect_pairs.add((_get_names(st), (kpn, pn)))
 
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
@@ -674,20 +676,16 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         right_part_occ = _get_part_occ(*right)
         hit = False
         if category_enables[AN_MEV]:
-            for ir in _check_mev_mev(left_part_occ, right_part_occ):
+            for mevs in _check_mev_mev(left_part_occ, right_part_occ):
                 hit = True
-                hit_mev.extend(_get_lb_rb(ir))
+                hit_mev.extend([_get_temp_body(b, b.name, {}) for b in mevs])
         if category_enables[AN_MF] or category_enables[AN_HOLE]:
-            for ir in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
+            for mf, hole in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
                 hit = True
-                lb, rb = _get_lb_rb(ir)
                 if category_enables[AN_MF]:
-                    hit_mf.append(lb)
-                if _get_volatile_attr_value(rb, VAN_CATEGORY_NAME) != AN_HOLE:
-                    rpn = _get_volatile_attr_value(rb, VAN_PART_NAME)[:len(CNP_PARTS)]
-                    raise BadConditionException(f'The part data is corrupted. Two MF bodies are interfering. The part name: {rpn}')
+                    hit_mf.append(_get_temp_body(mf, mf.name, {}))
                 if category_enables[AN_HOLE]:
-                    hit_hole.append(rb)
+                    hit_hole.append(_get_temp_body(hole, hole.name, {}))
         if hit:
             hit_kpns.add(left[0])
             hit_kpns.add(right[0])
