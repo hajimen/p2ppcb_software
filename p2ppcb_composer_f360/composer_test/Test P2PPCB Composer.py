@@ -91,11 +91,9 @@ def run(context):
     APP = ac.Application.get()
     test_suite = unittest.TestSuite()
 
-    # load_automated_tests(test_suite)
+    load_automated_tests(test_suite)
     # load_manual_tests(test_suite)
     # load_notorious_tests(test_suite)
-    # from composer_test.test_cmd import TestCmdCommon
-    # test_suite.addTest(TestCmdCommon('test_check_key_placeholders'))
 
     # Run a command interactively
 
@@ -104,9 +102,6 @@ def run(context):
 
     # from composer_test.test_cmd import TestLoadKle
     # test_suite.addTest(TestLoadKle('test_cmd_interactive'))
-
-    from composer_test.test_cmd import TestMoveKey
-    test_suite.addTest(TestMoveKey('test_cmd_interactive'))
 
     # from composer_test.test_cmd import TestChangeKeyDescs
     # test_suite.addTest(TestChangeKeyDescs('test_cmd_interactive_change_key_descs'))
