@@ -512,30 +512,23 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
 def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dict[str, bool]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[str], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
     con = get_context()
     inl_occ = con.child[CN_INTERNAL]
-    locators_occ = inl_occ.child[CN_KEY_LOCATORS]
-    using_ka_names: ty.Set[str] = set()
-    for _, kl_occ in locators_occ.child.items():
-        specifier = kl_occ.comp_attr[AN_LOCATORS_SPECIFIER]
-        options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
-        using_ka_names.add(key_assembly_name(specifier, *options))
+    key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
 
     CN_TEMP = 'temp' + MAGIC
     temp_occ = inl_occ.child.get_real(CN_TEMP)
     temp_occ.light_bulb = True
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
     body_finder = BodyFinder()
+    col = CreateObjectCollectionT(af.BRepBody)
 
     def _get_temp_body(orig_body: af.BRepBody):
         for ob, tb in cache_temp_body:
             if ob == orig_body:
                 return tb
-        tb = orig_body.copyToComponent(temp_occ.raw_occ)  # This line is deadly slow.
+        tb = orig_body.copyToComponent(temp_occ.raw_occ)  # copyToComponent() is deadly slow.
         tb.isLightBulbOn = False
         cache_temp_body.append((orig_body, tb))
         return tb
-
-    col = CreateObjectCollectionT(af.BRepBody)
-    key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
 
     def _get_part_occ(kpn: str, pn: str):
         for n, c_kp_occ in key_placeholders_occ.child[kpn].child.items():
@@ -592,32 +585,35 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
             ])
         return ret
 
+    # We cannot use analyzeInterference() to detect interference of territories each other.
+    # Because entityOne and entityTwo are native objects, so we cannot distinguish their assemblyContext (component).
+    # TemporaryBRepManager can make temporary bodies but analyzeInterference() cannot handle them.
+    # copyToComponent() is deadly slow.
     selected_kp_territories: list[tuple[af.BRepBody, str, str]] = []
     for kpn in selected_kpns:
         kp_occ = key_placeholders_occ.child[kpn]
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for pn, part_occ in c_kp_occ.child.items():
-                    territory_body = body_finder.get(part_occ, AN_TERRITORY)
-                    if len(territory_body) == 0:
+                    territory_bodies = body_finder.get(part_occ, AN_TERRITORY)
+                    if len(territory_bodies) == 0:
                         raise BadConditionException(f'{pn} lacks Territory body.')
-                    cb = territory_body[0]
-                    selected_kp_territories.append((cb, kpn, pn))
+                    selected_kp_territories.append((territory_bodies[0], kpn, pn))
 
-    intersect_pairs: set[tuple[tuple[str, str], tuple[str, str]]] = set()
+    intersect_pairs: set[frozenset[tuple[str, str]]] = set()
     for kpn, kp_occ in key_placeholders_occ.child.items():
         for n, c_kp_occ in kp_occ.child.items():
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for pn, part_occ in c_kp_occ.child.items():
-                    territory_body = body_finder.get(part_occ, AN_TERRITORY)
-                    if len(territory_body) == 0:
+                    territory_bodies = body_finder.get(part_occ, AN_TERRITORY)
+                    if len(territory_bodies) == 0:
                         raise BadConditionException(f'{pn} lacks Territory body.')
-                    cb = territory_body[0]
                     for st, st_kpn, st_pn in selected_kp_territories:
                         if st_kpn == kpn:
                             continue
-                        if st.boundingBox.intersects(cb.boundingBox):  # this line is slow.
-                            intersect_pairs.add(((st_kpn, st_pn), (kpn, pn)))
+                        pair = frozenset({(st_kpn, st_pn), (kpn, pn)})
+                        if pair not in intersect_pairs and st.boundingBox.intersects(territory_bodies[0].boundingBox):  # intersects() is slow.
+                            intersect_pairs.add(pair)
 
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
