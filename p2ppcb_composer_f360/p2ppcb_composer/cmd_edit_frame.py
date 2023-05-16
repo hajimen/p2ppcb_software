@@ -329,8 +329,8 @@ class FillFrameCommandHandler(CommandHandlerBase):
         if result is None:
             self.execute_common(event_args)
         else:
-            _, _, _, hit_moves, _, _ = result
-            if len(hit_moves) == 0:
+            _, _, _, hit_occs, _ = result
+            if len(hit_occs) == 0:
                 self.execute_common(event_args)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
@@ -713,7 +713,6 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         for b in list(con.comp.bRepBodies):
             if b.name.startswith(BN_FOOT_BOSS):
                 b.isLightBulbOn = False
-
         self.check_interference_cb.b_notify_execute_preview(selected_locators)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:

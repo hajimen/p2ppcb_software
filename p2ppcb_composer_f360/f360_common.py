@@ -412,6 +412,12 @@ class SurrogateF3Occurrence:
 
         return new_occ
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, SurrogateF3Occurrence) and other.parent == self.parent and other.name == self.name
+
+    def __hash__(self):
+        return hash((hash(self.parent), self.name))
+
 
 class F3Occurrence:
     def __init__(self, o: ty.Union[af.Occurrence, ac.Base]) -> None:
@@ -696,12 +702,17 @@ class BodyFinder:
     to find an adsk.fusion.BRepBody object that has an attribute name.
     '''
     def __init__(self) -> None:
-        self.cache: ty.Dict[str, ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]]] = {}
+        self.find_attrs_cache: ty.Dict[str, ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]]] = {}
+        self.bodies_cache: dict[tuple[VirtualF3Occurrence, str], list[af.BRepBody]] = {}
 
     def get(self, occ: VirtualF3Occurrence, attr_name: str, attr_value: ty.Optional[str] = None):
+        bodies_cache_key = occ, attr_name
+        if bodies_cache_key in self.bodies_cache:
+            return self.bodies_cache[bodies_cache_key]
+
         con = get_context()
-        if attr_name in self.cache:
-            v = self.cache[attr_name]
+        if attr_name in self.find_attrs_cache:
+            v = self.find_attrs_cache[attr_name]
         else:
             v: ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]] = []
             for a in con.find_attrs(attr_name):
@@ -710,7 +721,7 @@ class BodyFinder:
                     continue
                 if b.attributes.itemByName(ATTR_GROUP, attr_name) is not None:  # F360 API's findAttributes() can return unrelated attributes.
                     v.append((b.parentComponent, b, a))
-            self.cache[attr_name] = v
+            self.find_attrs_cache[attr_name] = v
         ret: ty.List[af.BRepBody] = []
         occs: list[VirtualF3Occurrence] = [occ]
         comps: list[VirtualComponent] = [occ.comp]
@@ -730,6 +741,8 @@ class BodyFinder:
             if attr_value is not None and a.value != attr_value:
                 continue
             ret.append(b.createForAssemblyContext(context.raw_occ))
+
+        self.bodies_cache[bodies_cache_key] = ret
         return ret
 
 

@@ -511,7 +511,7 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
                 event_args.isSelectable = False
 
 
-def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List[F3Occurrence], other_occs: ty.Optional[ty.List[F3Occurrence]] = None) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:  # noqa
+def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List[F3Occurrence], other_occs: ty.Optional[ty.List[F3Occurrence]] = None) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:  # noqa
     con = get_context()
     inl_occ = con.child[CN_INTERNAL]
     if other_occs is None:
@@ -614,8 +614,7 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
     hit_mf: ty.List[af.BRepBody] = []
-    hit_moves: ty.Set[F3Occurrence] = set()
-    hit_others: ty.Set[F3Occurrence] = set()
+    hit_occs: ty.Set[F3Occurrence] = set()
 
     for move_occ, other_occ in intersect_pairs:
         hit = False
@@ -631,10 +630,10 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
                 if category_enables[AN_HOLE]:
                     hit_hole.append(_get_temp_body(hole))
         if hit:
-            hit_moves.add(move_occ)
-            hit_others.add(other_occ)
+            hit_occs.add(move_occ)
+            hit_occs.add(other_occ)
 
-    return hit_mev, hit_hole, hit_mf, hit_moves, hit_others, cache_temp_body
+    return hit_mev, hit_hole, hit_mf, hit_occs, cache_temp_body
 
 
 class CheckInterferenceCommandBlock:
@@ -669,7 +668,7 @@ class CheckInterferenceCommandBlock:
         if changed_input.id == INP_ID_CHECK_INTERFERENCE_BOOL:
             self.show(self.get_checkbox_ins()[0].value)
 
-    def b_notify_execute_preview(self, move_occs: ty.List[F3Occurrence]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+    def b_notify_execute_preview(self, move_occs: ty.List[F3Occurrence]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
         if len(move_occs) == 0:
             return None
         checkbox_ins = self.get_checkbox_ins()
@@ -678,9 +677,9 @@ class CheckInterferenceCommandBlock:
         result = self.check_interference(move_occs)
         if result is None:
             return None
-        hit_mev, hit_hole, hit_mf, hit_moves, hit_others, _ = result
+        hit_mev, hit_hole, hit_mf, hit_occs, _ = result
 
-        for o in hit_moves | hit_others:
+        for o in hit_occs:
             o.light_bulb = False
 
         category_appearance = get_category_appearance()
@@ -695,7 +694,7 @@ class CheckInterferenceCommandBlock:
 
         return result
 
-    def check_interference(self, move_occs: ty.List[F3Occurrence]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+    def check_interference(self, move_occs: ty.List[F3Occurrence]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
         category_enables: ty.Dict[str, bool] = {
             cn: inp.value
             for cn, inp in zip([AN_HOLE, AN_MF, AN_MEV], self.get_checkbox_ins()[1:])
