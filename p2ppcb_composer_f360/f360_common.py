@@ -503,6 +503,12 @@ class F3Occurrence:
         else:
             self.raw_occ.transform2 = transform
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, F3Occurrence) and other.raw_occ == self.raw_occ
+
+    def __hash__(self):
+        return hash(self.raw_occ.fullPathName)
+
 
 class F3AttributeSingletonDict:
     def __init__(self, con: 'F3Context') -> None:
@@ -706,12 +712,24 @@ class BodyFinder:
                     v.append((b.parentComponent, b, a))
             self.cache[attr_name] = v
         ret: ty.List[af.BRepBody] = []
+        occs: list[VirtualF3Occurrence] = [occ]
+        comps: list[VirtualComponent] = [occ.comp]
+
+        def rec(occ: VirtualF3Occurrence):
+            for o in occ.child.values():
+                occs.append(o)
+                comps.append(o.comp)
+                rec(o)
+        rec(occ)
+
         for c, b, a in v:
-            if c != occ.comp:
+            try:
+                context = occs[comps.index(c)]
+            except ValueError:
                 continue
             if attr_value is not None and a.value != attr_value:
                 continue
-            ret.append(b.createForAssemblyContext(occ.raw_occ))
+            ret.append(b.createForAssemblyContext(context.raw_occ))
         return ret
 
 

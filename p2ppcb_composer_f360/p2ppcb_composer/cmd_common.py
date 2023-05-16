@@ -3,15 +3,17 @@ from collections import defaultdict
 import pickle
 import pathlib
 import typing as ty
+import itertools
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, CommandInputs, SelectionCommandInput,\
     SelectionEventArgs, ValidateInputsEventArgs, Selection
-from f360_common import AN_HOLE, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, AN_TERRITORY, ANS_OPTION, \
+from f360_common import AN_HOLE, AN_MEV, AN_MF, AN_TERRITORY, \
     ATTR_GROUP, BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
-    CNP_KEY_ASSEMBLY, MAGIC, ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
+    ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
-    get_context, key_assembly_name, key_placeholder_name, catch_exception, reset_context
+    get_context, catch_exception, reset_context, CN_FOOT_PLACEHOLDERS, \
+    CN_MISC_PLACEHOLDERS
 from p2ppcb_parts_resolver import resolver as parts_resolver
 from pint import Quantity
 
@@ -509,14 +511,17 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
                 event_args.isSelectable = False
 
 
-def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dict[str, bool]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[str], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List[F3Occurrence], other_occs: ty.Optional[ty.List[F3Occurrence]] = None) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:  # noqa
     con = get_context()
     inl_occ = con.child[CN_INTERNAL]
-    key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
+    if other_occs is None:
+        other_occs = []
+        for cn in [CN_KEY_PLACEHOLDERS, CN_FOOT_PLACEHOLDERS, CN_MISC_PLACEHOLDERS]:
+            if cn in inl_occ.child:
+                for o in inl_occ.child[cn].child.values():
+                    if o.light_bulb and isinstance(o, F3Occurrence):
+                        other_occs.append(o)
 
-    CN_TEMP = 'temp' + MAGIC
-    temp_occ = inl_occ.child.get_real(CN_TEMP)
-    temp_occ.light_bulb = True
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
     body_finder = BodyFinder()
     col = CreateObjectCollectionT(af.BRepBody)
@@ -525,16 +530,10 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
         for ob, tb in cache_temp_body:
             if ob == orig_body:
                 return tb
-        tb = orig_body.copyToComponent(temp_occ.raw_occ)  # copyToComponent() is deadly slow.
+        tb = orig_body.copyToComponent(con.comp)  # copyToComponent() is deadly slow.
         tb.isLightBulbOn = False
         cache_temp_body.append((orig_body, tb))
         return tb
-
-    def _get_part_occ(kpn: str, pn: str):
-        for n, c_kp_occ in key_placeholders_occ.child[kpn].child.items():
-            if n.endswith(CNP_KEY_ASSEMBLY):
-                return c_kp_occ.child[pn]
-        raise BadCodeException()
 
     def _inf_results(inf_results: af.InterferenceResults):
         ret: list[tuple[af.BRepBody, af.BRepBody]] = []
@@ -585,61 +584,57 @@ def _check_key_placeholders(selected_kpns: ty.Set[str], category_enables: ty.Dic
             ])
         return ret
 
-    # We cannot use analyzeInterference() to detect interference of territories each other.
-    # Because entityOne and entityTwo are native objects, so we cannot distinguish their assemblyContext (component).
-    # TemporaryBRepManager can make temporary bodies but analyzeInterference() cannot handle them.
-    # copyToComponent() is deadly slow.
-    selected_kp_territories: list[tuple[af.BRepBody, str, str]] = []
-    for kpn in selected_kpns:
-        kp_occ = key_placeholders_occ.child[kpn]
-        for n, c_kp_occ in kp_occ.child.items():
-            if n.endswith(CNP_KEY_ASSEMBLY):
-                for pn, part_occ in c_kp_occ.child.items():
-                    territory_bodies = body_finder.get(part_occ, AN_TERRITORY)
-                    if len(territory_bodies) == 0:
-                        raise BadConditionException(f'{pn} lacks Territory body.')
-                    selected_kp_territories.append((territory_bodies[0], kpn, pn))
+    intersect_pairs: set[tuple[F3Occurrence, F3Occurrence]] = set()
+    checked_pairs: set[frozenset[F3Occurrence]] = set()
+    territory_bb_cache: dict[F3Occurrence, ac.BoundingBox3D] = {}
+    for oo, mo in itertools.product(other_occs, move_occs):
+        if oo == mo:
+            continue
+        p = frozenset({mo, oo})
+        if p in checked_pairs:
+            continue
+        checked_pairs.add(p)
 
-    intersect_pairs: set[frozenset[tuple[str, str]]] = set()
-    for kpn, kp_occ in key_placeholders_occ.child.items():
-        for n, c_kp_occ in kp_occ.child.items():
-            if n.endswith(CNP_KEY_ASSEMBLY):
-                for pn, part_occ in c_kp_occ.child.items():
-                    territory_bodies = body_finder.get(part_occ, AN_TERRITORY)
-                    if len(territory_bodies) == 0:
-                        raise BadConditionException(f'{pn} lacks Territory body.')
-                    for st, st_kpn, st_pn in selected_kp_territories:
-                        if st_kpn == kpn:
-                            continue
-                        pair = frozenset({(st_kpn, st_pn), (kpn, pn)})
-                        if pair not in intersect_pairs and st.boundingBox.intersects(territory_bodies[0].boundingBox):  # intersects() is slow.
-                            intersect_pairs.add(pair)
+        bbs = []
+        for o in [oo, mo]:
+            if o in territory_bb_cache:
+                bb = territory_bb_cache[o]
+            else:
+                tbs = body_finder.get(o, AN_TERRITORY)
+                if len(tbs) == 0:
+                    raise BadCodeException(f'Part {o.name} lacks Territory body.')
+                bb = tbs[0].boundingBox.copy()
+                for tb in tbs[1:]:
+                    bb.combine(tb.boundingBox)
+                territory_bb_cache[o] = bb
+            bbs.append(bb)
+        if bbs[0].intersects(bbs[1]):
+            intersect_pairs.add((mo, oo))
 
     hit_mev: ty.List[af.BRepBody] = []
     hit_hole: ty.List[af.BRepBody] = []
     hit_mf: ty.List[af.BRepBody] = []
-    hit_kpns: ty.Set[str] = set()
+    hit_moves: ty.Set[F3Occurrence] = set()
+    hit_others: ty.Set[F3Occurrence] = set()
 
-    for left, right in intersect_pairs:
-        left_part_occ = _get_part_occ(*left)
-        right_part_occ = _get_part_occ(*right)
+    for move_occ, other_occ in intersect_pairs:
         hit = False
         if category_enables[AN_MEV]:
-            for mevs in _check_mev_mev(left_part_occ, right_part_occ):
+            for mevs in _check_mev_mev(other_occ, move_occ):
                 hit = True
                 hit_mev.extend([_get_temp_body(b) for b in mevs])
         if category_enables[AN_MF] or category_enables[AN_HOLE]:
-            for mf, hole in _check_mf_hole(left_part_occ, right_part_occ) + _check_mf_hole(right_part_occ, left_part_occ):
+            for mf, hole in _check_mf_hole(other_occ, move_occ) + _check_mf_hole(move_occ, other_occ):
                 hit = True
                 if category_enables[AN_MF]:
                     hit_mf.append(_get_temp_body(mf))
                 if category_enables[AN_HOLE]:
                     hit_hole.append(_get_temp_body(hole))
         if hit:
-            hit_kpns.add(left[0])
-            hit_kpns.add(right[0])
+            hit_moves.add(move_occ)
+            hit_others.add(other_occ)
 
-    return hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body
+    return hit_mev, hit_hole, hit_mf, hit_moves, hit_others, cache_temp_body
 
 
 class CheckInterferenceCommandBlock:
@@ -674,28 +669,19 @@ class CheckInterferenceCommandBlock:
         if changed_input.id == INP_ID_CHECK_INTERFERENCE_BOOL:
             self.show(self.get_checkbox_ins()[0].value)
 
-    def b_notify_execute_preview(self, selected_locators: ty.List[F3Occurrence] = []) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[str], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
-        if len(selected_locators) == 0:
+    def b_notify_execute_preview(self, move_occs: ty.List[F3Occurrence]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+        if len(move_occs) == 0:
             return None
         checkbox_ins = self.get_checkbox_ins()
         if (not checkbox_ins[0].value) or (not any(ci.value for ci in checkbox_ins[1:])):
             return None
-        selected_kpns: ty.Set[str] = set()
-        for kl_occ in selected_locators:
-            pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
-            i = int(kl_occ.comp_attr[AN_LOCATORS_I])
-            selected_kpns.add(key_placeholder_name(i, pattern_name))
-        result = self.check_key_placeholders(selected_kpns)
+        result = self.check_interference(move_occs)
         if result is None:
             return None
-        hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body = result
+        hit_mev, hit_hole, hit_mf, hit_moves, hit_others, _ = result
 
-        con = get_context()
-        inl_occ = con.child[CN_INTERNAL]
-        key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
-        for kpn in hit_kpns:
-            key_placeholders_occ.child[kpn].light_bulb = False
-            key_placeholders_occ.child[kpn].light_bulb = False
+        for o in hit_moves | hit_others:
+            o.light_bulb = False
 
         category_appearance = get_category_appearance()
         for hit_bodies, category in zip([hit_mev, hit_hole, hit_mf], [AN_MEV, AN_HOLE, AN_MF]):
@@ -709,12 +695,12 @@ class CheckInterferenceCommandBlock:
 
         return result
 
-    def check_key_placeholders(self, selected_kpns: ty.Set[str]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[str], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+    def check_interference(self, move_occs: ty.List[F3Occurrence]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
         category_enables: ty.Dict[str, bool] = {
             cn: inp.value
             for cn, inp in zip([AN_HOLE, AN_MF, AN_MEV], self.get_checkbox_ins()[1:])
         }
-        return _check_key_placeholders(selected_kpns, category_enables)
+        return _check_interference(category_enables, move_occs)
 
 
 class MoveComponentCommandBlock:

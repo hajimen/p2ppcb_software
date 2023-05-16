@@ -2,7 +2,8 @@ import typing as ty
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 import adsk.fusion as af
-from f360_common import CN_KEY_LOCATORS, BadCodeException, get_context, CN_INTERNAL, F3Occurrence
+from f360_common import CN_KEY_LOCATORS, BadCodeException, get_context, CN_INTERNAL, F3Occurrence, key_placeholder_name, AN_LOCATORS_I, \
+    CN_KEY_PLACEHOLDERS, AN_LOCATORS_PATTERN_NAME
 from p2ppcb_composer.cmd_common import all_has_sel_ins, get_cis, has_sel_in, AN_LOCATORS_PLANE_TOKEN, TOOLTIP_NOT_SELECTED, InputLocators, \
     get_selected_locators, locator_notify_pre_select, CommandHandlerBase, CheckInterferenceCommandBlock, MoveComponentCommandBlock
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, INP_ID_KEY_LOCATOR_SEL, INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, get_layout_plane_transform, place_key_placeholders
@@ -182,8 +183,19 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         return []
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
+        con = get_context()
+        inl_occ = con.child[CN_INTERNAL]
+        key_placeholders_occ = inl_occ.child.get_real(CN_KEY_PLACEHOLDERS)
+
         selected_locators = self.execute_common(event_args)
-        self.check_interference_cb.b_notify_execute_preview(selected_locators)
+
+        move_occs = [
+            key_placeholders_occ.child.get_real(
+                key_placeholder_name(int(kl_occ.comp_attr[AN_LOCATORS_I]), kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME])
+            )
+            for kl_occ in selected_locators
+        ]
+        self.check_interference_cb.b_notify_execute_preview(move_occs)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         _ = self.execute_common(event_args)

@@ -26,17 +26,18 @@ TEST_PKL_DIR = CURRENT_DIR / 'test_data/pkl'
 
 class TestCmdCommon(unittest.TestCase):
     def test_check_key_placeholders(self):
-        from p2ppcb_composer.cmd_common import _check_key_placeholders
+        from p2ppcb_composer.cmd_common import _check_interference
         doc = open_test_document(TEST_F3D_DIR / 'check_key_placeholders.f3d')
-        result = _check_key_placeholders({'125u 0_KP'}, {AN_HOLE: True, AN_MEV: True, AN_MF: True})
+        key_placeholders_occ = get_context().child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
+        result = _check_interference({AN_HOLE: True, AN_MEV: True, AN_MF: True}, [key_placeholders_occ.child.get_real('125u 0_KP')])
         if result is None:
             self.fail()
         else:
-            hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body = result
+            hit_mev, hit_hole, hit_mf, hit_moves, hit_others, cache_temp_body = result
             self.assertEqual(len(hit_mev), 2)
             self.assertListEqual(hit_hole, [])
             self.assertListEqual(hit_mf, [])
-            self.assertEqual(len(hit_kpns), 2)
+            self.assertEqual(len(hit_moves | hit_others), 2)
             self.assertEqual(len(cache_temp_body), 2)
         doc.close(False)
 
