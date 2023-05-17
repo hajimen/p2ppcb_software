@@ -703,10 +703,10 @@ class BodyFinder:
     '''
     def __init__(self) -> None:
         self.find_attrs_cache: ty.Dict[str, ty.List[ty.Tuple[af.Component, af.BRepBody, ac.Attribute]]] = {}
-        self.bodies_cache: dict[tuple[VirtualF3Occurrence, str], list[af.BRepBody]] = {}
+        self.bodies_cache: dict[tuple[VirtualF3Occurrence, str, ty.Optional[str]], list[af.BRepBody]] = {}
 
     def get(self, occ: VirtualF3Occurrence, attr_name: str, attr_value: ty.Optional[str] = None):
-        bodies_cache_key = occ, attr_name
+        bodies_cache_key = occ, attr_name, attr_value
         if bodies_cache_key in self.bodies_cache:
             return self.bodies_cache[bodies_cache_key]
 

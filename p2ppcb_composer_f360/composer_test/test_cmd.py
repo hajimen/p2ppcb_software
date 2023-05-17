@@ -29,7 +29,7 @@ class TestCmdCommon(unittest.TestCase):
         from p2ppcb_composer.cmd_common import _check_interference
         doc = open_test_document(TEST_F3D_DIR / 'check_key_placeholders.f3d')
         key_placeholders_occ = get_context().child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
-        result = _check_interference({AN_HOLE: True, AN_MEV: True, AN_MF: True}, [key_placeholders_occ.child.get_real('125u 0_KP')])
+        result = _check_interference({AN_HOLE: True, AN_MEV: True, AN_MF: True}, [key_placeholders_occ.child.get_real('125u 0_KP')], None)
         if result is None:
             self.fail()
         else:

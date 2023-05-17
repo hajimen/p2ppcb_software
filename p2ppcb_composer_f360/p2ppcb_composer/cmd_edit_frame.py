@@ -9,7 +9,7 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AV_FLIP, AV_RIGHT, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
-    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, AN_PLACEHOLDER, key_placeholder_name
+    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, AN_PLACEHOLDER, key_placeholder_name, ATTR_GROUP, AN_MEV, AN_MF
 from p2ppcb_composer.cmd_common import AN_MB_LOCATION_INPUTS, CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, load_mb_location_inputs
 from route.route import get_cn_mainboard
 
@@ -452,7 +452,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
         return t
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
-        if_in = self.check_interference_cb.get_checkbox_ins()[0]
         if self.offset_cb.is_valid():
             if changed_input.id == INP_ID_MAINBOARD_LAYOUT_RADIO:
                 self.offset_cb.get_in().value = '2 mm'
@@ -462,7 +461,6 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
                 t = self.get_mainboard_transform()
                 self.move_comp_cb.start_transaction(t)
             self.move_comp_cb.b_notify_changed_input(changed_input)
-        self.check_interference_cb.show(if_in.value)
         self.check_interference_cb.notify_input_changed(event_args, changed_input)
 
     def execute_common(self, event_args: CommandEventArgs):
@@ -479,7 +477,7 @@ class PlaceMainboardCommandHandler(CommandHandlerBase):
 
         if_in = self.check_interference_cb.get_checkbox_ins()[0]
         if if_in.value:
-            self.check_interference_cb.b_notify_execute_preview([o])
+            self.check_interference_cb.b_notify_execute_preview([o], AV_FLIP if self.get_flip_in().value else AV_RIGHT)
 
         for b in list(con.comp.bRepBodies):
             if b.name.startswith(BN_MAINBOARD_BOSS):
@@ -713,6 +711,10 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         for b in list(con.comp.bRepBodies):
             if b.name.startswith(BN_FOOT_BOSS):
                 b.isLightBulbOn = False
+        body_finder = BodyFinder()
+        for o in selected_locators:
+            for b in body_finder.get(o, AN_FILL, AN_FILL):
+                b.isVisible = True
         self.check_interference_cb.b_notify_execute_preview(selected_locators)
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
