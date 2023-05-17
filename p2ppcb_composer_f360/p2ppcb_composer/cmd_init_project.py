@@ -17,6 +17,8 @@ INP_ID_KEY_PITCH_D_VAL = 'keyPitchD'
 INP_ID_MAINBOARD = 'mainboard'
 INP_ID_SCAFFOLD_BOOL = 'scaffold'
 
+CN_SURFACE = 'Skeleton / Key Angle Surface'
+
 TOOLTIPS_MAIN_SURFACE = ('Main Surface', 'Specify a surface. It becomes initial preference of skeleton surface and key angle surface of all keys.\nYou can change the choice afterwards, on each key individually.')
 TOOLTIPS_MAIN_LAYOUT_PLANE = ('Main Layout Plane', 'Specify a construction plane to deploy a KLE file.\nYou can change the choice afterwards, on each key individually.')
 
@@ -91,6 +93,10 @@ def generate_scaffold():
     alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
     alternative_sketch.deleteMe()
     profile_plane.deleteMe()
+
+    so = con.child.get_real(CN_SURFACE)
+    skeleton_surface = skeleton_surface.moveToComponent(so.raw_occ)
+    alternative_surface = alternative_surface.moveToComponent(so.raw_occ)
 
     col = CreateObjectCollectionT(af.BRepBody)
     col.add(skeleton_surface)
@@ -254,14 +260,24 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
                     _ = check_layout_plane(af.ConstructionPlane.cast(layout_plane_in.selection(0).entity))
                 except Exception:
                     layout_plane_in.clearSelection()
+        elif changed_input.id == INP_ID_MAIN_SURFACE_SEL:
+            main_in, _ = self.get_selection_ins()
+            if has_sel_in(main_in):
+                ms = af.BRepBody.cast(main_in.selection(0).entity)
+                if ms.assemblyContext is None:  # the surface is in the root component.
+                    dr = get_context().ui.messageBox(
+                        'Skeleton / Key angle surface should be in a separated component. Generate a component and move to it?',
+                        'P2PPCB',
+                        ac.MessageBoxButtonTypes.OKCancelButtonType)
+                    if dr == ac.DialogResults.DialogCancel:
+                        main_in.clearSelection()
+
         self.parts_cb.b_notify_input_changed(changed_input)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs):
         self.parts_cb.notify_validate(event_args)
 
-    def execute_common(self, event_args: CommandEventArgs, is_execute: bool) -> None:
-        con = get_context()
-
+    def execute_common(self, event_args: CommandEventArgs, is_execute: bool):
         if self.get_scaffold_in().value:
             options = [inp.listItems[1].name for inp in self.parts_cb.get_option_ins()]
             pitch_w, pitch_d, offset, main_surface, _, layout_plane = generate_scaffold()
@@ -270,6 +286,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             main_in, layout_plane_in = self.get_selection_ins()
             main_surface = af.BRepBody.cast(main_in.selection(0).entity)
             layout_plane = af.ConstructionPlane.cast(layout_plane_in.selection(0).entity)
+
             pitch_w = self.get_pitch_w_in().value
             pitch_d = self.get_pitch_d_in().value
 
@@ -279,8 +296,24 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
                 raise BadCodeException()
             mb = self.get_mainboard_in().selectedItem.name
 
+        return pitch_w, pitch_d, offset, main_surface, layout_plane, options, mb
+
+    def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
+        self.execute_common(event_args, False)
+        con = get_context()
+        if self.get_scaffold_in().value:
+            camera = con.app.activeViewport.camera
+            con.app.activeViewport.camera = camera
+
+    def notify_execute(self, event_args: CommandEventArgs) -> None:
+        con = get_context()
+        pitch_w, pitch_d, offset, main_surface, layout_plane, options, mb = self.execute_common(event_args, True)
+        if main_surface.assemblyContext is None:  # the surface is in the root component.
+            so = con.child.get_real(CN_SURFACE)
+            main_surface = main_surface.moveToComponent(so.raw_occ)
         con.attr_singleton[AN_MAIN_SURFACE] = ('noop', main_surface)
         con.attr_singleton[AN_MAIN_LAYOUT_PLANE] = ('noop', layout_plane)
+
         inl_occ = con.child.get_real(CN_INTERNAL)
         inl_occ.comp_attr[AN_KEY_PITCH_W] = str(pitch_w)
         inl_occ.comp_attr[AN_KEY_PITCH_D] = str(pitch_d)
@@ -290,12 +323,4 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         inl_occ.comp_attr[AN_MAIN_KEY_V_OFFSET] = str(offset)
         inl_occ.comp_attr[AN_MAINBOARD] = mb
 
-    def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
-        self.execute_common(event_args, False)
-        con = get_context()
-        camera = con.app.activeViewport.camera
-        con.app.activeViewport.camera = camera
-
-    def notify_execute(self, event_args: CommandEventArgs) -> None:
-        self.execute_common(event_args, True)
         InitializeEventHandler()
