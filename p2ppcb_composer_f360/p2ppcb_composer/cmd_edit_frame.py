@@ -9,7 +9,7 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AV_FLIP, AV_RIGHT, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
-    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, AN_PLACEHOLDER, key_placeholder_name, ATTR_GROUP, AN_MEV, AN_MF
+    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, AN_PLACEHOLDER, key_placeholder_name
 from p2ppcb_composer.cmd_common import AN_MB_LOCATION_INPUTS, CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, load_mb_location_inputs
 from route.route import get_cn_mainboard
 
