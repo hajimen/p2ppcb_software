@@ -5,7 +5,7 @@ import numpy as np
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, BadCodeException, BadConditionException, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D
+from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, BadCodeException, BadConditionException, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, CNP_KEY_LOCATOR
 from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, has_sel_in, load_mb_location_inputs
 from route import route as rt
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
@@ -53,7 +53,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
     def notify_create(self, event_args: CommandCreatedEventArgs):
         inputs = self.inputs
         locator_in = inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select an entity')
-        locator_in.addSelectionFilter('Occurrences')
+        locator_in.addSelectionFilter('SurfaceBodies')
         locator_in.setSelectionLimits(0, 0)
 
         _ = self.inputs.addBoolValueInput(INP_ID_LEDKEY_BOOL, 'LED key', True)
@@ -71,18 +71,17 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id != INP_ID_KEY_LOCATOR_SEL:
             return
-        e = af.Occurrence.cast(selection.entity)
-        if e is None:
+
+        e: af.BRepBody = selection.entity  # type: ignore
+        if not e.parentComponent.name.endswith(CNP_KEY_LOCATOR) or e.assemblyContext is None or e.assemblyContext.assemblyContext is None or e.assemblyContext.assemblyContext.component.name != CN_KEY_LOCATORS:
             event_args.isSelectable = False
             return
-        ent = F3Occurrence(e)
-        if (not ent.has_parent) or ent.parent.name != CN_KEY_LOCATORS:
-            event_args.isSelectable = False
+
+        if self.get_locator_in().selectionCount <= 1:
             return
-        selected_locators = self.get_selected_locators()
-        if len(selected_locators) <= 1:
-            return
+
         is_led = self.get_ledkey_in().value
+        ent = F3Occurrence(e.assemblyContext)
         for rc in rt.RC:
             if ANS_RC_NAME[rc] in ent.comp_attr and is_led_name(ent.comp_attr[ANS_RC_NAME[rc]]) != is_led:
                 event_args.isSelectable = False
@@ -96,7 +95,7 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     def get_selected_locators(self):
         locator_in = self.get_locator_in()
-        return [F3Occurrence(locator_in.selection(i).entity) for i in range(locator_in.selectionCount)]
+        return [F3Occurrence(locator_in.selection(i).entity.assemblyContext) for i in range(locator_in.selectionCount)]  # type: ignore
 
     def get_rowcol_in(self):
         return get_ci(self.inputs, INP_ID_ROW_COL_RADIO, ac.RadioButtonGroupCommandInput)

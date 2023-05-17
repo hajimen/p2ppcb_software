@@ -171,7 +171,10 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         main_in.tooltip, main_in.tooltipDescription = TOOLTIPS_MAIN_SURFACE
         s = con.find_attrs(AN_MAIN_SURFACE)
         if len(s) == 1 and s[0].isValid and s[0].parent is not None:
-            main_in.addSelection(s[0].parent)
+            try:
+                main_in.addSelection(s[0].parent)
+            except:  # noqa
+                pass
 
         layout_plane_in = self.inputs.addSelectionInput(INP_ID_MAIN_LAYOUT_PLANE_SEL, 'Main Layout Plane', 'Select an entity')
         layout_plane_in.addSelectionFilter('ConstructionPlanes')
@@ -179,7 +182,10 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         layout_plane_in.tooltip, layout_plane_in.tooltipDescription = TOOLTIPS_MAIN_LAYOUT_PLANE
         s = con.find_attrs(AN_MAIN_LAYOUT_PLANE)
         if len(s) == 1 and s[0].isValid and s[0].parent is not None:
-            layout_plane_in.addSelection(s[0].parent)
+            try:
+                layout_plane_in.addSelection(s[0].parent)
+            except:  # noqa
+                pass
 
         attr: ty.MutableMapping[str, str] = con.child[CN_INTERNAL].comp_attr if CN_INTERNAL in con.child else {}
         pns = {AN_KEY_PITCH_W: 'Widthwise Key Pitch', AN_KEY_PITCH_D: 'Depthwise Key Pitch'}

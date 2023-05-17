@@ -67,7 +67,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         self.once_shown = set()
 
         locator_in = self.inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select an entity')
-        locator_in.addSelectionFilter('Occurrences')
+        locator_in.addSelectionFilter('SurfaceBodies')
         locator_in.setSelectionLimits(0, 0)
 
         specifier_in = self.inputs.addStringValueInput(INP_ID_SPECIFIER_STR, 'Specifier', '')

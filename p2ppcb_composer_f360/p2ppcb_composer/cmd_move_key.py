@@ -47,7 +47,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
     def notify_create(self, event_args: CommandCreatedEventArgs):
         inputs = self.inputs
         locator_in = inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select an entity')
-        locator_in.addSelectionFilter('Occurrences')
+        locator_in.addSelectionFilter('SurfaceBodies')
         locator_in.setSelectionLimits(0, 0)
 
         layout_plane_in = inputs.addSelectionInput(INP_ID_LAYOUT_PLANE_SEL, 'Layout Plane', 'Select an entity')
@@ -78,6 +78,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         self.check_interference_cb.notify_create(event_args)
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
+        # This method should be extremely fast because F360 calls this insanely a lot when the keys are a lot.
         if active_input.id == INP_ID_KEY_LOCATOR_SEL:
             locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
             return
@@ -87,7 +88,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
             ent = af.ConstructionPlane.cast(selection.entity)
         else:
             return
-        # ent.assemblyContext is None when the parentComponent is the root component.
+        # ent.assemblyContext is None when the component is the root component.
         if ent is None or (ent.assemblyContext is not None and CN_INTERNAL in ent.assemblyContext.fullPathName):
             event_args.isSelectable = False
 

@@ -13,7 +13,7 @@ from f360_common import AN_HOLE, AN_MEV, AN_MF, AN_TERRITORY, \
     ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, catch_exception, reset_context, CN_FOOT_PLACEHOLDERS, \
-    CN_MISC_PLACEHOLDERS
+    CN_MISC_PLACEHOLDERS, CNP_KEY_LOCATOR
 from p2ppcb_parts_resolver import resolver as parts_resolver
 from pint import Quantity
 
@@ -483,22 +483,20 @@ class InputLocators:
 
 
 def get_selected_locators(locator_in: ac.SelectionCommandInput):
-    locs = [af.Occurrence.cast(locator_in.selection(i).entity) for i in range(locator_in.selectionCount)]
-    return list([F3Occurrence(o) for o in filter(lambda x: x is not None, locs)])
+    return list([
+        F3Occurrence(ty.cast(af.BRepBody, locator_in.selection(i).entity).assemblyContext)
+        for i in range(locator_in.selectionCount)
+    ])
 
 
 def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection):
+    e: af.BRepBody = selection.entity  # type: ignore
+    if not e.parentComponent.name.endswith(CNP_KEY_LOCATOR) or e.assemblyContext is None or e.assemblyContext.assemblyContext is None or e.assemblyContext.assemblyContext.component.name != CN_KEY_LOCATORS:
+        event_args.isSelectable = False
+        return
     con = get_context()
-    e = af.Occurrence.cast(selection.entity)
-    if e is None:
-        event_args.isSelectable = False
-        return
-    ent = F3Occurrence(e)
-    if (not ent.has_parent) or ent.parent.name != CN_KEY_LOCATORS:
-        event_args.isSelectable = False
-        return
     lp_ci = InputLocators(active_input, AN_LOCATORS_PLANE_TOKEN)
-    preselect_lp_token = lp_ci.get_locators_attr_value([ent])
+    preselect_lp_token = lp_ci.get_locators_attr_value([F3Occurrence(e.assemblyContext)])
     if preselect_lp_token is None:
         raise BadCodeException('Internal Error: Key locator lacks lp_token.')
     preselect_lp = con.find_by_token(preselect_lp_token)[0]
