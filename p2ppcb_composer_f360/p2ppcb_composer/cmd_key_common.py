@@ -157,7 +157,9 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         ss_inv_trans = get_inverted_m3d(ss_trans)
         zv_ss = get_transformed_mpv3d(zv, ss_inv_trans)
         orig_ss = get_transformed_mpv3d(orig, ss_inv_trans)
-        hit_faces: ac.ObjectCollectionT[af.BRepFace] = skeleton_surface.parentComponent.findBRepUsingRay(orig_ss, zv_ss, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points)  # type: ignore
+        hit_faces: ac.ObjectCollectionT[af.BRepFace] = skeleton_surface.parentComponent.findBRepUsingRay(  # findBRepUsingRay() is deadly slow when the file has many components.
+            orig_ss, zv_ss, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points
+        )  # type: ignore
         center, face = _find_hit_point_face(hit_points, hit_faces, skeleton_surface)
         if center is None or face is None:
             continue
@@ -175,7 +177,9 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
             zv_ka = get_transformed_mpv3d(zv, ka_inv_trans)
             orig_ka = get_transformed_mpv3d(orig, ka_inv_trans)
             hit_points.clear()
-            hit_faces = ka_comp.findBRepUsingRay(orig_ka, zv_ka, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points)  # type: ignore
+            hit_faces = ka_comp.findBRepUsingRay(  # findBRepUsingRay() is deadly slow when the file has many components.
+                orig_ka, zv_ka, af.BRepEntityTypes.BRepFaceEntityType, -1., False, hit_points
+            )  # type: ignore
             ka_point, ka_face = _find_hit_point_face(hit_points, hit_faces, ka_surface)
             if ka_point is None or ka_face is None:
                 continue

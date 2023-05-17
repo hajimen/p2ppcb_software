@@ -33,10 +33,10 @@ class TestCmdCommon(unittest.TestCase):
         if result is None:
             self.fail()
         else:
-            hit_mev, hit_hole, hit_mf, hit_occs, cache_temp_body = result
-            self.assertEqual(len(hit_mev), 2)
-            self.assertListEqual(hit_hole, [])
-            self.assertListEqual(hit_mf, [])
+            hit_mevs, hit_holes, hit_mfs, hit_occs, cache_temp_body = result
+            self.assertEqual(len(hit_mevs), 2)
+            self.assertListEqual(hit_holes, [])
+            self.assertListEqual(hit_mfs, [])
             self.assertEqual(len(hit_occs), 2)
             self.assertEqual(len(cache_temp_body), 2)
         doc.close(False)

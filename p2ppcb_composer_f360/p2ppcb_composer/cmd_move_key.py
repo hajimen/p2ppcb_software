@@ -199,21 +199,6 @@ class MoveKeyCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         _ = self.execute_common(event_args)
-        # Too slow
-        # selected_kpns: ty.Set[str] = set()
-        # for kl_occ in selected_locators:
-        #     pattern_name = kl_occ.comp_attr[AN_LOCATORS_PATTERN_NAME]
-        #     i = int(kl_occ.comp_attr[AN_LOCATORS_I])
-        #     selected_kpns.add(key_placeholder_name(i, pattern_name))
-        # result = self.check_interference_cb.check_key_placeholders(selected_kpns)
-        # if result is None:
-        #     return
-        # hit_mev, hit_hole, hit_mf, hit_kpns, cache_temp_body = result
-        # for _, tb in cache_temp_body:
-        #     tb.deleteMe()
-        # n_hit = len(hit_mev) + len(hit_hole) + len(hit_mf)
-        # if n_hit > 0:
-        #     get_context().ui.messageBox(f'Warning: {n_hit} interference(s) exists among {len(hit_kpns)} key placeholder(s).')
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
         key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]

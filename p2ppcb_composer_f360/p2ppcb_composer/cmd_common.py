@@ -511,7 +511,7 @@ def locator_notify_pre_select(inp_id: str, event_args: SelectionEventArgs, activ
                 event_args.isSelectable = False
 
 
-def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List[F3Occurrence], av: ty.Optional[str]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:  # noqa
+def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List[F3Occurrence], right_flip: ty.Optional[str]) -> ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]:  # noqa
     con = get_context()
     inl_occ = con.child[CN_INTERNAL]
 
@@ -524,7 +524,7 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
 
     cache_temp_body: ty.List[ty.Tuple[af.BRepBody, af.BRepBody]] = []
     body_finder = BodyFinder()
-    col = CreateObjectCollectionT(af.BRepBody)
+    col = CreateObjectCollectionT(af.BRepBody)  # optimization to avoid ObjectCollection.create().
 
     def _get_temp_body(orig_body: af.BRepBody):
         for ob, tb in cache_temp_body:
@@ -535,52 +535,46 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
         cache_temp_body.append((orig_body, tb))
         return tb
 
-    def _inf_results(inf_results: af.InterferenceResults):
+    def _analyze_interference(msg: str, left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence) -> list[tuple[af.BRepBody, af.BRepBody]]:
+        if len(col) < 2:
+            return []
+
+        inf_results = con.des.analyzeInterference(con.des.createInterferenceInput(col))
+        if inf_results is None:
+            con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about {msg} of\n{left_part_occ.name} in {left_part_occ.parent.raw_occ.fullPathName}\nand\n{right_part_occ.name} in {right_part_occ.parent.raw_occ.fullPathName}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
+            return []
+        if len(inf_results) == 0:
+            return []
+
+        nbs: list = [b.nativeObject for b in col]
         ret: list[tuple[af.BRepBody, af.BRepBody]] = []
         for ir in inf_results:
-            left: ty.Optional[af.BRepBody] = None
-            right: ty.Optional[af.BRepBody] = None
-            for b in col:
-                if b.nativeObject == ir.entityOne:
-                    left = b
-                if b.nativeObject == ir.entityTwo:
-                    right = b
-            if left is None or right is None:
-                raise BadCodeException()
-            ret.append((left, right))
+            lr = []
+            for e in [ir.entityOne, ir.entityTwo]:
+                try:
+                    lr.append(col[nbs.index(e)])
+                except ValueError:
+                    raise BadCodeException()
+            ret.append(tuple(lr))
         return ret
 
     def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence) -> list[tuple[af.BRepBody, af.BRepBody]]:
         col.clear()
-        for po in [left_part_occ, right_part_occ]:
-            for b in body_finder.get(po, AN_MEV, AN_MEV) + ([] if av is None else body_finder.get(po, AN_MEV, av)):
+        for o in [left_part_occ, right_part_occ]:
+            for b in body_finder.get(o, AN_MEV, AN_MEV) + ([] if right_flip is None else body_finder.get(o, AN_MEV, right_flip)):
                 col.add(b)
-        if len(col) < 2:
-            return []
-        inf_in = con.des.createInterferenceInput(col)
-        inf_results = con.des.analyzeInterference(inf_in)
-        if inf_results is None:
-            con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MEV - MEV of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand\n{right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
-            return []
-        return _inf_results(inf_results)
+        return _analyze_interference('MEV - MEV', left_part_occ, right_part_occ)
 
     def _check_mf_hole(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence):
         ret: list[tuple[af.BRepBody, af.BRepBody]] = []
-        for hole in body_finder.get(right_part_occ, AN_HOLE, AN_HOLE) + ([] if av is None else body_finder.get(right_part_occ, AN_HOLE, av)):
+        for hole in body_finder.get(right_part_occ, AN_HOLE, AN_HOLE) + ([] if right_flip is None else body_finder.get(right_part_occ, AN_HOLE, right_flip)):
             col.clear()
             col.add(hole)
-            for mf in body_finder.get(left_part_occ, AN_MF, AN_MF) + ([] if av is None else body_finder.get(left_part_occ, AN_MF, av)):
+            for mf in body_finder.get(left_part_occ, AN_MF, AN_MF) + ([] if right_flip is None else body_finder.get(left_part_occ, AN_MF, right_flip)):
                 col.add(mf)
-            if len(col) < 2:
-                continue
-            inf_in = con.des.createInterferenceInput(col)
-            inf_results = con.des.analyzeInterference(inf_in)
-            if inf_results is None:
-                con.ui.messageBox(f'You have encountered a bug of Fusion 360. The interference check is invalid about MF - Hole of\n{left_part_occ.name} in {left_part_occ.parent.parent.name}\nand {right_part_occ.name} in {right_part_occ.parent.parent.name}.\nAbout the bug:\nhttps://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251')  # noqa: E501
-                continue
             ret.extend([
                 (left, right) if left.nativeObject.attributes.itemByName(ATTR_GROUP, AN_HOLE) is None else (right, left)
-                for left, right in _inf_results(inf_results)
+                for left, right in _analyze_interference('MF - Hole', left_part_occ, right_part_occ)
             ])
         return ret
 
@@ -611,9 +605,9 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
         if bbs[0].intersects(bbs[1]):
             intersect_pairs.add((mo, oo))
 
-    hit_mev: ty.List[af.BRepBody] = []
-    hit_hole: ty.List[af.BRepBody] = []
-    hit_mf: ty.List[af.BRepBody] = []
+    hit_mevs: ty.List[af.BRepBody] = []
+    hit_holes: ty.List[af.BRepBody] = []
+    hit_mfs: ty.List[af.BRepBody] = []
     hit_occs: ty.Set[F3Occurrence] = set()
 
     for move_occ, other_occ in intersect_pairs:
@@ -621,19 +615,19 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
         if category_enables[AN_MEV]:
             for mevs in _check_mev_mev(other_occ, move_occ):
                 hit = True
-                hit_mev.extend([_get_temp_body(b) for b in mevs])
+                hit_mevs.extend([_get_temp_body(b) for b in mevs])
         if category_enables[AN_MF] or category_enables[AN_HOLE]:
             for mf, hole in _check_mf_hole(other_occ, move_occ) + _check_mf_hole(move_occ, other_occ):
                 hit = True
                 if category_enables[AN_MF]:
-                    hit_mf.append(_get_temp_body(mf))
+                    hit_mfs.append(_get_temp_body(mf))
                 if category_enables[AN_HOLE]:
-                    hit_hole.append(_get_temp_body(hole))
+                    hit_holes.append(_get_temp_body(hole))
         if hit:
             hit_occs.add(move_occ)
             hit_occs.add(other_occ)
 
-    return hit_mev, hit_hole, hit_mf, hit_occs, cache_temp_body
+    return hit_mevs, hit_holes, hit_mfs, hit_occs, cache_temp_body
 
 
 class CheckInterferenceCommandBlock:
@@ -675,26 +669,20 @@ class CheckInterferenceCommandBlock:
         if (not checkbox_ins[0].value) or (not any(ci.value for ci in checkbox_ins[1:])):
             return None
         result = self.check_interference(move_occs, av)
-        if result is None:
-            return None
-        hit_mev, hit_hole, hit_mf, hit_occs, _ = result
+        hit_mevs, hit_holes, hit_mfs, hit_occs, _ = result
 
         for o in hit_occs:
             o.light_bulb = False
 
         category_appearance = get_category_appearance()
-        for hit_bodies, category in zip([hit_mev, hit_hole, hit_mf], [AN_MEV, AN_HOLE, AN_MF]):
-            new_list: ty.List[af.BRepBody] = []
+        for hit_bodies, category in zip([hit_mevs, hit_holes, hit_mfs], [AN_MEV, AN_HOLE, AN_MF]):
             for b in hit_bodies:
-                if b in new_list:
-                    continue
-                new_list.append(b)
                 b.isLightBulbOn = True
                 b.appearance = category_appearance[category]
 
         return result
 
-    def check_interference(self, move_occs: ty.List[F3Occurrence], av: ty.Optional[str]) -> ty.Optional[ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]]:
+    def check_interference(self, move_occs: ty.List[F3Occurrence], av: ty.Optional[str]) -> ty.Tuple[ty.List[af.BRepBody], ty.List[af.BRepBody], ty.List[af.BRepBody], ty.Set[F3Occurrence], ty.List[ty.Tuple[af.BRepBody, af.BRepBody]]]:
         category_enables: ty.Dict[str, bool] = {
             cn: inp.value
             for cn, inp in zip([AN_HOLE, AN_MF, AN_MEV], self.get_checkbox_ins()[1:])
