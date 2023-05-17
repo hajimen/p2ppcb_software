@@ -82,8 +82,11 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         if active_input.id == INP_ID_KEY_LOCATOR_SEL:
             locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
             return
-        elif active_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
+        elif active_input.id == INP_ID_SKELETON_SURFACE_SEL or active_input.id == INP_ID_KEY_ANGLE_SURFACE_SEL:
             ent = af.BRepBody.cast(selection.entity)
+            if ent.assemblyContext is None:  # root component
+                event_args.isSelectable = False
+                return
         elif active_input.id == INP_ID_LAYOUT_PLANE_SEL:
             ent = af.ConstructionPlane.cast(selection.entity)
         else:
