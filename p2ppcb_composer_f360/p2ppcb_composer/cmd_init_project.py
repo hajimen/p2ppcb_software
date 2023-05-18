@@ -171,7 +171,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
                 return
             con.des.designType = af.DesignTypes.DirectDesignType
 
-        main_in = self.inputs.addSelectionInput(INP_ID_MAIN_SURFACE_SEL, 'Main Surface', 'Select an entity')
+        main_in = self.inputs.addSelectionInput(INP_ID_MAIN_SURFACE_SEL, 'Main Surface', 'Select a surface')
         main_in.addSelectionFilter('SurfaceBodies')
         main_in.setSelectionLimits(1, 1)
         main_in.tooltip, main_in.tooltipDescription = TOOLTIPS_MAIN_SURFACE
@@ -182,7 +182,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             except:  # noqa
                 pass
 
-        layout_plane_in = self.inputs.addSelectionInput(INP_ID_MAIN_LAYOUT_PLANE_SEL, 'Main Layout Plane', 'Select an entity')
+        layout_plane_in = self.inputs.addSelectionInput(INP_ID_MAIN_LAYOUT_PLANE_SEL, 'Main Layout Plane', 'Select a construction plane')
         layout_plane_in.addSelectionFilter('ConstructionPlanes')
         layout_plane_in.setSelectionLimits(1, 1)
         layout_plane_in.tooltip, layout_plane_in.tooltipDescription = TOOLTIPS_MAIN_LAYOUT_PLANE

@@ -46,21 +46,21 @@ class MoveKeyCommandHandler(CommandHandlerBase):
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         inputs = self.inputs
-        locator_in = inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select an entity')
+        locator_in = inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select key locator(s) to move')
         locator_in.addSelectionFilter('SurfaceBodies')
         locator_in.setSelectionLimits(0, 0)
 
-        layout_plane_in = inputs.addSelectionInput(INP_ID_LAYOUT_PLANE_SEL, 'Layout Plane', 'Select an entity')
+        layout_plane_in = inputs.addSelectionInput(INP_ID_LAYOUT_PLANE_SEL, 'Layout Plane', 'Select a construction plane')
         layout_plane_in.addSelectionFilter('ConstructionPlanes')
         layout_plane_in.setSelectionLimits(1, 1)
         layout_plane_in.isVisible = False
 
-        skeleton_surface_in = inputs.addSelectionInput(INP_ID_SKELETON_SURFACE_SEL, 'Skeleton Surface', 'Select an entity')
+        skeleton_surface_in = inputs.addSelectionInput(INP_ID_SKELETON_SURFACE_SEL, 'Skeleton Surface', 'Select a surface')
         skeleton_surface_in.addSelectionFilter('SurfaceBodies')
         skeleton_surface_in.setSelectionLimits(1, 1)
         skeleton_surface_in.isVisible = False
 
-        angle_surface_in = inputs.addSelectionInput(INP_ID_KEY_ANGLE_SURFACE_SEL, 'Key Angle Surface', 'Select an entity')
+        angle_surface_in = inputs.addSelectionInput(INP_ID_KEY_ANGLE_SURFACE_SEL, 'Key Angle Surface', 'Select a surface')
         angle_surface_in.addSelectionFilter('SurfaceBodies')
         angle_surface_in.setSelectionLimits(1, 1)
         angle_surface_in.isVisible = False

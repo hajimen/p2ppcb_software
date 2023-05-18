@@ -31,7 +31,7 @@ class SetAttributeCommandHandler(CommandHandlerBase):
         return 'Resources/set_attribute'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
-        sel_in = self.inputs.addSelectionInput(INP_ID_ENTITY_SEL, 'Selection', 'Select bodies')
+        sel_in = self.inputs.addSelectionInput(INP_ID_ENTITY_SEL, 'Selection', 'Select bodies to set attribute')
         sel_in.addSelectionFilter('Bodies')
         sel_in.setSelectionLimits(1, 0)
 

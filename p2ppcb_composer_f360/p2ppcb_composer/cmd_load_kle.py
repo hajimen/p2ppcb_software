@@ -8,7 +8,7 @@ from pint import Quantity
 import p2ppcb_parts_resolver.resolver as parts_resolver
 import adsk.core as ac
 import adsk.fusion as af
-from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
+from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
     CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, SpecsOpsOnPn, \
@@ -16,9 +16,9 @@ from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     ANS_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_MAIN_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
-    CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION
+    CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION, locator_notify_pre_select, has_sel_in, get_selected_locators
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, place_key_placeholders, prepare_key_assembly, prepare_parts_sync, get_layout_plane_transform, \
-    INP_ID_LAYOUT_PLANE_SEL, AN_LOCATORS_ANGLE_TOKEN, PP_KEY_LOCATORS_ON_SPECIFIER
+    AN_LOCATORS_ANGLE_TOKEN, PP_KEY_LOCATORS_ON_SPECIFIER, INP_ID_KEY_LOCATOR_SEL
 
 
 def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, min_xyu, max_xyu):
@@ -166,24 +166,52 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
             raise BadConditionException('The layout plane is invalid.')
         self.move_comp_cb.start_transaction(t)
 
+        inputs = self.inputs
+        locator_in = inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Center Key', 'Select a key locator')
+        locator_in.addSelectionFilter('SurfaceBodies')
+        locator_in.setSelectionLimits(0, 1)
+
         locators_occ = inl_occ.child.get_real(CN_KEY_LOCATORS)
         locators_occ.light_bulb = False
         key_placeholders_occ = inl_occ.child.get_real(CN_KEY_PLACEHOLDERS)
         key_placeholders_occ.light_bulb = False
 
-    def get_selection_in(self):
-        return get_ci(self.inputs, INP_ID_LAYOUT_PLANE_SEL, ac.SelectionCommandInput)
+    def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
+        # This method should be extremely fast because F360 calls this insanely a lot when the keys are a lot.
+        if active_input.id == INP_ID_KEY_LOCATOR_SEL:
+            locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
+            return
+
+    def get_locator_in(self):
+        return get_ci(self.inputs, INP_ID_KEY_LOCATOR_SEL, ac.SelectionCommandInput)
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         self.move_comp_cb.b_notify_changed_input(changed_input)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         con = get_context()
-
         inl_occ = con.child[CN_INTERNAL]
         locators_occ = inl_occ.child.get_real(CN_KEY_LOCATORS)
-        locators_occ.light_bulb = True
         key_placeholders_occ = inl_occ.child[CN_KEY_PLACEHOLDERS]
+
+        locator_in = self.get_locator_in()
+        if has_sel_in(locator_in):
+            sel_o = get_selected_locators(locator_in)[0]
+            lp = af.ConstructionPlane.cast(con.attr_singleton[AN_MAIN_LAYOUT_PLANE][1])
+            lp_trans = get_layout_plane_transform(lp)
+            center = ac.Point3D.create(0., 0., 0.)
+            center.transformBy(lp_trans)
+            sp = ac.Point3D.create(0., 0., 0.)
+            sp.transformBy(sel_o.transform)
+            v = sp.vectorTo(center)
+            t = ac.Matrix3D.create()
+            t.translation = v
+            for o in locators_occ.child.values():
+                ot = o.transform.copy()
+                ot.transformBy(t)
+                o.transform = ot
+
+        locators_occ.light_bulb = True
         key_placeholders_occ.light_bulb = True
         self.move_comp_cb.b_notify_execute_preview(event_args, [locators_occ])
 

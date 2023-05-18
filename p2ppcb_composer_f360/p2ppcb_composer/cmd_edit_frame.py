@@ -276,7 +276,7 @@ class FillFrameCommandHandler(CommandHandlerBase):
         bridge_in.value = True
         bridge_in.tooltip, bridge_in.tooltipDescription = TOOLTIPS_GENERATE_BRIDGE
 
-        prof_in = self.inputs.addSelectionInput(INP_ID_BRIDGE_PROFILE_SEL, 'Bridge Profile', 'Select an entity')
+        prof_in = self.inputs.addSelectionInput(INP_ID_BRIDGE_PROFILE_SEL, 'Bridge Profile', 'Select profile(s)')
         prof_in.addSelectionFilter('Profiles')
         prof_in.setSelectionLimits(0, 0)
 
@@ -583,7 +583,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         nf_in.listItems.add('6', last_num_foot == 6)
         nf_in.listItems.add('8', last_num_foot == 8)
 
-        locator_in = inputs.addSelectionInput(INP_ID_FOOT_LOCATOR_SEL, 'Foot', 'Select an entity')
+        locator_in = inputs.addSelectionInput(INP_ID_FOOT_LOCATOR_SEL, 'Foot', 'Select feet to move')
         locator_in.addSelectionFilter('SolidBodies')
         locator_in.setSelectionLimits(0, 0)
 
@@ -816,7 +816,7 @@ class HolePartsCommandHandler(CommandHandlerBase):
         return 'Resources/hole'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
-        frame_in = self.inputs.addSelectionInput(INP_ID_FRAME_BODY_SEL, 'Frame Body', 'Select an entity')
+        frame_in = self.inputs.addSelectionInput(INP_ID_FRAME_BODY_SEL, 'Frame Body', 'Select a body to hole')
         frame_in.addSelectionFilter('SolidBodies')
         frame_in.setSelectionLimits(1, 1)
 

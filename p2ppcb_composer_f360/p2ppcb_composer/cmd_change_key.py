@@ -66,7 +66,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         self.specs_ops_on_pn = load_kle_by_b64(kle_b64, self.pi)[0]
         self.once_shown = set()
 
-        locator_in = self.inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select an entity')
+        locator_in = self.inputs.addSelectionInput(INP_ID_KEY_LOCATOR_SEL, 'Key Locator', 'Select key locator(s) to change')
         locator_in.addSelectionFilter('SurfaceBodies')
         locator_in.setSelectionLimits(0, 0)
 
