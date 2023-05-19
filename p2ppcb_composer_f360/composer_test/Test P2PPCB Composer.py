@@ -19,7 +19,7 @@ reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.d
           'composer_test.test_base', 'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
           'p2ppcb_composer.cmd_init_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
-          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar', 'composer_test.test_cmd',
+          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.cmd_remove_undercut', 'p2ppcb_composer.toolbar', 'composer_test.test_cmd',
           'composer_test.test_utility', 'regex_selector.regex_selector'], ['mainboard'])
 
 from composer_test.test_base import HANDLERS, HANDLER_IDS
@@ -125,6 +125,9 @@ def run(context):
 
     # from composer_test.test_cmd import TestRegexSelector
     # test_suite.addTest(TestRegexSelector('test_cmd_interactive'))
+
+    # from composer_test.test_cmd import TestRemoveUndercut
+    # test_suite.addTest(TestRemoveUndercut('test_cmd_interactive'))
 
     runner = unittest.TextTestRunner()
     runner.run(test_suite)

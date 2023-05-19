@@ -11,7 +11,8 @@ reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.d
           'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
           'p2ppcb_composer.cmd_init_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
           'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
-          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.toolbar', 'regex_selector.regex_selector'], ['mainboard'])
+          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.cmd_remove_undercut', 'p2ppcb_composer.toolbar',
+          'regex_selector.regex_selector'], ['mainboard'])
 from f360_common import catch_exception
 from p2ppcb_composer.toolbar import init_toolbar, terminate_toolbar
 

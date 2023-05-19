@@ -445,3 +445,10 @@ class TestRegexSelector(unittest.TestCase):
         from regex_selector.regex_selector import RegexSelectCommandHandler
         execute_command(RegexSelectCommandHandler)
         adsk.autoTerminate(False)
+
+
+class TestRemoveUndercut(unittest.TestCase):
+    def test_cmd_interactive(self):
+        from p2ppcb_composer.cmd_remove_undercut import RemoveUndercutCommandHandler
+        execute_command(RemoveUndercutCommandHandler)
+        adsk.autoTerminate(False)
