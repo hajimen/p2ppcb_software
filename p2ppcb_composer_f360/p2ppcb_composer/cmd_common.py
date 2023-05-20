@@ -553,6 +553,8 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
                     lr.append(col[nbs.index(e)])
                 except ValueError:
                     raise BadCodeException()
+            if lr[0] == lr[1]:  # same components
+                lr[1] = col[nbs.index(ir.entityTwo, nbs.index(ir.entityOne) + 1)]
             ret.append(tuple(lr))
         return ret
 

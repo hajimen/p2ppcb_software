@@ -88,9 +88,7 @@ def collect_body_from_key(an: str):
             if n.endswith(CNP_KEY_ASSEMBLY):
                 for p in o.child.values():
                     for b in body_finder.get(p, an):
-                        rb = b.copyToComponent(con.comp)
-                        rb.isLightBulbOn = True
-                        ret.add(rb)
+                        ret.add(b)
     inl_occ.light_bulb = inl_lb
     key_placeholders_occ.light_bulb = kp_lb
 
@@ -173,13 +171,14 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         for b in ss_bodies:
             fill_body_col.add(b)
     else:
-        base_body = fill_body_col[0]
+        base_body = fill_body_col[0].copyToComponent(con.comp)
         fill_body_col.removeByIndex(0)
+        base_body.isLightBulbOn = True
 
     if fill_body_col.count > 0:
         co_in3 = combines.createInput(base_body, fill_body_col)
         co_in3.operation = af.FeatureOperations.JoinFeatureOperation
-        co_in3.isKeepToolBodies = False
+        co_in3.isKeepToolBodies = True
         _ = combines.add(co_in3)
 
     fbs: ty.List[af.BRepBody] = []
@@ -765,12 +764,10 @@ def hole_all_parts(frame: af.BRepBody):
         if AN_MB_LOCATION_INPUTS in o.comp_attr:
             flip = load_mb_location_inputs(o)[3]
             for b in body_finder.get(o, AN_HOLE, AV_FLIP if flip else AV_RIGHT) + body_finder.get(o, AN_HOLE, AN_HOLE):
-                tb = b.copyToComponent(con.comp)
-                hole_body_col.add(tb)
+                hole_body_col.add(b)
         else:
             for b in body_finder.get(o, AN_HOLE):
-                tb = b.copyToComponent(con.comp)
-                hole_body_col.add(tb)
+                hole_body_col.add(b)
 
     before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
     frame.name = BN_FRAME
@@ -779,7 +776,7 @@ def hole_all_parts(frame: af.BRepBody):
     if len(hole_body_col) > 0:
         co_in4 = combines.createInput(frame, hole_body_col)
         co_in4.operation = af.FeatureOperations.CutFeatureOperation
-        co_in4.isKeepToolBodies = False
+        co_in4.isKeepToolBodies = True
         _ = combines.add(co_in4)
 
     after_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
