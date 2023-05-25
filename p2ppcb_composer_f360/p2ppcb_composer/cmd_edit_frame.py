@@ -594,12 +594,8 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.check_interference_cb = CheckInterferenceCommandBlock(self)
         self.check_interference_cb.notify_create(event_args)
 
-    def place_initial(self, offset: float, num_foot: int):
+    def place_initial(self, floor: float, num_foot: int):
         con = get_context()
-        floor_cp = con.comp.constructionPlanes.itemByName(CPN_FLOOR)
-        if floor_cp is None:
-            raise BadConditionException(f'{CPN_FLOOR} is required. Please run Fill command.')
-        floor_z = floor_cp.geometry.origin.z
         inl_occ = con.child[CN_INTERNAL]
         fp_occ = inl_occ.child.get_real(CN_FOOT_PLACEHOLDERS)
 
@@ -626,7 +622,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
             t = ac.Matrix3D.create()
             t.setCell(0, 3, x)
             t.setCell(1, 3, y)
-            t.setCell(2, 3, floor_z + offset)
+            t.setCell(2, 3, floor)
             if rot:
                 t.setCell(0, 0, -1.)
                 t.setCell(1, 1, -1.)
@@ -638,10 +634,7 @@ class PlaceFootCommandHandler(CommandHandlerBase):
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id == INP_ID_FOOT_LOCATOR_SEL:
-            e = af.BRepBody.cast(selection.entity)
-            if e is None:
-                event_args.isSelectable = False
-                return
+            e: af.BRepBody = selection.entity  # type: ignore
             if not e.name.startswith('Foot Case'):
                 event_args.isSelectable = False
                 return
@@ -696,11 +689,23 @@ class PlaceFootCommandHandler(CommandHandlerBase):
         self.check_interference_cb.notify_input_changed(event_args, changed_input)
 
     def execute_common(self, event_args: CommandEventArgs):
+        con = get_context()
         locator_in = self.get_locator_in()
         num_foot = self.get_num_foot()
-        selected_locators = [F3Occurrence(af.BRepBody.cast(locator_in.selection(i).entity).assemblyContext) for i in range(locator_in.selectionCount)]
-        if self.last_num_foot != num_foot:
-            self.place_initial(self.offset_cb.get_value(), num_foot)
+        selected_locators = [F3Occurrence(ty.cast(af.BRepBody, locator_in.selection(i).entity).assemblyContext) for i in range(locator_in.selectionCount)]
+        floor_cp = con.comp.constructionPlanes.itemByName(CPN_FLOOR)
+        if floor_cp is None:
+            raise BadConditionException(f'{CPN_FLOOR} is required. Please run Fill command.')
+        floor = floor_cp.geometry.origin.z + self.offset_cb.get_value()
+        if self.last_num_foot == num_foot:
+            fp_occ = con.child[CN_INTERNAL].child.get_real(CN_FOOT_PLACEHOLDERS)
+            for fn in FOOT_NAMES[:num_foot]:
+                fo = fp_occ.child[fn]
+                t = fo.transform.copy()
+                t.setCell(2, 3, floor)
+                fo.transform = t
+        else:
+            self.place_initial(floor, num_foot)
         self.move_comp_cb.b_notify_execute_preview(event_args, selected_locators)
         return selected_locators
 

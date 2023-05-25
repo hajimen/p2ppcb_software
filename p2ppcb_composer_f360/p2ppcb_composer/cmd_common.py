@@ -9,7 +9,7 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, CommandInputs, SelectionCommandInput,\
     SelectionEventArgs, ValidateInputsEventArgs, Selection
 from f360_common import AN_HOLE, AN_MEV, AN_MF, AN_TERRITORY, \
-    ATTR_GROUP, BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
+    BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
     ORIGIN_P3D, PARTS_DATA_DIR, XU_V3D, YU_V3D, BadCodeException, BadConditionException, BodyFinder, \
     CreateObjectCollectionT, F3Occurrence, FourOrientation, TwoOrientation, VirtualF3Occurrence, \
     get_context, catch_exception, reset_context, CN_FOOT_PLACEHOLDERS, \
@@ -547,14 +547,66 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
         nbs: list = [b.nativeObject for b in col]
         ret: list[tuple[af.BRepBody, af.BRepBody]] = []
         for ir in inf_results:
-            lr = []
+            p0 = ir.interferenceBody.vertices[0].geometry
+            lr: list[af.BRepBody] = []
+
+            # entityOne and entityTwo lacks assemblyContext. So we need to find it.
             for e in [ir.entityOne, ir.entityTwo]:
+                cs1: list[af.BRepBody] = []
                 try:
-                    lr.append(col[nbs.index(e)])
+                    s = 0
+                    while True:
+                        hit = nbs.index(e, s)
+                        s = hit + 1
+                        cs1.append(col[hit])
                 except ValueError:
+                    pass
+                if len(cs1) == 0:
                     raise BadCodeException()
-            if lr[0] == lr[1]:  # same components
-                lr[1] = col[nbs.index(ir.entityTwo, nbs.index(ir.entityOne) + 1)]
+                elif len(cs1) == 1:
+                    lr.append(cs1[0])
+                else:
+                    cs2: list[af.BRepBody] = []
+                    for c in cs1:
+                        if c.pointContainment(p0) == af.PointContainment.PointOnPointContainment:
+                            cs2.append(c)
+                    if len(cs2) == 0:
+                        raise BadCodeException()
+                    elif len(cs2) == 1:
+                        lr.append(cs2[0])
+                    else:
+                        hits: list[bool] = [True] * len(cs2)
+                        for p in [v.geometry for v in ir.interferenceBody.vertices]:
+                            for i, c in enumerate(cs2):
+                                if hits[i] and c.pointContainment(p) != af.PointContainment.PointOnPointContainment:
+                                    hits[i] = False
+                                if sum(hits) == 1:
+                                    break
+                            if sum(hits) == 1:
+                                break
+                        if sum(hits) != 1:
+                            raise BadCodeException()
+                        lr.append(cs2[hits.index(True)])
+            handedness: list[ty.Optional[bool]] = [None, None]
+            for i, b in enumerate(lr):
+                raw_occ = b.assemblyContext
+                while True:
+                    if raw_occ is None:
+                        break
+                    elif raw_occ == left_part_occ.raw_occ:
+                        handedness[i] = True
+                    elif raw_occ == right_part_occ.raw_occ:
+                        handedness[i] = False
+                    else:
+                        raw_occ = raw_occ.assemblyContext
+                        continue
+                    break
+            if handedness[0] == handedness[1]:  # intra inf
+                continue
+            if handedness[0] is None or handedness[1] is None:
+                raise BadCodeException()
+            if handedness[1]:
+                lr = lr[::-1]
             ret.append(tuple(lr))
         return ret
 
@@ -572,10 +624,7 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
             col.add(hole)
             for mf in body_finder.get(left_part_occ, AN_MF, AN_MF) + ([] if right_flip is None else body_finder.get(left_part_occ, AN_MF, right_flip)):
                 col.add(mf)
-            ret.extend([
-                (left, right) if left.nativeObject.attributes.itemByName(ATTR_GROUP, AN_HOLE) is None else (right, left)
-                for left, right in _analyze_interference('MF - Hole', left_part_occ, right_part_occ)
-            ])
+            ret.extend(_analyze_interference('MF - Hole', left_part_occ, right_part_occ))
         return ret
 
     intersect_pairs: set[tuple[F3Occurrence, F3Occurrence]] = set()

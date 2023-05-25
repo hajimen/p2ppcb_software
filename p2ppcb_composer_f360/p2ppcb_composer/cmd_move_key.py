@@ -111,16 +111,13 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                 lp_ci.hide()
                 skeleton_ci.hide()
                 angle_ci.hide()
-                if_in.isVisible = False
-                if_in.value = False
             else:
                 lp_ci.show_by_token(lp_ci.get_locators_attr_value(selected_locators))
                 skeleton_ci.show(selected_locators)
                 angle_ci.show(selected_locators)
-                if_in.isVisible = True
-                if_in.value = False
             self.check_interference_cb.show(if_in.value)
             locator_in.hasFocus = True
+            if_in.value = False
         elif changed_input.id in [INP_ID_LAYOUT_PLANE_SEL, INP_ID_KEY_ANGLE_SURFACE_SEL, INP_ID_SKELETON_SURFACE_SEL]:
             sci = ac.SelectionCommandInput.cast(changed_input)
             if not has_sel_in(sci):
@@ -130,6 +127,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
         self.check_interference_cb.notify_input_changed(event_args, changed_input)
 
         if all_has_sel_ins([locator_in, layout_plane_in, skeleton_surface_in, angle_surface_in]):
+            if_in.isVisible = True
             if changed_input.id == INP_ID_LAYOUT_PLANE_SEL or changed_input.id == INP_ID_KEY_LOCATOR_SEL:
                 lp = get_lp(layout_plane_in)
                 orig_lp = get_orig_lp(layout_plane_in, selected_locators)
@@ -142,6 +140,7 @@ class MoveKeyCommandHandler(CommandHandlerBase):
                     mt.transformBy(t1)
                     self.move_comp_cb.start_transaction(mt)
         else:
+            if_in.isVisible = False
             self.move_comp_cb.stop_transaction()
         self.move_comp_cb.b_notify_changed_input(changed_input)
 
