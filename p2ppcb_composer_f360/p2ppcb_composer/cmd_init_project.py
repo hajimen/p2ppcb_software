@@ -77,7 +77,6 @@ def generate_scaffold():
     extent_cm4 = af.DistanceExtentDefinition.create(ac.ValueInput.createByString("4 cm"))
     ex1_in.setTwoSidesExtent(extent_cm4, extent_cm4)
     skeleton_surface = extrudes.add(ex1_in).bodies[0]
-    skeleton_surface.opacity = 0.2
     skeleton_surface.name = 'Main Surface'
     skeleton_sketch.deleteMe()
 
@@ -89,12 +88,12 @@ def generate_scaffold():
     ex2_in.isSolid = False
     ex2_in.setTwoSidesExtent(extent_cm4, extent_cm4)
     alternative_surface = extrudes.add(ex2_in).bodies[0]
-    alternative_surface.opacity = 0.2
     alternative_surface.name = 'Alternative Surface (Key Angle or Skeleton)'
     alternative_sketch.deleteMe()
     profile_plane.deleteMe()
 
     so = con.child.get_real(CN_SURFACE)
+    so.comp.opacity = 0.2
     skeleton_surface = skeleton_surface.moveToComponent(so.raw_occ)
     alternative_surface = alternative_surface.moveToComponent(so.raw_occ)
 
@@ -107,7 +106,9 @@ def generate_scaffold():
     moves = con.root_comp.features.moveFeatures
     tr = ac.Matrix3D.create()
     tr.translation = ac.Vector3D.create(0.0, -1.0, 0.0)
-    move_in = moves.createInput(col, tr)
+    # move_in = moves.createInput(col, tr)
+    move_in = moves.createInput2(col)
+    move_in.defineAsFreeMove(tr)
     moves.add(move_in)
 
     cp3_in = planes.createInput()
