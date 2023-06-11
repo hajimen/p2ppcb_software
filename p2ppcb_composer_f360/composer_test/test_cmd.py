@@ -442,7 +442,7 @@ class TestSetAttribute(unittest.TestCase):
 
 class TestRegexSelector(unittest.TestCase):
     def test_cmd_interactive(self):
-        from regex_selector.regex_selector import RegexSelectCommandHandler
+        from p2ppcb_composer.cmd_regex_selector import RegexSelectCommandHandler
         execute_command(RegexSelectCommandHandler)
         adsk.autoTerminate(False)
 

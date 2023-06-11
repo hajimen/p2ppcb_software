@@ -23,7 +23,7 @@ P2PPCB platform uses single IDC contacts for wiring, as shown here:
 
 ![Single IDC Ccntacts](https://user-images.githubusercontent.com/1212166/204113500-06845de2-328b-4cc9-8748-06a3c7bbc6a0.jpg)
 
-SImply push a wire into a contact by a special hand tool.
+Simply push a wire into a contact by a special hand tool.
 
 ![Special hand tool](https://user-images.githubusercontent.com/1212166/204113537-69a5786f-f7b6-4ace-96e6-4cebf9549b30.jpg)
 
@@ -63,19 +63,21 @@ Available switches:
 - MX ([Kailh MX](https://www.aliexpress.com/item/32966071689.html) and many other Cherry MX compatible)
 - [Kailh Choc V1](https://www.aliexpress.com/item/32959996455.html)
 - [Kailh Choc V2](https://www.aliexpress.com/item/4000803757746.html)
+- [GATERON Low Profile](https://gateron.com/collections/low-profile-series)
 
 Available stabilizers:
 
 - Cherry-style plate-mount (for MX)
 - Coaster (for MX)
 - [Kailh Choc V1 stabilizer](https://www.aliexpress.com/item/33039182740.html) (for Choc V1)
+- [Gateron Low Profile](https://gateron.com/products/gateron-low-profile-plate-mounted-stabilizer?VariantsId=10478)
 
-Stabilizer for Choc V2 is not available yet because there is no such item in the market. I hope it will appear on the market.
+Stabilizer for Choc V2 is not available yet because there is no such item in the market yet. I hope it will appear on the market.
 But by modifying a Cherry-style plate-mount stabilizer with a knife, it works (very geeky way).
 
 # P2PPCB Composer F360
 
-**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). Install F360 first. 
+**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). F360 runs on Mac too, but PC0 is Windows only.
 More details can be found here: <https://github.com/hajimen/p2ppcb_software/tree/dev/p2ppcb_composer_f360>
 
 ## Keycaps
@@ -83,7 +85,7 @@ More details can be found here: <https://github.com/hajimen/p2ppcb_software/tree
 PC0 handles keycaps to check interference and to help your design process.
 The following are available on PC0. You can of course put other keycaps on your 3D-printed keyboards.
 
-- XDA (not a very good category for precise design, so use this for a rough estimate)
+- XDA (9.5 mm height. CAUTION: There are a lot of "XDA" profiles in the market)
 - DSA
 - Cherry profile
 - OEM profile
@@ -91,8 +93,7 @@ The following are available on PC0. You can of course put other keycaps on your 
 - Junana for MX (New keycap from DecentKeyboards. Now in preparation)
 
 Only Junana for MX can mate with Choc V2, normally. In fact DSA 1u can do it in a deep geeky way.
-Dig into `P2PPCB Internal/Depot Parts mU0jU/Cap DSA 1u.*` component of your F360 file, find what to do,
-and use the **Set Attribute** command of PC0.
+Dig into `P2PPCB Internal/Depot Parts mU0jU/Cap DSA 1u.*` component of your F360 file, and find what to do.
 
 # P2PPCB Components
 
@@ -122,7 +123,7 @@ A mainboard connects the USB to the matrix wires. Comparison chart of the three 
 
 ![Alice](https://user-images.githubusercontent.com/1212166/204481367-1596c8bf-62f4-4363-a5c8-b038445ec9e7.jpg)
 
-I don't recommend **Alice** in most cases. It is only good for R&D labs that have HP's MJF 3D printer.
+I don't recommend **Alice** in most cases. It is only good for R&D labs that have a high precision and large size 3D printer.
 If you use a 3D printing service, go with Bob or Charlotte.
 
 ![Alice harness kit](https://user-images.githubusercontent.com/1212166/204482063-080e00e3-34a9-44c6-9837-83c2bb0c8a61.jpg)
@@ -133,7 +134,7 @@ A harness kit (the picture above) is available for high reliability, but it is q
 
 You might think that IDC ribbon cable is available for Alice. I thought so, too.
 But 1.27 mm pitch ribbon cable (common thing) is too thick for a single IDC contact. I could not make it reliable.
-(This is a big reason why I need to make Bob and Charlotte.)
+(This is a big reason why I made Bob and Charlotte.)
 
 ### Bob
 
@@ -168,12 +169,14 @@ and use them as single wires.
 
 ## Contact-to-socket assembly
 
-MX socket and Choc socket are available. LED and normal for each socket. So:
+MX, Choc, and Gateron LP socket are available. LED and normal for each socket. So:
 
 - MX LED
 - MX normal
 - Choc LED
 - Choc normal
+- Gateron LP LED
+- Gateron LP normal
 
 are available.
 

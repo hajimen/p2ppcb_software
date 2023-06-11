@@ -49,7 +49,7 @@ The price is $1000 without switches, keycaps, and the shipping charge.
 - Translucent 1u keycap: 2 pcs
 - Blank 1.25u keycap: 2 pcs
 - Cherry-style plate mount stabilizer for 2u: 4 pcs
-- P2PPCB NTCS frames and covers, printed by MJF PA12: 1 set
+- P2PPCB NTCS frames and covers, printed by Somos LEDO 6060: 1 set
 - (Optional) Kyocera AVX single IDC contact accessory cap 609176001415000: 168 pcs
 
 ## Precision check
@@ -57,7 +57,6 @@ The price is $1000 without switches, keycaps, and the shipping charge.
 ![Precision checker](https://user-images.githubusercontent.com/1212166/209415583-0d614ed5-e443-4265-84e2-5a9159c72551.PNG)
 
 You can find these indentations on the covers of NTCS. They are precision checkers for verifying the precision of 3D printing results.
-If you are using MJF, nothing to worry about it. But if not, the checkers are useful. 
 Get an M3 screw or a 3.0 mm drill bit, and try to push it (chuck side or tail) into a gap between three indentations, 
 as shown in the figure below.
 
@@ -99,10 +98,9 @@ The peel-offed wire of a common ribbon cable (1.27 mm pitch) exceeds the limit.
 
 ## Tightening screws and warp correction
 
-First of all: Please note that **MJF is fragile against small screws such as M2.6**. 
+First of all: Please note that **3D printing material is fragile against small screws such as M2.6**. 
 The tightening force should be much less than for normal screws. Just stopping the rattling is enough. 
 It cannot withstand too many tightening-loosening iterations. 
-(By the way, SLA is better than MJF in this aspect.)
 
 I assume that you have already assembled a P2PPCB starter kit. There will be no hard part before
 fastening the frame to the cover (please check the operation before fastening). 
@@ -287,7 +285,7 @@ https://user-images.githubusercontent.com/1212166/207800112-49950f18-dee0-47fb-8
 https://user-images.githubusercontent.com/1212166/207801987-bb7279e0-d1bd-43f7-8470-23f2b017d544.mp4
 
 The first trial of built-in wrist rests. I thought of taking a video at this time.
-The material is SLA of WENEXT. It is much cheaper than MJF. Built-in wrist rests take up a lot of space,
+The material is SLA of WENEXT. Built-in wrist rests take up a lot of space,
 and it makes 3D printing much more expensive.
 
 - The position of the Alt key is not a good idea.
@@ -338,7 +336,7 @@ The basic story is the Fill/Hole method. You should do the method manually to th
 In the F3D file of NTCS, on the object browser, expand `P2PPCB Internal/Foot Placeholders mU0jU/Foot A_FL:1/Foot_P:2/Bodies`.
 You'll find a `Foot Fill Cover` body. `Cover Boss.*/Bodies` and `Adjust Boss.*/Bodies` also have bodies with such names. 
 
-The **Regex Select** command in the **Select** panel on the SOLID tab will help you. You can see the results of the command 
+The **Regex Select** command will help you. You can see the results of the command 
 in the "Selection Sets" of the object browser.
 
 `P2PPCB Internal/Depot Parts mU0jU/Switch MX_P:1/Bodies/MF/Switch Fill.*` is a very important trick that is hard to 

@@ -4,9 +4,8 @@
 based on P2PPCB platform <https://github.com/hajimen/p2ppcb_software>.
 I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, provide P2PPCB platform.
 
-DISCLAIMER: PC0 is extraordinarily slow for a large keyboard, so far. Around 60 keys is a reasonable limit.
-You cannot speed up PC0 a lot with expensive hardware, because F360's computation is mostly done only by CPU, never by GPU,
-only single-thread, never multi-thread.
+DISCLAIMER: PC0 is slow for a large keyboard, so far. Initial "Load KLE" command can take several minutes.
+Please start with making small studies and get a good grasp of the time consumption.
 
 DISCLAIMER: So far, PC0 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug
 and waste a lot of time to get around it.
@@ -28,24 +27,25 @@ F360 is a proprietary 3D CAD. Autodesk generously offers charge-free plans for h
 
 You need your own firmware for your own design. PC0 will help you, but you need to be well informed about QMK.
 
-The official codebase of `master` branch now lacks RP2040 (Raspberry Pi Pico's MPU) support,
-so you need to use `develop` branch at least. Also, P2PPCB mainboards
-require special code for their own hardware. I have prepared the codebase which handles the custom hardware:
+P2PPCB mainboards require special code for their own hardware. I have prepared the codebase which handles the custom hardware:
 <https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork the `p2ppcb` branch for your own design.
 
 ## Requirements: Create your own design
 
-- A 3D printing service of HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html>
+- A 3D printing service shop
 
-Some SLAs also do a good job, some don't. The price is very attractive compared to MJF, so it's worth a try if you are going to do
-a lot of trial-and-error iterations. However, I recommend that you have an MJF output in your hand to evaluate the quality of the others.
-P2PPCB Starter Kit is a good choice :-).
+As the printing material, HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html> and
+Somos® Ledo 6060 are well tested. In many cases, the latter is much cheaper.
 
-There are many 3D printing services of MJF in the world. 
+There are many 3D printing service shops of MJF in the world. 
 [Shapeways](https://www.shapeways.com/) (North America and Europe), 
 [DMM.make](https://make.dmm.com/) (Japan), [WENEXT](https://www.wenext.com/) (China),
 [JLCPCB](https://jlcpcb.com/) (China) etc.
-Pick a good one for you. I always use WENEXT and JLCPCB.
+Pick a good one for you. I always use JLCPCB.
+
+In most cases, 3D printing service shop will give you a warning about too thin walls. In most cases,
+I don't recommend you to fix it. You must have the ability to identify real limits if you want to make
+an elaborated design. Failure teaches success.
 
 - P2PPCB components by DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
 
@@ -55,13 +55,13 @@ PC0 is free, but P2PPCB components aren't :-).
 
 If you need custom printed keycaps for your own design, contact DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
 I can make custom printed PBT keycaps. The total cost will be from about $30 after COVID-19
-goes away (nowadays shipping charge is quite expensive).
+goes away (nowadays shipping charge from Japan is extraordinarily expensive).
 
 ## Installation
 
 Download the latest release file from here: <https://github.com/hajimen/p2ppcb_software/releases>
 
-Unzip the release file, run F360, click the **UTILITIES** -> **Scripts and Add-ins** command icon on the F360 menu (or type Shift-S).
+Unzip the release file, run F360, click the **UTILITIES** tab -> **Scripts and Add-ins** command icon on the F360 menu (or type Shift-S).
 In the command dialog, click the **Add-Ins** tab, click **+** at the right of **My Add-Ins**.
 Select the `p2ppcb_composer_f360` directory in the unzipped release file.
 Select `P2PPCB Composer F360` in the **Add-Ins** tab and click **Run**.
@@ -100,6 +100,8 @@ https://user-images.githubusercontent.com/1212166/205190521-6bdee0ec-76c7-4ee5-b
 This can take tens of minutes for a large keyboard. F360 is not very suitable for P2PPCB Composer, but you don't want to pay
 thousands of USD for CATIA, I guess.
 
+This command uses RPA when the cache is not enough. You cannot use the mouse/keyboard while running RPA.
+
 https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b48b-c263d903dbeb.mp4
 
 5. Adjust any key
@@ -121,7 +123,7 @@ https://user-images.githubusercontent.com/1212166/205191342-d7a71c5c-0b93-40e0-b
 
 7. Place mainboard and feet
 
-You can run this command more than once. In most cases, you'll need to do this to place the feet.
+You can run this command more than once. In most cases, you'll need to do many to place the feet.
 
 In most cases, you will need to check for interference. It is extraordinarily slow. Use it carefully.
 
@@ -136,15 +138,15 @@ https://user-images.githubusercontent.com/1212166/205191579-d20d2189-508d-4ecd-a
 9. **Hole** command
 
 It creates a 3D printable solid body. Right-click the body in the browser, select **Save As Mesh**, select STL and click OK.
-Send the STL file to your 3D printing service.
+Send the STL file to your 3D printing service shop.
 
 https://user-images.githubusercontent.com/1212166/205191677-80e63a34-99b5-444a-b3b5-ab5381502606.mp4
 
-10. There is an isolated thin wall? Oh...
+10. There is a thin wall? Oh...
 
-MJF cannot print isolated thin walls under 0.8 mm. This often occurs in complex designs.
-Some 3D printing services will accept such STL files if you take on all the risks. Some don't.
-In that case, you have to remove them yourself.
+3D printing cannot print thin walls. This often occurs in elaborated designs.
+Some 3D printing service shops will accept such STL files if you take on all the risks. Some don't.
+In that case, you have to remove them yourself (or ask another shop).
 
 ## Bridge and Fill/Hole - MF/MEV method
 
@@ -160,11 +162,11 @@ PC0 adopts the Fill/Hole method to form a frame. Fill: create a solid. Hole: cut
 
 How to create a solid? By connecting essential+support areas to each other. Where the key layout is dense,
 the essential+support areas of the keys overlap. In this case, a simple "join" operation is sufficient.
-Where the key layout is sparse, a bridge should connect the essential+support areas.
+Where the key layout is sparse, a **bridge** should connect the essential+support areas.
 A bridge is a board parallel to the skeleton surface. 
 By joining essential+support areas and a bridge, a solid is created. This is **Fill**.
 
-Cutting the solid will be obvious. Holes must be void without defects,
+Cutting the solid will be obvious. Holes must be void without obstructions,
 so the Fill/Hole method doesn't allow fill-after-hole. This is **Hole**.
 
 After Fill/Hole, we need to check that essential areas are filled without defects. The area that must be filled is **MF** (must-filled).
@@ -175,7 +177,7 @@ A typical case is Cherry-style stabilizer's wire. Thus, a hole area can be large
 To know the area of a part itself, and to check the interference of parts with each other,
 we need the **MEV** (must-exclusively-void) area in addition to the hole area.
 
-To reduce the inference check range, there is **Territory**. It declares the outer edge of fill-hole areas of a part.
+To reduce the inference check computation, there is **Territory**. It declares the outer edge of fill-hole areas of a part.
 You won't find it in normal operation.
 
 **Placeholder** will be obvious. It is for developers only too.
@@ -222,13 +224,20 @@ the placeholders of keys sometimes slip. This is F360's bug. In this case, use t
 You can create a fully functional keyboard that has only a frame, no cover.
 This is good enough for prototyping. But in some cases you may need a cover.
 
-PC0 is not very helpful in this case, but there is a tool that can help you. When PC0 is enabled, You will find the 
-**Regex Select** command in the **Select** panel. You can make a selection set by regex of the full path name of the entities.
+PC0 is not very helpful for making a cover, but there are some tools that can help you. 
+With **Regex Select** command, you can make a F360 selection set by regex of the full path name of the entities.
 You can do Fill/Hole method manually with this tool, without using **Fill** / **Hole** commands.
 
-CAUTION: For a bug of Fusion 360, you cannot repeat **Search** now. If you failed to type right string in the first trial,
-press **Cancel** button and run **Regex Select** command again.
+CAUTION: For a bug of Fusion 360, you cannot repeat **Search** now. If you failed to type right regex in the first trial,
+press **Cancel** button and run **Regex Select** command again. You will see 'Selection Set n' after **OK** button.
+You cannot name the created F360 selection set in the command dialog for the bug.
 The bug: <https://forums.autodesk.com/t5/fusion-360-api-and-scripts/selectionsets-add-doesn-t-work-when-the-entity-is-proxy/m-p/11914208>
+
+### 'Remove Undercut' command
+
+Covers should be assemblable with their frames. You will encounter undercuts by running 'Combine' command.
+They will make a cover impossible to assemble.
+To remove undercuts, run 'Remove Undercut' command, select surfaces and a cover body.
 
 ### 'Set Attribute' and 'Check Key Assembly' commands
 
@@ -268,6 +277,12 @@ We need to build/manipulate an object tree before the objects become available.
 In other words, we need lazy binding. So I adopted the surrogate method.
 Objects-in-the-future are represented by surrogates.
 After importing, the surrogates are replaced by real objects.
+
+## Magic string 'mU0jU'
+
+F360 doesn't allow name collision of F360 components. All F360 components should have identical name.
+To avoid name collision with user's components, I add magic string 'mU0jU' to most components' name.
+(The exception is 'P2PPCB Internal'.)
 
 ## How to build `app-packages`
 
@@ -311,24 +326,6 @@ So far, PC0 remains in sketchy quality. *In many cases*, it helps you to design 
 In some cases, it annoys you more than it helps.
 In other cases, it gets stuck in F360's bugs. We need further development to improve the quality of PC0.
 
-## Why is it so extraordinarily slow, especially on a large keyboard?
-
-There are several reasons.
-
-1. F360 API cannot handle decals.
-
-I have to use RPA to overcome the limitation. RPA is extraordinarily slow by nature.
-
-2. F360 becomes extraordinarily slow when there are 100 or more F360 components in a file.
-
-I don't know why. Autodesk doesn't expect that kind of usage, I guess.
-Especially `findBRepUsingRay()` function can take several seconds, so running **Move Key** command
-is almost impossible on a large keyboard.
-
-3. F360 API's `attributes` scanning is extraordinarily slow.
-
-I tried to find a good workaround, but failed.
-
 ## F360's bugs that can annoy you or get you stuck
 
 In some cases, interference check doesn't work:
@@ -345,12 +342,6 @@ You cannot import `P2PPCB Internal` component from other files for this reason. 
 
 A component by Insert Derive goes wrong about decal:
 <https://forums.autodesk.com/t5/fusion-360-support/a-component-by-insert-derive-goes-wrong-about-decal/m-p/11913925>
-
-## Custom features
-
-PC0 doesn't support parametric modeling yet. I wish I could edit a skeleton surface and key angle surfaces using parametric modeling.
-Now (Feb 2023) Autodesk is testing custom features: <https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-FA7EF128-1DE0-4115-89A3-795551E2DEF2>
-I don't expect much, but I'll take a look when it becomes GA.
 
 ## Mac
 

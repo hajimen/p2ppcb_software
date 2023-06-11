@@ -1,9 +1,9 @@
 Specifier,z_angle,scale_plane_xy
 1u,90 deg,1.9
-125u,0 deg,2.3
-15u,0 deg,2.5
-175u,180 deg,2.5
+125u,180 deg,2.3
+15u,180 deg,2.5
+175u,0 deg,2.5
 2u,0 deg,2.6
-225u,180 deg,2.7
+225u,0 deg,2.7
 275u,0 deg,2.7
 625u,0 deg,2.7
