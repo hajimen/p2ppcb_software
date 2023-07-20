@@ -13,7 +13,7 @@ from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KE
     get_part_info, key_placeholder_name, load_kle, reset_context
 from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
-from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events
+from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events, import_f3d, is_same_brep_body
 from route.route import FlatCablePlacement
 
 
@@ -222,10 +222,20 @@ class TestInitProject(unittest.TestCase):
         self.assertIsInstance(skeleton_surface, af.BRepBody)
         self.assertIsInstance(alternative_surface, af.BRepBody)
         self.assertIsInstance(layout_plane, af.ConstructionPlane)
-        img = capture_viewport()
-        # img.save(TEST_PNG_DIR / 'generate_scaffold.png')
+        con = get_context()
+        o = con.child.get_real('Import')
+        import_f3d(o, TEST_F3D_DIR / 'generate_scaffold_oracle.f3d', 'Oracle')
+        oo = next(iter(o.child.values()))
+        oracle_cp = ty.cast(F3Occurrence, oo).comp.constructionPlanes.item(0)
+        self.assertTrue(layout_plane.geometry.origin.isEqualTo(oracle_cp.geometry.origin))
+        self.assertTrue(layout_plane.geometry.normal.isEqualTo(oracle_cp.geometry.normal))
+        sko = next(iter(oo.child.values()))
+        for b in sko.comp.bRepBodies:
+            if b.name.startswith(skeleton_surface.name):
+                self.assertTrue(is_same_brep_body(b, skeleton_surface))
+            else:
+                self.assertTrue(is_same_brep_body(b, alternative_surface))
         doc.close(False)
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'generate_scaffold.png'))
 
 
 class TestLoadKle(unittest.TestCase):
@@ -262,7 +272,7 @@ class TestLoadKle(unittest.TestCase):
 
 
 # cspell: disable-next-line
-MOVE_KEY_CHANGE_KEY_DESC_OCC_ONK = r'Commands.Select ONK::CmpInst=Untitled/Cmp=Untitled/CmpInsts/CmpInst=P2PPCB%20Internal%3A1/Cmp=P2PPCB%20Internal/CmpInsts/CmpInst=Key%20Locators%20mU0jU%3A1/Cmp=Key%20Locators%20mU0jU/CmpInsts/CmpInst=125u%200_KL%3A1'
+MOVE_KEY_CHANGE_KEY_DESC_OCC_ONK = r'Commands.Select ONK::CmpInst=Untitled/Cmp=Untitled/CmpInsts/CmpInst=P2PPCB%20Internal%3A1/Cmp=P2PPCB%20Internal/CmpInsts/CmpInst=Key%20Locators%20mU0jU%3A1/Cmp=Key%20Locators%20mU0jU/CmpInsts/CmpInst=125u%200_KL%3A1/Cmp=125u%200_KL/Bds/Bd=Body1'
 
 
 class TestMoveKey(unittest.TestCase):
@@ -284,10 +294,12 @@ class TestMoveKey(unittest.TestCase):
         con.app.executeTextCommand(f'Commands.SetDouble {INP_ID_Y_DV} 0.5')
         con.app.executeTextCommand('NuCommands.CommitCmd')
         adsk.doEvents()
-        img = capture_viewport()
-        # img.save(CURRENT_DIR / 'test_data/move_key.png')
+        kpo = con.child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS].child['125u 0_KP']
+        oracle_tr = ac.Matrix3D.create()
+        oracle_tr.setWithArray(list((
+            3.242881284535704e-07, -0.9999999999999474, 0.0, 1.4500000000000002, 0.9923292317524077, 3.2180058937361644e-07, -0.1236232009356359, 0.6460798029487617, 0.12362320093562938, 4.008953646827962e-08, 0.99232923175246, 2.043056653354408, 0.0, 0.0, 0.0, 1.0)))
+        self.assertTrue(kpo.raw_occ.transform2.isEqualTo(oracle_tr))
         doc.close(False)
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'move_key.png'))
 
 
 class TestChangeKeyDescs(unittest.TestCase):
@@ -312,10 +324,12 @@ class TestChangeKeyDescs(unittest.TestCase):
         con.app.executeTextCommand(f'Commands.SetString {INP_ID_KEY_V_OFFSET_STR} "5 mm"')
         con.app.executeTextCommand('NuCommands.CommitCmd')
         adsk.doEvents()
-        img = capture_viewport()
-        # img.save(CURRENT_DIR / 'test_data/change_key.png')
+        kpo = con.child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS].child['125u 0_KP']
+        oracle_tr = ac.Matrix3D.create()
+        oracle_tr.setWithArray(list((
+            0.9999999999999999, 0.0, 0.0, 0.95, 0.0, 0.9969108059577488, -0.07854199491146172, 0.1468813874827482, 0.0, 0.07854199491146169, 0.996910805957749, 2.0140640208340836, 0.0, 0.0, 0.0, 1.0)))
+        self.assertTrue(kpo.raw_occ.transform2.isEqualTo(oracle_tr))
         doc.close(False)
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'change_key.png'))
 
 
 class TestMatrixRoute(unittest.TestCase):
@@ -426,10 +440,17 @@ class TestEditFrame(unittest.TestCase):
         before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
         profs = [p for p in con.comp.sketches[1].profiles]
         fill_frame(True, profs, before_frame_bodies, 0.8)
-        con.child[CN_INTERNAL].light_bulb = False
-        img = capture_viewport()
-        # img.save(TEST_PNG_DIR / 'fill_frame.png')
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'fill_frame.png'))
+        o = con.child.get_real('Import')
+        import_f3d(o, TEST_F3D_DIR / 'fill_frame_oracle.f3d', 'Oracle')
+        oo = next(iter(o.child.values()))
+        oracle_frame_body = oo.comp.bRepBodies.item(0)
+        hit = False
+        for b in con.comp.bRepBodies:
+            if b.name.startswith('Frame'):
+                self.assertTrue(is_same_brep_body(b, oracle_frame_body))
+                hit = True
+                break
+        self.assertTrue(hit)
         doc.close(False)
 
 

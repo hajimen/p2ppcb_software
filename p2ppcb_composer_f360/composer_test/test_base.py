@@ -5,7 +5,7 @@ from PIL import Image
 import adsk
 import adsk.core as ac
 import adsk.fusion as af
-from f360_common import get_context, reset_context
+from f360_common import get_context, reset_context, F3Occurrence, create_component
 from p2ppcb_composer.cmd_common import CommandHandlerBase
 
 
@@ -14,7 +14,7 @@ HANDLER_IDS = []
 
 
 def do_many_events():
-    for _ in range(20):
+    for _ in range(200):
         adsk.doEvents()
 
 
@@ -68,11 +68,11 @@ def compare_image_by_eyes(test_img: Any, oracle_path: pathlib.Path):
             self.right_canvas = tk.Canvas(self, width=right_img.width, height=right_img.height)
             self.right_canvas.grid(row=0, column=1)
 
-            l_im = ImageTk.PhotoImage(master=self.left_canvas, image=test_img)
+            l_im = ImageTk.PhotoImage(master=self.left_canvas, image=test_img)  # type: ignore
             self.left_canvas.photo = l_im  # type: ignore
             self.left_canvas.create_image(0, 0, anchor='nw', image=self.left_canvas.photo)  # type: ignore
 
-            r_im = ImageTk.PhotoImage(master=self.right_canvas, image=right_img)
+            r_im = ImageTk.PhotoImage(master=self.right_canvas, image=right_img)  # type: ignore
             self.right_canvas.photo = r_im  # type: ignore
             self.right_canvas.create_image(0, 0, anchor='nw', image=self.right_canvas.photo)  # type: ignore
 
@@ -167,3 +167,33 @@ def delete_document(name: str):
         time.sleep(.4)
         adsk.doEvents()
     raise Exception(f'Cannot find document: {name}.')
+
+
+class _Vertex:
+    def __init__(self, v: af.BRepVertex) -> None:
+        self.p = v.geometry
+    
+    def __hash__(self) -> int:
+        hv = tuple((int(v * 100) for v in [self.p.x, self.p.y, self.p.z]))
+        return hash(hv)
+    
+    def __eq__(self, v: object) -> bool:
+        if not isinstance(v, _Vertex):
+            return False
+        return v.p.isEqualTo(self.p)
+
+
+def is_same_brep_body(body: af.BRepBody, oracle: af.BRepBody):
+    '''
+    Just checks vertices.
+    '''
+    return body.volume == oracle.volume and {_Vertex(v) for v in body.vertices} == {_Vertex(v) for v in oracle.vertices}
+
+
+def import_f3d(o: F3Occurrence, f3d_path: pathlib.Path, cn: str):
+    con = get_context()
+    if con.des.designType == af.DesignTypes.DirectDesignType:
+        con.des.designType = af.DesignTypes.ParametricDesignType  # importToTarget() requires parametric design.
+    im = con.app.importManager
+    with create_component(o.comp, cn):
+        im.importToTarget(im.createFusionArchiveImportOptions(str(f3d_path)), o.comp)

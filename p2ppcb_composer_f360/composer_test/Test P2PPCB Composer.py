@@ -51,6 +51,7 @@ def load_automated_tests(test_suite: unittest.TestSuite):
 
     from composer_test.test_cmd import TestInitProject
     test_suite.addTest(TestInitProject('test_initialize'))
+    test_suite.addTest(TestInitProject('test_generate_scaffold'))
 
     from composer_test.test_cmd import TestLoadKle
     test_suite.addTest(TestLoadKle('test_place_locators'))
@@ -59,14 +60,6 @@ def load_automated_tests(test_suite: unittest.TestSuite):
     test_suite.addTest(TestMatrixRoute('test_generate_route'))
     test_suite.addTest(TestMatrixRoute('test_draw_wire'))
     test_suite.addTest(TestMatrixRoute('test_generate_keymap'))
-
-
-def load_manual_tests(test_suite: unittest.TestSuite):
-    '''
-    These tests require manual image comparison.
-    '''
-    from composer_test.test_cmd import TestInitProject
-    test_suite.addTest(TestInitProject('test_generate_scaffold'))
 
     from composer_test.test_cmd import TestMoveKey
     test_suite.addTest(TestMoveKey('test_cmd'))
@@ -81,6 +74,7 @@ def load_manual_tests(test_suite: unittest.TestSuite):
 def load_notorious_tests(test_suite: unittest.TestSuite):
     '''
     This test contains some side effects. You should restart F360 after this test.
+    Manual operation is required.
     '''
     from composer_test.test_cmd import TestCmdCommon
     test_suite.addTest(TestCmdCommon('test_prepare_parts_sync'))
@@ -93,7 +87,6 @@ def run(context):
     test_suite = unittest.TestSuite()
 
     load_automated_tests(test_suite)
-    # load_manual_tests(test_suite)
     # load_notorious_tests(test_suite)
 
     # Run a command interactively

@@ -560,7 +560,7 @@ class SurrogateOccurrences(ty.Iterable[SurrogateF3Occurrence], ty.Sized):
         if parent_occ.name not in con._comp_name_surrogate_child_names:
             con._comp_name_surrogate_child_names[parent_occ.name] = []
         self.child_names = con._comp_name_surrogate_child_names[parent_occ.name]
-        for names, sos in con._poc_names_surrogate_occs:
+        for (names, sos) in con._poc_names_surrogate_occs:
             if names == poc_names:
                 self.surrogate_occs = sos
                 return
@@ -590,7 +590,7 @@ class SurrogateOccurrences(ty.Iterable[SurrogateF3Occurrence], ty.Sized):
 
     def _remove_surrogate_comp(self, cn: str):
         con = get_context()
-        for _, sos in con._poc_names_surrogate_occs:
+        for (_, sos) in con._poc_names_surrogate_occs:
             for so in sos:
                 if so.name == cn:  # Reference exists.
                     return
