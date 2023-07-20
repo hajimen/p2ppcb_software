@@ -233,6 +233,8 @@ press **Cancel** button and run **Regex Select** command again. You will see 'Se
 You cannot name the created F360 selection set in the command dialog for the bug.
 The bug: <https://forums.autodesk.com/t5/fusion-360-api-and-scripts/selectionsets-add-doesn-t-work-when-the-entity-is-proxy/m-p/11914208>
 
+CAUTION: Unselect all objects before running the command.
+
 ### 'Remove Undercut' command
 
 Covers should be assemblable with their frames. You will encounter undercuts by running 'Combine' command.
