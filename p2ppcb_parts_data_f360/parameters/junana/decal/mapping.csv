@@ -1,2 +1,2 @@
 Specifier,filename,Parameter
-.*,,z_angle scale_plane_xy pointer_offset_y
+.*,,z_angle scale_plane_xy pointer_offset_y y_distance
