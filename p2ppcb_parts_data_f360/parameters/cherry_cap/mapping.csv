@@ -1,5 +1,5 @@
 Specifier,filename,Parameter
 Spacebar,OEM Spacebar v6.f3d,Width Travel CapStemBottomHeight BottomFilletR VariableBottomFilletR BackAngle TopWidthMargin
-Vertical,OEM Keycap v7.f3d,Depth Travel TopHeight TopAngle LayoutAngle CapStemBottomHeight BottomFilletR VariableBottomFilletR BackAngle TopWidthMargin
+Vertical,OEM Keycap v8.f3d,Depth Travel TopHeight TopAngle LayoutAngle CapStemBottomHeight BottomFilletR VariableBottomFilletR BackAngle TopWidthMargin
 (ISO|Bigass)_Enter,Common ISO Bigass Enter v11.f3d,Width1 Width2 Depth1 Depth2 Width Travel TopAngle BottomFilletR VariableBottomFilletR BackAngle TopWidthMargin BottomSideHeight
-.*u,OEM Keycap v7.f3d,Width Travel TopHeight TopAngle CapStemBottomHeight BottomFilletR VariableBottomFilletR BackAngle TopWidthMargin
+.*u,OEM Keycap v8.f3d,Width Travel TopHeight TopAngle CapStemBottomHeight BottomFilletR VariableBottomFilletR BackAngle TopWidthMargin
