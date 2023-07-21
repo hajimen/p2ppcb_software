@@ -10,7 +10,7 @@ import adsk
 
 from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CN_KEY_LOCATORS, \
     CN_KEY_PLACEHOLDERS, CNP_PARTS, F3Occurrence, FourOrientation, SpecsOpsOnPn, SurrogateF3Occurrence, TwoOrientation, get_context, \
-    get_part_info, key_placeholder_name, load_kle, reset_context
+    get_part_info, key_placeholder_name, load_kle, reset_context, BadCodeException, BadConditionException
 from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
 from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events, import_f3d, is_same_brep_body
@@ -146,38 +146,73 @@ class TestCmdCommon(unittest.TestCase):
         self.assertTrue(error_messages[0].startswith('Key Assembly DSA Cherry-style plate mount Front Choc V2 Front StemBottom 2u_KA has interference between its parts. You should avoid the combination of the parts.'))
         doc.close(False)
 
-    def test_prepare_parts_sync(self):
-        cache_docname = 'Test prepare_parts_sync Cache'
-        test_docname = 'test_prepare_parts_sync'
+    def test_prepare_parts_sync_exception(self):
         from p2ppcb_composer.cmd_key_common import place_key_placeholders, prepare_key_assembly, prepare_parts_sync
         from p2ppcb_composer.cmd_load_kle import place_locators
 
-        doc = open_test_document(TEST_F3D_DIR / 'cache_prepare_parts_sync.f3d')
-        con = get_context()
-        admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
-        doc.saveAs(cache_docname, admin_folder, 'Test Cache', '')
-        doc.close(False)
-
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
-        con = get_context()
         pi = get_part_info()
         place_locators_args = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
         place_locators(pi, *place_locators_args)
         place_key_placeholders()
         specs_ops_on_pn, _, _ = place_locators_args
         pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
-        with self.assertRaises(Exception):  # Exception: Start from a saved document.
-            prepare_parts_sync(pps_part, cache_docname)
-        admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
-        doc.saveAs(test_docname, admin_folder, 'Test prepare_parts_sync', '')
-        prepare_parts_sync(pps_part, cache_docname)
-        img = capture_viewport()
-        # img.save(TEST_PNG_DIR / 'prepare_parts_sync.png')
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'prepare_parts_sync.png'))
+        with self.assertRaises(BadConditionException):  # Exception: Start from a saved document.
+            prepare_parts_sync(pps_part)
         doc.close(False)
 
-        delete_document(test_docname)
-        delete_document(cache_docname)
+
+class TestCmdCache(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.cache_docname = 'Test P2PPCB Cache'
+        doc = open_test_document(TEST_F3D_DIR / 'test_cache.f3d')
+        con = get_context()
+        admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
+        doc.saveAs(cls.cache_docname, admin_folder, 'Test Cache', '')
+        doc.close(False)
+
+        cls.test_docname = 'Test P2PPCB Document'
+        doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
+        doc.saveAs(cls.test_docname, admin_folder, 'Init', '')
+        while len(doc.dataFile.versionId) == 0:
+            do_many_events()
+        cls.doc_version_id = doc.dataFile.versionId
+        doc.close(False)
+
+    @classmethod
+    def tearDownClass(cls):
+        delete_document(cls.cache_docname)
+        delete_document(cls.test_docname)
+
+    def setUp(self) -> None:
+        con = get_context()
+        admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
+        df = admin_folder.dataFiles.itemById(self.doc_version_id)
+        if df is None:
+            raise BadCodeException()
+        self.doc = con.app.documents.open(df, True)
+        do_many_events()
+        reset_context()
+
+    def tearDown(self) -> None:
+        self.doc.close(False)
+        reset_context()
+
+    def test_prepare_parts_sync(self):
+        from p2ppcb_composer.cmd_key_common import place_key_placeholders, prepare_key_assembly, prepare_parts_sync
+        from p2ppcb_composer.cmd_load_kle import place_locators
+
+        pi = get_part_info()
+        place_locators_args = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
+        place_locators(pi, *place_locators_args)
+        place_key_placeholders()
+        specs_ops_on_pn, _, _ = place_locators_args
+        pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
+        prepare_parts_sync(pps_part, self.cache_docname)
+        img = capture_viewport()
+        img.save(TEST_PNG_DIR / 'prepare_parts_sync.png')
+        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'prepare_parts_sync.png'))
 
 
 class TestInitProject(unittest.TestCase):
@@ -256,10 +291,7 @@ class TestLoadKle(unittest.TestCase):
         key_locators_occ = con.child[CN_INTERNAL].child[CN_KEY_LOCATORS]
         o = key_locators_occ.child['1u 0_KL']
         for v1, v2 in zip(o.transform.asArray(), [
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 0.9989685402102997, -0.045407660918649985, 0.0,
-                0.0, 0.045407660918649985, 0.9989685402102997, 5.245454545454545,
-                0.0, 0.0, 0.0, 1.0]):
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 3.0, 0.0, 0.0, 0.0, 1.0]):
             self.assertAlmostEqual(v1, v2)
         pp_kl_on_specifier: ty.Dict[str, parts_depot.PrepareKeyLocatorParameter] = con.prepare_parameter_dict[PP_KEY_LOCATORS_ON_SPECIFIER]
         self.assertIsInstance(pp_kl_on_specifier['1u'], parts_depot.PrepareKeyLocatorParameter)

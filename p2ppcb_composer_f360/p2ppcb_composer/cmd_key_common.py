@@ -15,7 +15,7 @@ from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, A
     cap_placeholder_name, capture_position, \
     get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, XU_V3D, \
     FourOrientation, TwoOrientation, YU_V3D, ZU_V3D, get_inverted_m3d, get_transformed_mpv3d, key_assembly_name, \
-    key_placeholder_name, pcb_name, stabilizer_name, switch_name, ANS_HOLE_MEV_MF, get_parts_data_path
+    key_placeholder_name, pcb_name, stabilizer_name, switch_name, ANS_HOLE_MEV_MF, get_parts_data_path, BadConditionException
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_LOCATORS_PLANE_TOKEN, check_layout_plane
 
@@ -560,7 +560,11 @@ def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cach
         finally:
             prepare_finished = True
 
-    pd.prepare(con.child.get_real(CN_INTERNAL), pls, pps_part, _next, _error)
+    try:
+        pd.prepare(con.child.get_real(CN_INTERNAL), pls, pps_part, _next, _error)
+    except BadConditionException:
+        pd.close()
+        raise
 
     while not prepare_finished:
         adsk.doEvents()

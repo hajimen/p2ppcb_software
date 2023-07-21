@@ -48,6 +48,7 @@ def load_automated_tests(test_suite: unittest.TestSuite):
     test_suite.addTest(TestCmdCommon('test_place_key_placeholders'))
     test_suite.addTest(TestCmdCommon('test_prepare_key_assembly'))
     test_suite.addTest(TestCmdCommon('test_check_intra_key_assembly_interference'))
+    test_suite.addTest(TestCmdCommon('test_prepare_parts_sync_exception'))
 
     from composer_test.test_cmd import TestInitProject
     test_suite.addTest(TestInitProject('test_initialize'))
@@ -76,8 +77,8 @@ def load_notorious_tests(test_suite: unittest.TestSuite):
     This test contains some side effects. You should restart F360 after this test.
     Manual operation is required.
     '''
-    from composer_test.test_cmd import TestCmdCommon
-    test_suite.addTest(TestCmdCommon('test_prepare_parts_sync'))
+    from composer_test.test_cmd import TestCmdCache
+    test_suite.addTest(TestCmdCache('test_prepare_parts_sync'))
 
 
 @catch_exception
