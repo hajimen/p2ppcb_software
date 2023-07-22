@@ -11,9 +11,11 @@ import adsk
 from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CN_KEY_LOCATORS, \
     CN_KEY_PLACEHOLDERS, CNP_PARTS, F3Occurrence, FourOrientation, SpecsOpsOnPn, SurrogateF3Occurrence, TwoOrientation, get_context, \
     get_part_info, key_placeholder_name, load_kle, reset_context, BadCodeException, BadConditionException
-from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV
+from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV, AN_MAIN_CAP_DESC, \
+    AN_MAIN_STABILIZER_DESC, AN_MAIN_SWITCH_DESC
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
-from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, new_document, delete_document, do_many_events, import_f3d, is_same_brep_body
+from composer_test.test_base import execute_command, compare_image_by_eyes, capture_viewport, open_test_document, \
+    new_document, delete_document, do_many_events, import_f3d, is_same_brep_body
 from route.route import FlatCablePlacement
 
 
@@ -161,17 +163,21 @@ class TestCmdCommon(unittest.TestCase):
             prepare_parts_sync(pps_part)
         doc.close(False)
 
+    def test_compare(self):
+        from PIL import Image as PILImageModule
+        test_img = PILImageModule.open(TEST_PNG_DIR / 'prepare_parts_sync.png')
+        self.assertTrue(compare_image_by_eyes(test_img, TEST_PNG_DIR / 'prepare_parts_sync.png'))
+
+
+PDP_DIR = CURRENT_DIR.parent / 'p2ppcb_parts_data_f360/parameters'
+
 
 class TestCmdCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.cache_docname = 'Test P2PPCB Cache'
-        doc = open_test_document(TEST_F3D_DIR / 'test_cache.f3d')
         con = get_context()
         admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
-        doc.saveAs(cls.cache_docname, admin_folder, 'Test Cache', '')
-        doc.close(False)
-
         cls.test_docname = 'Test P2PPCB Document'
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
         doc.saveAs(cls.test_docname, admin_folder, 'Init', '')
@@ -196,23 +202,52 @@ class TestCmdCache(unittest.TestCase):
         reset_context()
 
     def tearDown(self) -> None:
-        self.doc.close(False)
+        if self.doc.isValid:
+            self.doc.close(False)
         reset_context()
 
-    def test_prepare_parts_sync(self):
+    def test_prepare_parts_sync(self):  # For regression testing, this is redundant.
+        self._test_impl(TEST_KLE_DIR / 'prepare_parts_sync.json', TEST_PNG_DIR / 'prepare_parts_sync_oracle.png', {AN_MAIN_CAP_DESC: 'XDA'})
+
+    def test_cherry(self):
+        self._test_impl(PDP_DIR / 'cherry_cap/test.json', TEST_PNG_DIR / 'cherry_cap_oracle.png', {AN_MAIN_CAP_DESC: 'Cherry'})
+
+    def test_dsa(self):
+        self._test_impl(PDP_DIR / 'dsa/test.json', TEST_PNG_DIR / 'dsa_oracle.png', {AN_MAIN_CAP_DESC: 'DSA'})
+
+    def test_choc_v1(self):
+        self._test_impl(PDP_DIR / 'choc_v1_cap/test.json', TEST_PNG_DIR / 'choc_v1_cap_oracle.png', {
+            AN_MAIN_CAP_DESC: 'Choc V1', AN_MAIN_STABILIZER_DESC: 'Choc V1', AN_MAIN_SWITCH_DESC: 'Choc V1'})
+
+    def test_junana(self):
+        self._test_impl(PDP_DIR / 'junana/test.json', TEST_PNG_DIR / 'junana_oracle.png', {AN_MAIN_CAP_DESC: 'Junana MX'})
+
+    def test_mx_oem(self):
+        self._test_impl(PDP_DIR / 'mx_oem/test.json', TEST_PNG_DIR / 'mx_oem_oracle.png', {AN_MAIN_CAP_DESC: 'OEM profile'})
+
+    def test_xda(self):
+        self._test_impl(PDP_DIR / 'xda/test.json', TEST_PNG_DIR / 'xda_oracle.png', {AN_MAIN_CAP_DESC: 'XDA'})
+
+    def _test_impl(self, kle_file: pathlib.Path, oracle_img: pathlib.Path, descs: dict[str, str], make_oracle=False):
         from p2ppcb_composer.cmd_key_common import place_key_placeholders, prepare_key_assembly, prepare_parts_sync
         from p2ppcb_composer.cmd_load_kle import place_locators
 
+        con = get_context()
+        inl_occ = con.child.get_real(CN_INTERNAL)
+        for k, v in descs.items():
+            inl_occ.comp_attr[k] = v
         pi = get_part_info()
-        place_locators_args = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
+        place_locators_args = load_kle(kle_file, pi)
         place_locators(pi, *place_locators_args)
         place_key_placeholders()
         specs_ops_on_pn, _, _ = place_locators_args
         pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
         prepare_parts_sync(pps_part, self.cache_docname)
+        con.child[CN_INTERNAL].child[CN_KEY_LOCATORS].light_bulb = False
         img = capture_viewport()
-        img.save(TEST_PNG_DIR / 'prepare_parts_sync.png')
-        self.assertTrue(compare_image_by_eyes(img, TEST_PNG_DIR / 'prepare_parts_sync.png'))
+        if make_oracle:
+            img.save(oracle_img)
+        self.assertTrue(compare_image_by_eyes(img, oracle_img))
 
 
 class TestInitProject(unittest.TestCase):

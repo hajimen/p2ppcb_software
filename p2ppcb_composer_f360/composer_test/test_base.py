@@ -1,16 +1,17 @@
-from typing import Optional, Any, Type
+from typing import Optional, Type
 import pathlib
 import time
-from PIL import Image
+from PIL import Image as PILImageModule
+from PIL.Image import Image
 import adsk
 import adsk.core as ac
 import adsk.fusion as af
 from f360_common import get_context, reset_context, F3Occurrence, create_component
-from p2ppcb_composer.cmd_common import CommandHandlerBase
+from p2ppcb_composer.cmd_common import CommandHandlerBase, get_ci
+from adsk.core import CommandEventArgs, CommandCreatedEventArgs
 
 
 HANDLERS = []
-HANDLER_IDS = []
 
 
 def do_many_events():
@@ -18,11 +19,15 @@ def do_many_events():
         adsk.doEvents()
 
 
-def execute_command(cls: Type):
+def execute_command(cls: Type, exit=adsk.terminate, **handler_args):
     class Handler(cls):
         def notify_destroy(self, event_args) -> None:
             super().notify_destroy(event_args)
-            adsk.terminate()
+            try:
+                HANDLERS.remove(self)
+            except:  # noqa
+                pass
+            exit()
 
     handler_class = Handler
 
@@ -40,67 +45,62 @@ def execute_command(cls: Type):
     cmd_def = cmd_defs.addButtonDefinition(cmd_id, handler_class.__name__, 'tooltip')
     
     # Connect to the command created event.
-    handler: CommandHandlerBase = handler_class()
+    handler: CommandHandlerBase = handler_class(**handler_args)
     cmd_def.commandCreated.add(handler)
     HANDLERS.append(handler)
 
     cmd_def.execute()
     do_many_events()
+    return handler
 
 
-def compare_image_by_eyes(test_img: Any, oracle_path: pathlib.Path):
-    import tkinter as tk
-    from PIL import ImageTk
-    right_img = Image.open(oracle_path)
+INP_ID_IMAGE_TEST = 'testImage'
+INP_ID_IMAGE_ORACLE = 'oracleImage'
+INP_ID_SAME_DIFFERENT = 'sameDifferent'
 
-    class Application(tk.Frame):
-        def __init__(self, master=None):
-            super().__init__(master)
-            self.master = master  # type: ignore
-            self.pack()
-            self.create_widgets()
-            self.was_same = False
 
-        def create_widgets(self):
-            self.left_canvas = tk.Canvas(self, width=test_img.width, height=test_img.height)
-            self.left_canvas.grid(row=0, column=0)
+class ImageCompareCommandHandler(CommandHandlerBase):
+    def __init__(self, test_img_path: pathlib.Path, oracle_path: pathlib.Path) -> None:
+        super().__init__()
+        self.test_img_path = test_img_path
+        self.oracle_path = oracle_path
+        self.is_same = False
 
-            self.right_canvas = tk.Canvas(self, width=right_img.width, height=right_img.height)
-            self.right_canvas.grid(row=0, column=1)
+        self.require_cn_internal = False
+        self.require_cn_key_locators = False
 
-            l_im = ImageTk.PhotoImage(master=self.left_canvas, image=test_img)  # type: ignore
-            self.left_canvas.photo = l_im  # type: ignore
-            self.left_canvas.create_image(0, 0, anchor='nw', image=self.left_canvas.photo)  # type: ignore
+    def notify_create(self, event_args: CommandCreatedEventArgs):
+        test_img_in = self.inputs.addImageCommandInput(INP_ID_IMAGE_TEST, 'Test', str(self.test_img_path))
+        test_img_in.isFullWidth = True
+        oracle_in = self.inputs.addImageCommandInput(INP_ID_IMAGE_ORACLE, 'Oracle', str(self.oracle_path))
+        oracle_in.isFullWidth = True
+        result_in = self.inputs.addRadioButtonGroupCommandInput(INP_ID_SAME_DIFFERENT, 'Result')
+        result_in.listItems.add('Same', False)
+        result_in.listItems.add('Different', False)
 
-            r_im = ImageTk.PhotoImage(master=self.right_canvas, image=right_img)  # type: ignore
-            self.right_canvas.photo = r_im  # type: ignore
-            self.right_canvas.create_image(0, 0, anchor='nw', image=self.right_canvas.photo)  # type: ignore
+    def get_selection_in(self):
+        return get_ci(self.inputs, INP_ID_SAME_DIFFERENT, ac.RadioButtonGroupCommandInput)
 
-            self.button_frame = tk.Frame(self, width=right_img.width, height=30)
-            self.button_frame.grid(row=1, column=1)
+    def notify_execute(self, event_args: CommandEventArgs) -> None:
+        item = self.get_selection_in().selectedItem
+        if item.name == 'Same':
+            self.is_same = True
 
-            self.same = tk.Button(self.button_frame)
-            self.same["text"] = "Same"
-            self.same["command"] = self.handle_same
-            self.same.pack(side="right")
 
-            self.different = tk.Button(self.button_frame)
-            self.different["text"] = "Different"
-            self.different["command"] = self.handle_different
-            self.different.pack(side="left")
+def compare_image_by_eyes(test_img: Image, oracle_path: pathlib.Path):
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        test_img_path = pathlib.Path(d) / 'compare.png'
+        test_img.save(test_img_path)
+        join = False
 
-        def handle_same(self):
-            self.was_same = True
-            self.master.destroy()
-
-        def handle_different(self):
-            self.master.destroy()
-
-    root = tk.Tk()
-    app = Application(master=root)
-    app.mainloop()
-
-    return app.was_same
+        def set_join():
+            nonlocal join
+            join = True
+        handler = execute_command(ImageCompareCommandHandler, **{'exit': set_join, 'test_img_path': test_img_path, 'oracle_path': oracle_path})
+        while not join:
+            do_many_events()
+        return handler.is_same
 
 
 def capture_viewport():
@@ -109,18 +109,28 @@ def capture_viewport():
     app = get_context().app
 
     camera: ac.Camera = app.activeViewport.camera
-    camera.viewOrientation = ac.ViewOrientations.IsoTopLeftViewOrientation
-    camera.isSmoothTransition = False
-    app.activeViewport.camera = camera
-    camera = app.activeViewport.camera
+    camera.viewOrientation = ac.ViewOrientations.TopViewOrientation
     camera.isFitView = True
     camera.isSmoothTransition = False
     app.activeViewport.camera = camera
 
+    for _ in range(100):
+        do_many_events()
+        time.sleep(0.01)
+
+    camera: ac.Camera = app.activeViewport.camera
+    camera.isFitView = True
+    camera.isSmoothTransition = False
+    app.activeViewport.camera = camera
+
+    for _ in range(100):
+        do_many_events()
+        time.sleep(0.01)
+
     tmp = tempfile.gettempdir()
     fn = str(pathlib.Path(tmp) / 'capture.png')
     app.activeViewport.saveAsImageFile(fn, 600, 600)
-    img = Image.open(fn)
+    img = PILImageModule.open(fn)
 
     return img
 

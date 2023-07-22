@@ -23,7 +23,7 @@ reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.d
           'p2ppcb_composer.toolbar', 'composer_test.test_cmd',
           'composer_test.test_utility'], ['mainboard'])
 
-from composer_test.test_base import HANDLERS, HANDLER_IDS
+from composer_test.test_base import HANDLERS
 
 APP: ac.Application
 
@@ -78,7 +78,13 @@ def load_notorious_tests(test_suite: unittest.TestSuite):
     Manual operation is required.
     '''
     from composer_test.test_cmd import TestCmdCache
-    test_suite.addTest(TestCmdCache('test_prepare_parts_sync'))
+    # test_suite.addTest(TestCmdCache('test_prepare_parts_sync'))  # For regression testing, this is redundant.
+    test_suite.addTest(TestCmdCache('test_cherry'))
+    test_suite.addTest(TestCmdCache('test_choc_v1'))
+    test_suite.addTest(TestCmdCache('test_dsa'))
+    test_suite.addTest(TestCmdCache('test_junana'))
+    test_suite.addTest(TestCmdCache('test_mx_oem'))
+    test_suite.addTest(TestCmdCache('test_xda'))
 
 
 @catch_exception
@@ -130,20 +136,7 @@ def run(context):
 
 @catch_exception
 def stop(context):
-    ui = APP.userInterface
-
     # Cancel active command
     APP.executeTextCommand('NuCommands.CancelCmd')
-
-    cmd_defs: ac.CommandDefinitions = ui.commandDefinitions
-    for i in HANDLER_IDS:
-        cmd_def: ty.Optional[ac.CommandDefinition] = cmd_defs.itemById(i)
-        if cmd_def is not None:
-            cmd_def.deleteMe()
-            cmd_def = cmd_defs.itemById(i)
-            if cmd_def is not None:
-                print(f'{i} deleteMe() failed.')
-
     HANDLERS.clear()
-    HANDLER_IDS.clear()
     print('stop')

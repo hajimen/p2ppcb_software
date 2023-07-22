@@ -106,7 +106,6 @@ def generate_scaffold():
     moves = con.root_comp.features.moveFeatures
     tr = ac.Matrix3D.create()
     tr.translation = ac.Vector3D.create(0.0, -1.0, 0.0)
-    # move_in = moves.createInput(col, tr)
     move_in = moves.createInput2(col)
     move_in.defineAsFreeMove(tr)
     moves.add(move_in)
