@@ -475,7 +475,6 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
                 last_printed = True
                 wire = wires[0]
                 locs = (np.array(wire[0] - offset) * MAG).astype(int)
-                # legend_w, legend_h = draw.textsize(str(pn1), font=font)
                 bbox = draw.textbbox((0, 0), str(pn1), font=font)
                 legend_w = int(bbox[2] - bbox[0])
                 legend_h = int(bbox[3] - bbox[1])
