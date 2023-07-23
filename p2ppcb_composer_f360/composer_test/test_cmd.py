@@ -254,7 +254,6 @@ class TestInitProject(unittest.TestCase):
     def test_cmd_interactive(self):
         from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
         execute_command(InitializeP2ppcbProjectCommandHandler)
-        adsk.autoTerminate(False)
     
     def test_initialize(self):
         doc = new_document()
@@ -335,7 +334,6 @@ class TestLoadKle(unittest.TestCase):
     def test_cmd_interactive(self):
         from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler
         execute_command(LoadKleFileCommandHandler)
-        adsk.autoTerminate(False)
 
 
 # cspell: disable-next-line
@@ -346,13 +344,12 @@ class TestMoveKey(unittest.TestCase):
     def test_cmd_interactive(self):
         from p2ppcb_composer.cmd_move_key import MoveKeyCommandHandler
         execute_command(MoveKeyCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd(self):
         from p2ppcb_composer.cmd_move_key import MoveKeyCommandHandler
         doc = open_test_document(TEST_F3D_DIR / 'move_key_change_key_descs.f3d')
         con = get_context()
-        execute_command(MoveKeyCommandHandler)
+        execute_command(MoveKeyCommandHandler, is_terminate=False)
         do_many_events()
         con.app.executeTextCommand(MOVE_KEY_CHANGE_KEY_DESC_OCC_ONK)
         do_many_events()
@@ -373,18 +370,16 @@ class TestChangeKeyDescs(unittest.TestCase):
     def test_cmd_interactive_change_key_descs(self):
         from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler
         execute_command(ChangeKeyDescsCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd_interactive_check_key_assembly(self):
         from p2ppcb_composer.cmd_change_key import CheckKeyAssemblyCommandHandler
         execute_command(CheckKeyAssemblyCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd(self):
         from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler
         doc = open_test_document(TEST_F3D_DIR / 'move_key_change_key_descs.f3d')
         con = get_context()
-        execute_command(ChangeKeyDescsCommandHandler)
+        execute_command(ChangeKeyDescsCommandHandler, is_terminate=False)
         do_many_events()
         con.app.executeTextCommand(MOVE_KEY_CHANGE_KEY_DESC_OCC_ONK)
         do_many_events()
@@ -403,12 +398,10 @@ class TestMatrixRoute(unittest.TestCase):
     def test_cmd_interactive_assign_matrix(self):
         from p2ppcb_composer.cmd_matrix_route import AssignMatrixCommandHandler
         execute_command(AssignMatrixCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd_interactive_generate_route(self):
         from p2ppcb_composer.cmd_matrix_route import GenerateRouteCommandHandler
         execute_command(GenerateRouteCommandHandler)
-        adsk.autoTerminate(False)
 
     def fcp(self):
         import numpy as np
@@ -483,22 +476,18 @@ class TestEditFrame(unittest.TestCase):
     def test_cmd_interactive_fill(self):
         from p2ppcb_composer.cmd_edit_frame import FillFrameCommandHandler
         execute_command(FillFrameCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd_interactive_place_mb(self):
         from p2ppcb_composer.cmd_edit_frame import PlaceMainboardCommandHandler
         execute_command(PlaceMainboardCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd_interactive_place_foot(self):
         from p2ppcb_composer.cmd_edit_frame import PlaceFootCommandHandler
         execute_command(PlaceFootCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_cmd_interactive_hole(self):
         from p2ppcb_composer.cmd_edit_frame import HolePartsCommandHandler
         execute_command(HolePartsCommandHandler)
-        adsk.autoTerminate(False)
 
     def test_fill(self):
         from p2ppcb_composer.cmd_edit_frame import fill_frame
@@ -525,18 +514,15 @@ class TestSetAttribute(unittest.TestCase):
     def test_cmd_interactive(self):
         from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
         execute_command(SetAttributeCommandHandler)
-        adsk.autoTerminate(False)
 
 
 class TestRegexSelector(unittest.TestCase):
     def test_cmd_interactive(self):
         from p2ppcb_composer.cmd_regex_selector import RegexSelectCommandHandler
         execute_command(RegexSelectCommandHandler)
-        adsk.autoTerminate(False)
 
 
 class TestRemoveUndercut(unittest.TestCase):
     def test_cmd_interactive(self):
         from p2ppcb_composer.cmd_remove_undercut import RemoveUndercutCommandHandler
         execute_command(RemoveUndercutCommandHandler)
-        adsk.autoTerminate(False)

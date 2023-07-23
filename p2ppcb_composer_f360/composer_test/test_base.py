@@ -19,7 +19,21 @@ def do_many_events():
         adsk.doEvents()
 
 
-def execute_command(cls: Type, exit=adsk.terminate, **handler_args):
+def execute_command(cls: Type, is_block=False, is_terminate=True, **handler_args):
+    join = False
+    if is_block:
+        def set_join():
+            nonlocal join
+            join = True
+        exit = set_join
+    elif is_terminate:
+        adsk.autoTerminate(False)
+        exit = adsk.terminate
+    else:
+        def nop():
+            return
+        exit = nop
+
     class Handler(cls):
         def notify_destroy(self, event_args) -> None:
             super().notify_destroy(event_args)
@@ -50,7 +64,13 @@ def execute_command(cls: Type, exit=adsk.terminate, **handler_args):
     HANDLERS.append(handler)
 
     cmd_def.execute()
-    do_many_events()
+
+    if is_block:
+        while not join:
+            do_many_events()
+    else:
+        do_many_events()
+
     return handler
 
 
@@ -92,14 +112,7 @@ def compare_image_by_eyes(test_img: Image, oracle_path: pathlib.Path):
     with tempfile.TemporaryDirectory() as d:
         test_img_path = pathlib.Path(d) / 'compare.png'
         test_img.save(test_img_path)
-        join = False
-
-        def set_join():
-            nonlocal join
-            join = True
-        handler = execute_command(ImageCompareCommandHandler, **{'exit': set_join, 'test_img_path': test_img_path, 'oracle_path': oracle_path})
-        while not join:
-            do_many_events()
+        handler = execute_command(ImageCompareCommandHandler, is_block=True, test_img_path=test_img_path, oracle_path=oracle_path)
         return handler.is_same
 
 
