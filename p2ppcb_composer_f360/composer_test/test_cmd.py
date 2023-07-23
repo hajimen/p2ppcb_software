@@ -175,8 +175,13 @@ PDP_DIR = CURRENT_DIR.parent / 'p2ppcb_parts_data_f360/parameters'
 class TestCmdCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cache_docname = 'Test P2PPCB Cache'
         con = get_context()
+        con.ui.messageBox(
+            "Don't touch the mouse and the keyboard except while showing a command dialog which requires your eyes and comparison.",
+            'Test P2PPCB Composer',
+            ac.MessageBoxButtonTypes.OKButtonType, ac.MessageBoxIconTypes.InformationIconType)
+
+        cls.cache_docname = 'Test P2PPCB Cache'
         admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
         cls.test_docname = 'Test P2PPCB Document'
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
@@ -190,6 +195,10 @@ class TestCmdCache(unittest.TestCase):
     def tearDownClass(cls):
         delete_document(cls.cache_docname)
         delete_document(cls.test_docname)
+        con = get_context()
+        con.ui.messageBox(
+            "All the tests are done. Check the test results and restart Fusion 360.", 'Test P2PPCB Composer',
+            ac.MessageBoxButtonTypes.OKButtonType, ac.MessageBoxIconTypes.InformationIconType)
 
     def setUp(self) -> None:
         con = get_context()
@@ -242,7 +251,7 @@ class TestCmdCache(unittest.TestCase):
         place_key_placeholders()
         specs_ops_on_pn, _, _ = place_locators_args
         pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
-        prepare_parts_sync(pps_part, self.cache_docname)
+        prepare_parts_sync(pps_part, self.cache_docname, True)
         con.child[CN_INTERNAL].child[CN_KEY_LOCATORS].light_bulb = False
         img = capture_viewport()
         if make_oracle:

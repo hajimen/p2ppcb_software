@@ -535,7 +535,7 @@ def fill_surrogate():
     pp_surrogate_ka_names.clear()
 
 
-def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cache_docname: ty.Optional[str] = None):
+def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cache_docname: ty.Optional[str] = None, silent=False):
     con = get_context()
     pd = parts_depot.PartsDepot(cache_docname)
     pp_kl_on_specifier: ty.Dict[str, parts_depot.PrepareKeyLocatorParameter] = con.prepare_parameter_dict[PP_KEY_LOCATORS_ON_SPECIFIER]
@@ -561,7 +561,7 @@ def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cach
             prepare_finished = True
 
     try:
-        pd.prepare(con.child.get_real(CN_INTERNAL), pls, pps_part, _next, _error)
+        pd.prepare(con.child.get_real(CN_INTERNAL), pls, pps_part, _next, _error, silent)
     except BadConditionException:
         pd.close()
         raise
