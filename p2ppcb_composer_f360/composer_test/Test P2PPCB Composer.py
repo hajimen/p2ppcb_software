@@ -4,6 +4,7 @@ import pathlib
 import typing as ty
 import unittest
 import traceback
+import importlib
 
 import adsk
 import adsk.core as ac
@@ -13,15 +14,12 @@ CURRENT_DIR = pathlib.Path(os.path.dirname(__file__)).parent
 if str(CURRENT_DIR) not in sys.path:
     sys.path.append(str(CURRENT_DIR))
 
+import reimport as _to_reload
+importlib.reload(_to_reload)
 from reimport import reimport
 
 reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.depot',
-          'composer_test.test_base', 'route.route', 'p2ppcb_composer.cmd_common', 'p2ppcb_composer.cmd_key_common',
-          'p2ppcb_composer.cmd_init_project', 'p2ppcb_composer.cmd_load_kle', 'p2ppcb_composer.cmd_matrix_route',
-          'p2ppcb_composer.cmd_move_key', 'p2ppcb_composer.cmd_change_key', 'p2ppcb_composer.cmd_edit_frame',
-          'p2ppcb_composer.cmd_set_attribute', 'p2ppcb_composer.cmd_remove_undercut', 'p2ppcb_composer.cmd_regex_selector',
-          'p2ppcb_composer.toolbar', 'composer_test.test_cmd',
-          'composer_test.test_utility'], ['mainboard'])
+          'route.route'], ['mainboard', 'composer_test', 'p2ppcb_composer'])
 
 from composer_test.test_base import HANDLERS
 

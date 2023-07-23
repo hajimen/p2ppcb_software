@@ -95,8 +95,16 @@ class ImageCompareCommandHandler(CommandHandlerBase):
         oracle_in = self.inputs.addImageCommandInput(INP_ID_IMAGE_ORACLE, 'Oracle', str(self.oracle_path))
         oracle_in.isFullWidth = True
         result_in = self.inputs.addRadioButtonGroupCommandInput(INP_ID_SAME_DIFFERENT, 'Result')
+        result_in.isFullWidth = True
         result_in.listItems.add('Same', False)
         result_in.listItems.add('Different', False)
+
+    def notify_validate(self, event_args: ac.ValidateInputsEventArgs):
+        result_in = self.get_selection_in()
+        for li in result_in.listItems:
+            if li.isSelected:
+                return
+        event_args.areInputsValid = False
 
     def get_selection_in(self):
         return get_ci(self.inputs, INP_ID_SAME_DIFFERENT, ac.RadioButtonGroupCommandInput)
