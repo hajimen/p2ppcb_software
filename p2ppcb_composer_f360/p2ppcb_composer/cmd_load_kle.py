@@ -11,7 +11,7 @@ import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
-    CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, SpecsOpsOnPn, \
+    CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, BadCodeException, SpecsOpsOnPn, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
     ANS_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
@@ -47,6 +47,8 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
             legend_pickled = pickle.dumps(op.legend).hex()
 
             def _on_surrogate(o: VirtualF3Occurrence):
+                if op is None:
+                    raise BadCodeException()
                 o.comp_attr[AN_LOCATORS_LEGEND_PICKLED] = legend_pickled
                 o.comp_attr[AN_LOCATORS_SPECIFIER] = specifier
                 o.comp_attr[AN_LOCATORS_PATTERN_NAME] = pattern_name
@@ -74,7 +76,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                     if n == name:
                         return
                 pp.names_images.append(
-                    (name, op.image_file_path)  # type: ignore
+                    (name, op.image_file_path)
                 )
 
             occ = locators_occ.child.get_virtual(name, on_surrogate=_on_surrogate)

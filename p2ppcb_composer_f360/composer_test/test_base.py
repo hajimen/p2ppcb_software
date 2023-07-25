@@ -159,8 +159,7 @@ def capture_viewport():
 def new_document():
     con = get_context()
     doc = con.app.documents.add(ac.DocumentTypes.FusionDesignDocumentType)
-    for _ in range(10):
-        adsk.doEvents()
+    do_many_events()
     con = reset_context()
     con.des.designType = af.DesignTypes.DirectDesignType
     return doc
@@ -171,8 +170,7 @@ def open_test_document(f3d_file: pathlib.Path):
     im = con.app.importManager
     im_opt = im.createFusionArchiveImportOptions(str(f3d_file))
     doc = im.importToNewDocument(im_opt)
-    for _ in range(10):
-        adsk.doEvents()
+    do_many_events()
     con = reset_context()
     con.des.designType = af.DesignTypes.DirectDesignType
     return doc

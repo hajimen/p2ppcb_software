@@ -52,7 +52,7 @@ class PrepareKeyLocatorParameter:
     decal_parameters: ty.Dict[str, Quantity]
     pattern: np.ndarray
     pitch_wd: ty.Dict[str, Quantity]
-    names_images: ty.List[ty.Tuple[str, pathlib.Path]]
+    names_images: ty.List[ty.Tuple[str, ty.Optional[pathlib.Path]]]
 
 
 @dataclass

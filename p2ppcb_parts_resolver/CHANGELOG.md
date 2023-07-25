@@ -27,3 +27,7 @@
 ## Version 0.1.10 : 2022/5/25
 
 - Special parameters `Stabilizer[X|Y|Angle]` added.
+
+## Version 0.1.11 : 2023/7/25
+
+- `resolve_kle()` without image is available now. It doesn't require `kle-scraper` too.

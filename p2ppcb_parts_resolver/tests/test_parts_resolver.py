@@ -1,7 +1,7 @@
-import typing as ty
 import pathlib
 import sys
 import unittest
+import pickle
 
 CURRENT_DIR = pathlib.Path(__file__).parent.parent
 PARTS_DATA_DIR = CURRENT_DIR.parent / 'p2ppcb_parts_data_f360'
@@ -15,11 +15,12 @@ del ap
 
 import numpy as np
 import p2ppcb_parts_resolver.resolver as parts_resolver
+from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
 from PIL import Image, ImageChops
 
 
 class TestPartsResolver(unittest.TestCase):
-    def render_total_image(self, specs_ops_on_pn: ty.Dict[str, ty.List[ty.Tuple[str, parts_resolver.OccurrenceParameter]]], min_xyu, max_xyu):
+    def render_total_image(self, specs_ops_on_pn: SpecsOpsOnPn, min_xyu, max_xyu):
         U = 216
         min_xyu = np.array(min_xyu)
         max_xyu = np.array(max_xyu)
@@ -27,6 +28,12 @@ class TestPartsResolver(unittest.TestCase):
         canvas = Image.new('RGBA', (w, h), color=(0, 0, 0, 255))
         for pn, specs_ops in specs_ops_on_pn.items():
             for specifier, op in specs_ops:
+                if op is None:
+                    self.assertIsNotNone(op)
+                    raise Exception()
+                if op.image_file_path is None:
+                    self.assertIsNotNone(op.image_file_path)
+                    raise Exception()
                 img = Image.open(op.image_file_path)
                 m = int(max(img.size) * 1.5) + 1
                 pi = Image.new('RGBA', (m, m), color=(0, 0, 0, 0))
@@ -45,6 +52,17 @@ class TestPartsResolver(unittest.TestCase):
             canvas = self.render_total_image(*pi.resolve_kle(pathlib.Path(f'test_data/kle/{fn}.json'), pathlib.Path('tmp')))
             oracle = Image.open(f'test_data/kle/{fn}.png')
             self.assertIsNone(ImageChops.difference(canvas, oracle).getbbox(), f'{fn} failed.')
+
+    def test_resolve_kle_without_image(self):
+        fns = ['60percent', 'single', 'iso105', 'ergodox', 'single-rotated-iso', 'single-bigass', 'rotation', 'stepped']
+        pi = parts_resolver.PartsInfo(PARTS_DATA_DIR / parts_resolver.PARTS_INFO_DIRNAME)
+        for fn in fns:
+            result = pi.resolve_kle(pathlib.Path(f'test_data/kle/{fn}.json'), None)
+            # with open(f'test_data/kle/{fn}.pkl', 'wb') as f:
+            #     pickle.dump(result, f)
+            with open(f'test_data/kle/{fn}.pkl', 'rb') as f:
+                oracle = pickle.load(f)
+            self.assertEqual(result, oracle)
 
     def test_resolve_specifier(self):
         pi = parts_resolver.PartsInfo(PARTS_DATA_DIR / parts_resolver.PARTS_INFO_DIRNAME)

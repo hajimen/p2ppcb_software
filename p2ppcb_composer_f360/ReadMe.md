@@ -292,28 +292,28 @@ Prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
 
 ```
 python -m pip install --upgrade pip
-pip install piprepo setuptools wheel
+pip install piprepo setuptools wheel build
 mkdir repos
 cd repos
 mkdir pep503
 git clone https://github.com/hajimen/f360_insert_decal_rpa
 cd f360_insert_decal_rpa
-python setup.py bdist_wheel
+python -m build --wheel
 cp dist/*.whl ../pep503
 cd ..
 git clone https://github.com/hajimen/pykle_serial
 cd pykle_serial
-python setup.py bdist_wheel
+python -m build --wheel
 cp dist/*.whl ../pep503
 cd ..
 git clone https://github.com/hajimen/kle_scraper
 cd kle_scraper
-python setup.py bdist_wheel
+python -m build --wheel
 cp dist/*.whl ../pep503
 cd ..
 git clone https://github.com/hajimen/p2ppcb_software
 cd p2ppcb_software/p2ppcb_parts_resolver
-python setup.py bdist_wheel
+python -m build --wheel
 cp dist/*.whl ../../pep503
 cd ..
 piprepo build ../pep503

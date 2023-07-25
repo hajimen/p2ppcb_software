@@ -12,7 +12,6 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pint.errors
 from pint import Quantity
 from PIL import Image
-from kle_scraper import scrape
 
 DESCRIPTION_FILENAME = 'description.csv'
 MAPPING_FILENAME = 'mapping.csv'
@@ -154,7 +153,7 @@ class OccurrenceParameter:
     image_whu: ty.Tuple[float, float]
     angle: float  # clockwise
     legend: ty.List[str]
-    image_file_path: pathlib.Path
+    image_file_path: ty.Optional[pathlib.Path]
     i_kle: int
 
 
@@ -373,13 +372,20 @@ class PartsInfo:
             ph = parameters.pop('Placeholder')
         return parameters, ph
 
-    def resolve_kle(self, kle_json_path: os.PathLike, image_output_dir: os.PathLike):
-        image_output_dir = pathlib.Path(image_output_dir)
+    def resolve_kle(self, kle_json_path: os.PathLike, image_output_dir: ty.Optional[os.PathLike]):
+        image_output_dir = None if image_output_dir is None else pathlib.Path(image_output_dir)
         # op: OccurrenceParameter, pn: pattern name
         specs_ops_on_pn: SpecsOpsOnPn = defaultdict(list)
         vertices: ty.Set[ty.Tuple[float, float]] = set()
 
-        keyboard = scrape(kle_json_path, image_output_dir)
+        if image_output_dir is None:
+            import pykle_serial as kle_serial
+            with open(kle_json_path, 'r', encoding='utf-8') as f:
+                json = f.read()
+            keyboard = kle_serial.parse(json)
+        else:
+            from kle_scraper import scrape
+            keyboard = scrape(kle_json_path, image_output_dir)
         if keyboard is None:
             raise Exception('Bad KLE file or image_output_dir.')
         for i, k in enumerate(keyboard.keys):
@@ -450,12 +456,13 @@ class PartsInfo:
                 pattern_name, pattern_rotation, (center_xu, center_yu), image_center_offset_u = _find()
                 specs = [pattern_name]
             image_whu = (k.width, k.height)
-            image_path = image_output_dir / f'{i}.png'
+            image_path = None if image_output_dir is None else image_output_dir / f'{i}.png'
             angle = k.rotation_angle  # clockwise degree
             if pattern_rotation is not None:
-                image = Image.open(image_path)
-                image = image.transpose(pattern_rotation)
-                image.save(image_path)
+                if image_path is not None:
+                    image = Image.open(image_path)
+                    image = image.transpose(pattern_rotation)
+                    image.save(image_path)
                 angle += {Image.ROTATE_270: -90, Image.ROTATE_180: 180, Image.ROTATE_90: 90}[pattern_rotation]
                 rot_mat = np.array({
                     Image.ROTATE_90: [[0., 1.], [-1., 0.]],

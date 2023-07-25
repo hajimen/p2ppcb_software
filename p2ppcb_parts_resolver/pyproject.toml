@@ -1,3 +1,40 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "p2ppcb_parts_resolver"
+dynamic = ["version"]
+description = "p2ppcb_parts_resolver is a resolver for deeply complicated parameters for 3D CAD."
+authors = [{name = "Hajime Nakazato", email = "hajime@kaoriha.org"},]
+license ={text = "MIT License"}
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "pint",
+    "numpy",
+    "pillow",
+    "pykle-serial",
+    "kle-scraper ; platform_system == \"Windows\"",
+]
+
+[project.urls]
+Bug_Tracker = "https://github.com/hajimen/p2ppcb_software/issues"
+Changelog = "https://github.com/hajimen/p2ppcb_software/blob/master/CHANGELOG.md"
+
+[tool.setuptools.dynamic]
+version = {attr = "p2ppcb_parts_resolver.__version__"}
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["p2ppcb_parts_resolver"]

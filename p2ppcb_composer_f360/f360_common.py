@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from pint import Quantity
 import p2ppcb_parts_resolver.resolver as parts_resolver
 from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
+import f360_insert_decal_rpa
 import adsk.core as ac
 import adsk.fusion as af
 
@@ -865,7 +866,7 @@ def load_kle(kle_file: pathlib.Path, pi: parts_resolver.PartsInfo) -> ty.Tuple[S
     if kle_hash in KLE_CACHE:
         return KLE_CACHE[kle_hash]
 
-    tmp = prepare_tmp_dir(kle_hash)
+    tmp = None if f360_insert_decal_rpa.FALLBACK_MODE else prepare_tmp_dir(kle_hash)
 
     try:
         result = pi.resolve_kle(kle_file, tmp)

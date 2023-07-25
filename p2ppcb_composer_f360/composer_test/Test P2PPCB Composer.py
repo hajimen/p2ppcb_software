@@ -94,11 +94,9 @@ def run(context):
     t1 = time.time()
     breakpoint()
     t2 = time.time()
-    '''
-    The code around this document is a hack to require Edit button (opens VSCode) -> F5 key.
-    If a debugger is enabled, you cannot go through these codes under 0.1 second.
-    If you feel bothersome to hit continue (F5), just comment out them.
-    '''
+    # The code around this document is a hack to ensure Edit button (opens VSCode) -> F5 key.
+    # If a debugger is enabled, you cannot go through these codes under 0.1 second.
+    # If you feel bothersome to hit continue (F5), just comment out them.
     if t2 - t1 < 0.1:
         APP.userInterface.messageBox('Use Edit button -> F5 key, instead of Run button.')
         return
