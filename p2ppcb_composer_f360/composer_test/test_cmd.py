@@ -10,7 +10,7 @@ import adsk
 
 from f360_common import AN_HOLE, AN_MEV, AN_MF, CN_DEPOT_APPEARANCE, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CN_KEY_LOCATORS, \
     CN_KEY_PLACEHOLDERS, CNP_PARTS, F3Occurrence, FourOrientation, SpecsOpsOnPn, SurrogateF3Occurrence, TwoOrientation, get_context, \
-    get_part_info, key_placeholder_name, load_kle, reset_context, BadCodeException, BadConditionException
+    get_part_info, key_placeholder_name, load_kle, reset_context, BadCodeException, BadConditionException, prepare_tmp_dir
 from p2ppcb_composer.cmd_common import AN_MAINBOARD, INP_ID_KEY_V_OFFSET_STR, INP_ID_ROTATION_AV, INP_ID_X_DV, INP_ID_Y_DV, AN_MAIN_CAP_DESC, \
     AN_MAIN_STABILIZER_DESC, AN_MAIN_SWITCH_DESC
 from p2ppcb_composer.cmd_key_common import PP_KEY_ASSEMBLY_ON_SO, PrepareKeyPlaceholderParameter
@@ -24,6 +24,22 @@ TEST_F3D_DIR = CURRENT_DIR / 'test_data/f3d'
 TEST_KLE_DIR = CURRENT_DIR / 'test_data/kle'
 TEST_PNG_DIR = CURRENT_DIR / 'test_data/png'
 TEST_PKL_DIR = CURRENT_DIR / 'test_data/pkl'
+
+
+def place_locators_from_prepare_parts_sync_cache(pi):
+    '''
+    load_kle() is quite slow first time if a debugger is attached.
+    '''
+    from p2ppcb_composer.cmd_load_kle import place_locators
+    pkl_path = prepare_tmp_dir() / 'place_locators.pkl'
+    if not pkl_path.exists():
+        specs_ops_on_pn, min_xyu, max_xyu = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
+        with open(pkl_path, 'wb') as f:
+            pickle.dump((specs_ops_on_pn, min_xyu, max_xyu), f)
+    with open(pkl_path, 'rb') as f:
+        specs_ops_on_pn, min_xyu, max_xyu = pickle.load(f)
+    place_locators(pi, specs_ops_on_pn, min_xyu, max_xyu)
+    return specs_ops_on_pn, min_xyu, max_xyu
 
 
 class TestCmdCommon(unittest.TestCase):
@@ -149,14 +165,11 @@ class TestCmdCommon(unittest.TestCase):
         doc.close(False)
 
     def test_prepare_parts_sync_exception(self):
-        from p2ppcb_composer.cmd_key_common import place_key_placeholders, prepare_key_assembly, prepare_parts_sync
-        from p2ppcb_composer.cmd_load_kle import place_locators
+        from p2ppcb_composer.cmd_key_common import prepare_key_assembly, prepare_parts_sync
 
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
         pi = get_part_info()
-        place_locators_args = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
-        place_locators(pi, *place_locators_args)
-        place_key_placeholders()
+        place_locators_args = place_locators_from_prepare_parts_sync_cache(pi)
         specs_ops_on_pn, _, _ = place_locators_args
         pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
         with self.assertRaises(BadConditionException):  # Exception: Start from a saved document.
@@ -318,21 +331,13 @@ class TestInitProject(unittest.TestCase):
 
 class TestLoadKle(unittest.TestCase):
     def test_place_locators(self):
-        import sys
         import p2ppcb_parts_depot.depot as parts_depot
         from p2ppcb_composer.cmd_key_common import PP_KEY_LOCATORS_ON_SPECIFIER
-        from p2ppcb_composer.cmd_load_kle import place_locators
+
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
         con = get_context()
         pi = get_part_info()
-        pkl_path = TEST_PKL_DIR / f'place_locators_{sys.platform}.pkl'
-        # Make test data.
-        # place_locators_args = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
-        # with open(pkl_path, 'wb') as f:
-        #     pickle.dump(place_locators_args, f)
-        with open(pkl_path, 'rb') as f:
-            place_locators_args = pickle.load(f)
-        place_locators(pi, *place_locators_args)
+        _ = place_locators_from_prepare_parts_sync_cache(pi)
         key_locators_occ = con.child[CN_INTERNAL].child[CN_KEY_LOCATORS]
         o = key_locators_occ.child['1u 0_KL']
         for v1, v2 in zip(o.transform.asArray(), [
