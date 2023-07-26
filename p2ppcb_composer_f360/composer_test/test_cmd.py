@@ -318,17 +318,19 @@ class TestInitProject(unittest.TestCase):
 
 class TestLoadKle(unittest.TestCase):
     def test_place_locators(self):
+        import sys
         import p2ppcb_parts_depot.depot as parts_depot
         from p2ppcb_composer.cmd_key_common import PP_KEY_LOCATORS_ON_SPECIFIER
         from p2ppcb_composer.cmd_load_kle import place_locators
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
         con = get_context()
         pi = get_part_info()
-        # # Make test data.
+        pkl_path = TEST_PKL_DIR / f'place_locators_{sys.platform}.pkl'
+        # Make test data.
         # place_locators_args = load_kle(TEST_KLE_DIR / 'prepare_parts_sync.json', pi)
-        # with open(TEST_PKL_DIR / 'place_locators.pkl', 'wb') as f:
+        # with open(pkl_path, 'wb') as f:
         #     pickle.dump(place_locators_args, f)
-        with open(TEST_PKL_DIR / 'place_locators.pkl', 'rb') as f:
+        with open(pkl_path, 'rb') as f:
             place_locators_args = pickle.load(f)
         place_locators(pi, *place_locators_args)
         key_locators_occ = con.child[CN_INTERNAL].child[CN_KEY_LOCATORS]

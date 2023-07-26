@@ -1,4 +1,5 @@
 p2ppcb_parts_resolver
 f360_insert_decal_rpa
-kle_scraper
+kle-scraper; sys_platform == 'win32'
+pykle-serial; sys_platform != 'win32'
 mip

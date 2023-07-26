@@ -18,7 +18,8 @@ import numpy as np
 from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
 from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
-    get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH_W, AN_KEY_PITCH_D, FourOrientation, AN_KLE_B64
+    get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH_W, AN_KEY_PITCH_D, FourOrientation, AN_KLE_B64, \
+    CURRENT_DIR
 from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
@@ -347,7 +348,7 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
 def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, ty.Dict[int, Entry]], route_rccp: ty.Dict[RC_CP, ty.Dict[int, Line]], cable_placements: ty.List[FlatCablePlacement]):
     MAG = 200
     MARGIN = 200
-    FONT_SIZE = 24
+    FONT_SIZE = 30
     WIRE_TABLE_ROW = 400
     WIRE_TABLE_PITCH = 100
     WIRE_TABLE_MARGIN = 100
@@ -375,7 +376,7 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
     offset = np.array([min(xs), min(ys)])
 
     rainbow_cable_colors = [s for s in ['black', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'violet', 'grey', 'white']]
-    font = ImageFont.truetype('verdana.ttf', FONT_SIZE)
+    font = ImageFont.truetype(str(CURRENT_DIR / 'UbuntuMono-R.ttf'), FONT_SIZE)
     wire_pitch_pnrc: ty.Dict[ty.Tuple[int, RC], float] = {}
     i_cp_pnrc: ty.Dict[ty.Tuple[int, RC], int] = {}
     for (rc, i_cp), entries in entries_rccp.items():

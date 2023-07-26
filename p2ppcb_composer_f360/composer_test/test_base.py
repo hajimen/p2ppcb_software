@@ -6,7 +6,7 @@ from PIL.Image import Image
 import adsk
 import adsk.core as ac
 import adsk.fusion as af
-from f360_common import get_context, reset_context, F3Occurrence, create_component
+from f360_common import get_context, reset_context, F3Occurrence, create_component, CN_INTERNAL, AN_PARTS_DATA_PATH, PARTS_DATA_DIR
 from p2ppcb_composer.cmd_common import CommandHandlerBase, get_ci
 from adsk.core import CommandEventArgs, CommandCreatedEventArgs
 
@@ -173,6 +173,7 @@ def open_test_document(f3d_file: pathlib.Path):
     do_many_events()
     con = reset_context()
     con.des.designType = af.DesignTypes.DirectDesignType
+    con.child[CN_INTERNAL].comp_attr[AN_PARTS_DATA_PATH] = str(PARTS_DATA_DIR)
     return doc
 
 

@@ -5,6 +5,6 @@
 	"description":	{
 		"":	"Regression / smoke test set of P2PPCB Composer F360. Uncomment addTest() to run a discrete test."
 	},
-	"supportedOS":	"windows",
+	"supportedOS":	"windows | mac",
 	"editEnabled":	true
 }
