@@ -1,3 +1,4 @@
+packaging
 p2ppcb_parts_resolver
 f360_insert_decal_rpa
 kle-scraper; sys_platform == 'win32'

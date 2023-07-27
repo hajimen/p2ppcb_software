@@ -19,7 +19,7 @@ from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
 from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
     get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH_W, AN_KEY_PITCH_D, FourOrientation, AN_KLE_B64, \
-    CURRENT_DIR
+    CURRENT_DIR, BadConditionException, get_platform_tag, APPLE_SILICON_TAG
 from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
@@ -200,6 +200,8 @@ def _make_dist_map(keys: ty.List[Key], rc: RC, entry: Entry):
 
 
 def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty.List[FlatCablePlacement]):
+    if get_platform_tag() == APPLE_SILICON_TAG:
+        raise BadConditionException('Currently PC0 cannot generate route on Apple Silicon Mac.')
     reverse_matrix: ty.Dict[str, ty.Tuple[str, str]] = {}
     for row_name, col_dic in matrix.items():
         for col_name, kl_name in col_dic.items():
