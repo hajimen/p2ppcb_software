@@ -287,9 +287,9 @@ F360 doesn't allow name collision of F360 components. All F360 components should
 To avoid name collision with user's components, I add magic string 'mU0jU' to most components' name.
 (The exception is 'P2PPCB Internal'.)
 
-## How to build `app-packages-*`
+## How to build `app-packages-win_amd64` (Windows)
 
-On Windows, prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
+Prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
 
 On Mac, use python.org's or Homebrew's python 3.9 because Mac F360's python lacks `pip` module.
 If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
@@ -323,10 +323,42 @@ cp dist/*.whl ../../pep503
 cd ..
 piprepo build ../pep503
 cd p2ppcb_composer_f360
-$tag = 'win_amd64'  # or 'macosx_10_10_x86_64' or 'macosx_11_0_arm64'
-mkdir app-packages-$tag
+pip install -r requirements.txt -t app-packages-win_amd64 --extra-index-url ../../pep503/simple
+```
+
+## How to build `app-packages-macosx_*` (Mac)
+
+Use python.org's or Homebrew's python 3.9 because Mac F360's python lacks `pip` module.
+If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
+It is true for F360 itself.
+
+```
+pip install --upgrade pip
+pip install piprepo setuptools wheel build
+mkdir repos
+cd repos
+mkdir pep503
+git clone https://github.com/hajimen/f360_insert_decal_rpa
+cd f360_insert_decal_rpa
+python -m build --wheel
+cp dist/*.whl ../pep503
+cd ..
+git clone https://github.com/hajimen/pykle_serial
+cd pykle_serial
+python -m build --wheel
+cp dist/*.whl ../pep503
+cd ..
+git clone https://github.com/hajimen/p2ppcb_software
+cd p2ppcb_software/p2ppcb_parts_resolver
+python -m build --wheel
+cp dist/*.whl ../../pep503
+cd ..
+piprepo build ../pep503
+cd p2ppcb_composer_f360
+$tag = 'macosx_10_10_x86_64'  # or 'macosx_11_0_arm64'
 pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
 ```
+
 
 # Further development
 
