@@ -355,6 +355,12 @@ A component by Insert Derive goes wrong about decal:
 
 We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk adds decal API.
 
+Moreover, `cefppython3` is going to be obsolete. It haven't be updated from 2021 and doesn't have Apple Silicon version.
+It can be a big problem for Windows someday.
+
+(Why using CEF, instead of custom rendering? Because a web browser is a super font resolver and text renderer.
+The resolution and rendering is almost impossible to reproduce.)
+
 ## Route generation on Apple Silicone
 
 Actually we can make it work by building the CBC source and setting the envs.

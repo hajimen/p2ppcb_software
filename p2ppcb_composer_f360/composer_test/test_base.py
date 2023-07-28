@@ -217,7 +217,7 @@ def is_same_brep_body(body: af.BRepBody, oracle: af.BRepBody):
     '''
     Just checks vertices.
     '''
-    return body.volume == oracle.volume and {_Vertex(v) for v in body.vertices} == {_Vertex(v) for v in oracle.vertices}
+    return abs(body.volume - oracle.volume) < 0.0001 and {_Vertex(v) for v in body.vertices} == {_Vertex(v) for v in oracle.vertices}
 
 
 def import_f3d(o: F3Occurrence, f3d_path: pathlib.Path, cn: str):
