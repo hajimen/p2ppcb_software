@@ -139,7 +139,7 @@ dmypy.json
 cython_debug/
 
 .vscode
-app-packages
+app-packages*
 tmp
 _XRef_
 webrtc_event_logs

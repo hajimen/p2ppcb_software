@@ -1,5 +1,6 @@
+import platform
 from adsk.core import CommandCreatedEventArgs
-from f360_common import get_context, get_platform_tag
+from f360_common import get_context
 from p2ppcb_composer.cmd_common import CommandHandlerBase
 
 
@@ -23,10 +24,10 @@ class InfoCommandHandler(CommandHandlerBase):
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         import p2ppcb_composer
-        tag = get_platform_tag()
-        con = get_context()
-        msg = f'Version: {p2ppcb_composer.__version__}\n' + \
-            f'Platform tag: {tag}\n' + \
+        msg = 'P2PPCB Composer F360\n\n' + \
+            f'Version: {p2ppcb_composer.__version__}\n' + \
+            f'CPU arch: {platform.machine()}\n' + \
+            f'OS: {platform.system()}\n' + \
             'License: MIT license\n' + \
             'From: DecentKeyboards'
-        con.ui.messageBox(msg)
+        get_context().ui.messageBox(msg)

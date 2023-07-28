@@ -914,15 +914,6 @@ def get_transformed_mpv3d(mpv3d, m3d: ac.Matrix3D):
     return ret
 
 
-def get_platform_tag():
-    from packaging.tags import platform_tags
-    tag: str = list(platform_tags())[0]
-    return tag
-
-
-APPLE_SILICON_TAG = 'macosx_13_0_arm64'
-
-
 from time import perf_counter
 
 

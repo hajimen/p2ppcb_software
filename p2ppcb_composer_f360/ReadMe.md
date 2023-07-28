@@ -14,10 +14,12 @@ and waste a lot of time to get around it.
 
 - Windows PC, English
 
-F360 also runs on Mac, but PC0 uses RPA to get around the lack of F360 API features. Windows' language should be English
+PC0 uses RPA to get around the lack of F360 API features (Windows only). Windows' language should be English
 for RPA. In this case, RPA is platform-dependent.
 
 Also, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package, which doesn't run on Mac.
+
+Mac can do most of PC0 features. But it lacks decals (key top images). Apple Silicon lacks wire route generation too.
 
 - Autodesk Fusion 360 (F360) <https://www.autodesk.com/products/fusion-360/overview>
 
@@ -217,7 +219,7 @@ caps like ISO Enter.
 In some cases, parametric modeling is better than direct modeling, especially for making a cover. In parametric modeling mode, 
 the placeholders of keys sometimes slip. This is F360's bug. In this case, use the **Sync Key** command.
 
-## Advanced functions and design
+## Advanced features and design
 
 ### 'Regex Select' command
 
@@ -258,11 +260,10 @@ The hack is modularized as **f360_insert_decal_rpa** <https://github.com/hajimen
 
 ## Regression tests
 
-The F360 script in `composer_test` runs unit tests. Please take a close look at `sys.path.append()` and `reimport.py`
+The F360 script in `composer_test` runs regression tests. Please take a close look at `sys.path.append()` and `reimport.py`
 hacks.
 
-The unit tests don't have good granularity. In fact, they are just regression tests
-(in preparation for F360's update) and convenient command launchers for debugging.
+Convenient command launchers for debugging are available. See the code.
 
 `test_generate_route` is quite slow while the VSCode debugger is attached.
 This is due to the behavior of cefpython3 under F360 + VSCode debugger. I don't know why.
@@ -286,9 +287,13 @@ F360 doesn't allow name collision of F360 components. All F360 components should
 To avoid name collision with user's components, I add magic string 'mU0jU' to most components' name.
 (The exception is 'P2PPCB Internal'.)
 
-## How to build `app-packages`
+## How to build `app-packages-*`
 
-Prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
+On Windows, prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
+
+On Mac, use python.org's or Homebrew's python 3.9 because Mac F360's python lacks `pip` module.
+If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
+It is true for F360 itself.
 
 ```
 python -m pip install --upgrade pip
@@ -318,8 +323,9 @@ cp dist/*.whl ../../pep503
 cd ..
 piprepo build ../pep503
 cd p2ppcb_composer_f360
-mkdir app-packages
-pip install -r requirements.txt -t app-packages --extra-index-url ../../pep503/simple
+$tag = 'win_amd64'  # or 'macosx_10_10_x86_64' or 'macosx_11_0_arm64'
+mkdir app-packages-$tag
+pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
 ```
 
 # Further development
@@ -345,6 +351,11 @@ You cannot import `P2PPCB Internal` component from other files for this reason. 
 A component by Insert Derive goes wrong about decal:
 <https://forums.autodesk.com/t5/fusion-360-support/a-component-by-insert-derive-goes-wrong-about-decal/m-p/11913925>
 
-## Mac
+## Mac and decals
 
-So far, PC0 only runs on Windows. The limitation comes from decals. The codes associated with decals are hard to decouple.
+We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk adds decal API.
+
+## Route generation on Apple Silicone
+
+Actually we can make it work by building the CBC source and setting the envs.
+But I think we should wait for Python-MIP make it available.
