@@ -9,12 +9,6 @@ import pathlib
 import traceback
 import typing as ty
 from contextlib import contextmanager
-import p2ppcb_parts_resolver.resolver as parts_resolver
-from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
-import f360_insert_decal_rpa
-import adsk.core as ac
-import adsk.fusion as af
-
 
 import struct
 if struct.unpack('<d', b'\1\0\0\0\0\0\0\0')[0] == 0.0:
@@ -24,6 +18,13 @@ if struct.unpack('<d', b'\1\0\0\0\0\0\0\0')[0] == 0.0:
     except RuntimeError:
         pass
 from pint import Quantity
+
+import p2ppcb_parts_resolver.resolver as parts_resolver
+from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
+import f360_insert_decal_rpa
+import adsk.core as ac
+import adsk.fusion as af
+
 
 FLOOR_CLEARANCE = 0.1
 

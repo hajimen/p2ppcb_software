@@ -395,5 +395,5 @@ The resolution and rendering is almost impossible to reproduce.)
 
 ## Route generation on Apple Silicone
 
-Actually we can make it work by building the CBC source and setting the envs.
+Actually we can make it work by building the COIN-OR CBC source and setting the environment variables.
 But I think we should wait for Python-MIP make it available.
