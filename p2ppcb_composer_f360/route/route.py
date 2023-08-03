@@ -90,6 +90,7 @@ class WireGroup:
     logical_start: int
     rc: RC
     led: bool
+    wire_name_start: int
 
 
 def _get_rot(angle):
@@ -134,10 +135,11 @@ class FlatCable:
         m = FlatCable.WIRE_NAME_N_RE.match(wire_name)
         if m is None:
             raise BadCodeException(f"wire_name: {wire_name} lacks number.")
-        i_in_group = int(m.group(1)) - self.first_index_in_wire_name
+        i_in_name = int(m.group(1)) - self.first_index_in_wire_name
         for g in self.groups:
             if g.rc == rc and g.led == led:
-                if i_in_group < g.end - g.start:
+                i_in_group = i_in_name - g.wire_name_start
+                if i_in_group >= 0 and i_in_group < g.end - g.start:
                     return i_in_group, g
         return None
 

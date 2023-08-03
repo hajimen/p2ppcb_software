@@ -8,11 +8,11 @@ N_LOGICAL_RC = {RC.Row: 10, RC.Col: 24}
 WIRE_PITCH = 0.127
 
 ROW_CABLE = FlatCable(10, 1, WIRE_PITCH)
-ROW_CABLE.add_group(WireGroup(0, 8, 0, RC.Row, False))
-ROW_CABLE.add_group(WireGroup(8, 10, 8, RC.Row, True))
+ROW_CABLE.add_group(WireGroup(0, 8, 0, RC.Row, False, 0))
+ROW_CABLE.add_group(WireGroup(8, 10, 8, RC.Row, True, 0))
 COL_CABLE = FlatCable(30, 1, WIRE_PITCH)
-COL_CABLE.add_group(WireGroup(0, 24, 0, RC.Col, False))
-COL_CABLE.add_group(WireGroup(24, 30, 0, RC.Col, True))
+COL_CABLE.add_group(WireGroup(0, 24, 0, RC.Col, False, 0))
+COL_CABLE.add_group(WireGroup(24, 30, 0, RC.Col, True, 0))
 CONSTANTS = MainboardConstants(WIRE_NAMES_RC, N_LOGICAL_RC, [ROW_CABLE, COL_CABLE], 'Alice.f3d', '0x7970')
 
 
