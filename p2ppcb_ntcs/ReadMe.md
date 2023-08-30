@@ -47,7 +47,7 @@ The price is $1000 without switches, keycaps, and the shipping charge.
 - Cherry MX compatible key switch: 84 pcs
 - Keycap set, row-independent uniform profile, common US-ASCII TKL (87-keys): 1 set
 - Translucent 1u keycap: 2 pcs
-- Blank 1.25u keycap: 2 pcs
+- Blank 1u keycap: 2 pcs
 - Cherry-style plate mount stabilizer for 2u: 4 pcs
 - P2PPCB NTCS frames and covers, printed by Somos LEDO 6060: 1 set
 - (Optional) Kyocera AVX single IDC contact accessory cap 609176001415000: 168 pcs
@@ -69,7 +69,8 @@ result is enough precise, you can easily insert a 3.0 mm cylinder into all six g
 and cannot insert into any gaps of the 2.9 mm section.
 
 The section pairs are installed on the XY, XZ, and YZ planes of a cover because many 3D printers have anisotropy. 
-If your 3D printing result fails the test, you may face a problem during assembling.
+If your 3D printing result fails the test, you may face a problem during assembling. Actually 2.9 mm gaps
+can accept 3.0 mm (3D printers tend to have minus tolerance), but all 3.1 mm gaps must accept 3.0 mm.
 
 ## Writing firmware
 
@@ -144,7 +145,7 @@ There was no room for wrist rests, like on a piano.
 Today we live on another planet. 
 NTCS has built-in wrist rests. It doesn't assume shoulder-and-arm typing. Long fingers should press distant keys.
 
-![Finger Assignment](https://user-images.githubusercontent.com/1212166/208791474-8c6c3ea0-70e5-4856-b384-1191193a8042.png)
+![Finger Assignment](https://private-user-images.githubusercontent.com/1212166/258407748-59f53b92-aedf-4dac-a3fb-7eda7aff9648.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE2OTExNDg5NzIsIm5iZiI6MTY5MTE0ODY3MiwicGF0aCI6Ii8xMjEyMTY2LzI1ODQwNzc0OC01OWY1M2I5Mi1hZWRmLTRkYWMtYTNmYi03ZWRhN2FmZjk2NDgucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMDgwNCUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzA4MDRUMTEzMTEyWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9Y2FmMDIwY2IyOWVlNmRhNGZjOTNlODM0ZjI3OWI2OTA0NmM2ODYxYjk0ZDZkMjg3OTQ2ZDRlYTk3YmYyZjAyYiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.ZNrTL-nZq4jBeoNIdaa16_pTwOWGHJiprZT8z5c5pPI)
 
 # The design process of NTCS
 
@@ -223,7 +224,7 @@ Not all the people (including keyboard people) are so impatient. Prioritizing ke
 decision, because it completely changes the design.
 
 For example, by prioritizing keyboard shortcuts, all modifier keys should be easy to press simultaneously, 
-easily, in any combination, with one hand.
+in any combination, with one hand.
 (I think multiple pressing of modifier keys is 
 a bad idea in the existing ecosystem. Commands should be invoked when the keys are released, just like mice and touchscreens. 
 But NTCS is not an ultimate keyboard).

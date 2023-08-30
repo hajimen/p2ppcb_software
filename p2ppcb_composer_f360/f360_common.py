@@ -12,7 +12,7 @@ from contextlib import contextmanager
 
 import struct
 if struct.unpack('<d', b'\1\0\0\0\0\0\0\0')[0] == 0.0:
-    # bug workaround for Intel Mac F360.
+    # bug workaround for Intel Mac F360. https://forums.autodesk.com/t5/fusion-360-api-and-scripts/python-bug-of-ieee-754-subnormal-number-on-intel-mac/td-p/12133211
     try:
         import numpy  # noqa
     except RuntimeError:

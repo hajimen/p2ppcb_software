@@ -56,28 +56,29 @@ As long as your project stays on a PC screen, there is no charge.
 
 Up to six per keyboard usually.
 
-## MX / Choc V1 / Choc V2 switches are available
+## MX / Choc V1 / Choc V2 / Gateron LP switches are available
 
 Available switches:
 
 - MX ([Kailh MX](https://www.aliexpress.com/item/32966071689.html) and many other Cherry MX compatible)
 - [Kailh Choc V1](https://www.aliexpress.com/item/32959996455.html)
 - [Kailh Choc V2](https://www.aliexpress.com/item/4000803757746.html)
-- [GATERON Low Profile](https://gateron.com/collections/low-profile-series)
+- [Gateron LP](https://gateron.com/collections/low-profile-series)
 
 Available stabilizers:
 
 - Cherry-style plate-mount (for MX)
 - Coaster (for MX)
 - [Kailh Choc V1 stabilizer](https://www.aliexpress.com/item/33039182740.html) (for Choc V1)
-- [Gateron Low Profile](https://gateron.com/products/gateron-low-profile-plate-mounted-stabilizer?VariantsId=10478)
+- [Gateron LP](https://gateron.com/products/gateron-low-profile-plate-mounted-stabilizer?VariantsId=10478)
 
 Stabilizer for Choc V2 is not available yet because there is no such item in the market yet. I hope it will appear on the market.
 But by modifying a Cherry-style plate-mount stabilizer with a knife, it works (very geeky way).
 
 # P2PPCB Composer F360
 
-**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). F360 runs on Mac too, but PC0 is Windows only.
+**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360) on Windows PC.
+F360 runs on Mac too, but PC0 lacks some features on Mac.
 More details can be found here: <https://github.com/hajimen/p2ppcb_software/tree/dev/p2ppcb_composer_f360>
 
 ## Keycaps

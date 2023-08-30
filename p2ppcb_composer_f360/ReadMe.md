@@ -17,9 +17,9 @@ and waste a lot of time to get around it.
 PC0 uses RPA to get around the lack of F360 API features (Windows only). Windows' language should be English
 for RPA. In this case, RPA is platform-dependent.
 
-Also, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package, which doesn't run on Mac.
+Also, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package, which doesn't run on Apple Silicon Mac.
 
-Mac can do most of PC0 features. But it lacks decals (key top images). Apple Silicon lacks wire route generation too.
+Mac can do most of PC0 features. But it lacks decals (key top images). Apple Silicon Mac lacks wire route generation too.
 
 - Autodesk Fusion 360 (F360) <https://www.autodesk.com/products/fusion-360/overview>
 
@@ -263,7 +263,7 @@ The hack is modularized as **f360_insert_decal_rpa** <https://github.com/hajimen
 The F360 script in `composer_test` runs regression tests. Please take a close look at `sys.path.append()` and `reimport.py`
 hacks.
 
-Convenient command launchers for debugging are available. See the code.
+Convenient command launchers for debugging are available in `composer_test`. See the code.
 
 `test_generate_route` is quite slow while the VSCode debugger is attached.
 This is due to the behavior of cefpython3 under F360 + VSCode debugger. I don't know why.
@@ -380,6 +380,10 @@ Attributes of native objects can be destruct by some irrelevant operations:
 <https://forums.autodesk.com/t5/fusion-360-support/attributes-of-native-objects-corrupt-by-removing-a-component/m-p/11909404>
 You cannot import `P2PPCB Internal` component from other files for this reason. Import will corrupt attributes.
 
+Intel Mac F360 has a bug in floating point operation:
+<https://forums.autodesk.com/t5/fusion-360-api-and-scripts/python-bug-of-ieee-754-subnormal-number-on-intel-mac/td-p/12133211>
+I think we should forget Intel Mac. It is going to be obsolete.
+
 A component by Insert Derive goes wrong about decal:
 <https://forums.autodesk.com/t5/fusion-360-support/a-component-by-insert-derive-goes-wrong-about-decal/m-p/11913925>
 
@@ -387,7 +391,7 @@ A component by Insert Derive goes wrong about decal:
 
 We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk adds decal API.
 
-Moreover, `cefppython3` is going to be obsolete. It haven't be updated from 2021 and doesn't have Apple Silicon version.
+Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and doesn't have Apple Silicon version.
 It can be a big problem for Windows someday.
 
 (Why using CEF, instead of custom rendering? Because a web browser is a super font resolver and text renderer.
@@ -396,4 +400,4 @@ The resolution and rendering is almost impossible to reproduce.)
 ## Route generation on Apple Silicone
 
 Actually we can make it work by building the COIN-OR CBC source and setting the environment variables.
-But I think we should wait for Python-MIP make it available.
+But I think we should wait for Python-MIP project make it available.
