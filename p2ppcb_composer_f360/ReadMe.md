@@ -37,7 +37,11 @@ P2PPCB mainboards require special code for their own hardware. I have prepared t
 - A 3D printing service shop
 
 As the printing material, HP Multi Jet Fusion (MJF) <https://www.hp.com/us-en/printers/3d-printers/products/multi-jet-technology.html> and
-Somos® Ledo 6060 are well tested. In many cases, the latter is much cheaper.
+Somos® Ledo 6060 with sanding are well tested. In many cases, the latter is much cheaper.
+
+IMPORTANT: The modeling assumes -20 to -50 μm tolerance. MJFs are made with this tolerance.
+Ledo 6060s with sanding also. But Ledo 6060s **without sanding** has almost zero tolerance.
+It doesn't fit. Choose "Surface finish: Sanding" if you use Ledo 6060.
 
 There are many 3D printing service shops of MJF in the world. 
 [Shapeways](https://www.shapeways.com/) (North America and Europe), 
