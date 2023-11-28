@@ -31,7 +31,7 @@ def initialize():
         if con.des.designType == af.DesignTypes.DirectDesignType:
             con.des.designType = af.DesignTypes.ParametricDesignType  # importToTarget() requires parametric design.
         with create_component(o.comp, cn):
-            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / fn)), o.comp)
+            im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'f3d' / fn)), o.comp)
 
     inl_occ = con.child.get_real(CN_INTERNAL)
     if CN_DEPOT_APPEARANCE not in inl_occ.child:

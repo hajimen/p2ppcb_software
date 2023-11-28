@@ -382,7 +382,7 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
     offset = np.array([min(xs), min(ys)])
 
     rainbow_cable_colors = [s for s in ['black', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'violet', 'grey', 'white']]
-    font = ImageFont.truetype(str(CURRENT_DIR / 'UbuntuMono-R.ttf'), FONT_SIZE)
+    font = ImageFont.truetype(str(CURRENT_DIR / 'font/UbuntuMono-R.ttf'), FONT_SIZE)
     wire_pitch_pnrc: ty.Dict[ty.Tuple[int, RC], float] = {}
     i_cp_pnrc: ty.Dict[ty.Tuple[int, RC], int] = {}
     for (rc, i_cp), entries in entries_rccp.items():

@@ -17,7 +17,7 @@ and waste a lot of time to get around it.
 PC0 uses RPA to get around the lack of F360 API features (Windows only). Windows' language should be English
 for RPA. In this case, RPA is platform-dependent.
 
-Also, PC0 uses [`cefpython3`](https://pypi.org/project/cefpython3/) package, which doesn't run on Apple Silicon Mac.
+Also, PC0 uses [`cefpython3`](https://github.com/hajimen/cefpython) package. It doesn't run on Apple Silicon Mac.
 
 Mac can do most of PC0 features. But it lacks decals (key top images). Apple Silicon Mac lacks wire route generation too.
 
@@ -43,7 +43,7 @@ IMPORTANT: The modeling assumes -20 to -50 μm tolerance. MJFs are made with thi
 Ledo 6060s with sanding also. But Ledo 6060s **without sanding** has almost zero tolerance.
 It doesn't fit. Choose "Surface finish: Sanding" if you use Ledo 6060.
 
-There are many 3D printing service shops of MJF in the world. 
+There are many 3D printing service shops of MJF or Ledo 6060 in the world. 
 [Shapeways](https://www.shapeways.com/) (North America and Europe), 
 [DMM.make](https://make.dmm.com/) (Japan), [WENEXT](https://www.wenext.com/) (China),
 [JLCPCB](https://jlcpcb.com/) (China) etc.
@@ -60,8 +60,7 @@ PC0 is free, but P2PPCB components aren't :-).
 - Switches, keycaps, stabilizers
 
 If you need custom printed keycaps for your own design, contact DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
-I can make custom printed PBT keycaps. The total cost will be from about $30 after COVID-19
-goes away (nowadays shipping charge from Japan is extraordinarily expensive).
+I can make custom printed PBT keycaps. The total cost will be from about $30.
 
 ## Installation
 
@@ -287,7 +286,7 @@ After importing, the surrogates are replaced by real objects.
 
 ## Magic string 'mU0jU'
 
-F360 doesn't allow name collision of F360 components. All F360 components should have identical name.
+F360 doesn't allow name collision of F360 components. All F360 components should have unique name.
 To avoid name collision with user's components, I add magic string 'mU0jU' to most components' name.
 (The exception is 'P2PPCB Internal'.)
 
@@ -395,11 +394,11 @@ A component by Insert Derive goes wrong about decal:
 
 We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk adds decal API.
 
-Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and doesn't have Apple Silicon version.
+Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and I need to build it for Python 3.11.
 It can be a big problem for Windows someday.
 
 (Why using CEF, instead of custom rendering? Because a web browser is a super font resolver and text renderer.
-The resolution and rendering is almost impossible to reproduce.)
+The resolution and rendering is almost impossible to mimic.)
 
 ## Route generation on Apple Silicone
 
