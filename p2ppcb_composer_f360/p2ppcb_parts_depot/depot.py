@@ -208,7 +208,7 @@ class PartsDepot:
 
             im = newdoc_con.app.importManager
             with create_component(newdoc_con.comp, CN_DEPOT_APPEARANCE):
-                im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'appearance.f3d')), newdoc_con.comp)
+                im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'f3d' / 'appearance.f3d')), newdoc_con.comp)
             newdoc_con.child[CN_DEPOT_APPEARANCE].light_bulb = False
 
             newdoc_con.des.designType = af.DesignTypes.DirectDesignType
