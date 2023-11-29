@@ -121,8 +121,6 @@ The keycaps are row-independent uniform profile. So you can reallocate all 1u ke
 Of course you can remap keycode using VIA. The draft definition file for VIA can be found here: 
 <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_ntcs/via_keymap.json>
 
-TODO movie
-
 The left and right bodies both have a Micro USB type-B connector. You can choose one whichever you like and connect it to your PC.
 
 The hole on the cover near the USB connector is for BOOTSEL button of Raspberry Pi Pico. You can press BOOTSEL button via the hole

@@ -25,6 +25,8 @@ Please check the contents of the kit with the included paper manuals.
 
 ### 3. Assemble contact-to-socket assemblies to the frame
 
+DISCLAIMER: The videos show gray frame (MJF). The actual product is white (Somos Ledo 6060).
+
 Tear a fragment of a contact-to-socket assembly from a full board.
 
 https://user-images.githubusercontent.com/1212166/223646746-8ab56e6a-60d3-4587-8ffc-27e4f80802d5.mov
@@ -50,7 +52,7 @@ Pay attention to the direction.
 
 https://user-images.githubusercontent.com/1212166/223650886-23f14d98-9855-4501-9a1c-a5af57097b62.mov
 
-**CAUTION: MJF (the material of the frame) is fragile against small screws!** 
+**CAUTION: Somos Ledo 6060 (the material of the frame) is fragile against small screws!** 
 The tightening force should be much less than for normal screws. Just enough to stop rattling. 
 It cannot withstand too many tightening-loosening iterations.
 
@@ -62,8 +64,6 @@ Look carefully at the wiring diagram on the paper manual. If you feel hard to re
 
 - Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/bob/wiring_D.png> <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/bob/wiring_S.png>
 - Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/charlotte/wiring_D.png> <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/charlotte/wiring_S.png>
-
-TODO photo
 
 ### 7. Install wires into the contacts
 
@@ -108,7 +108,7 @@ Otherwise, pull the key switch off and look at the contacts.
 
 ### 10. Assemble feet to the frame
 
-Again, **CAUTION: MJF (the material of the frame) is fragile against small screws!** 
+Again, **CAUTION: Somos Ledo 6060 (the material of the frame) is fragile against small screws!** 
 The tightening force should be much less than for normal screws. Just enough to stop rattling. 
 It cannot withstand too many tightening-loosening iterations.
 
@@ -118,7 +118,7 @@ For the combination of screws and spacers, please refer to the paper manual incl
 
 Just push it to the switch. In Charlotte, OSM-Ctrl is a translucent keycap.
 
-![Starter-Kit-Bob](https://user-images.githubusercontent.com/1212166/209491521-de1addab-7ca9-49f6-8644-644fdeb20af5.jpg)
+![Starter-Kit-Bob](https://gist.github.com/assets/1212166/8dfbbca7-be66-4ea9-aa9c-559b533a91ab)
 
 ## How to use
 
@@ -142,7 +142,28 @@ The codebase is here: <https://github.com/hajimen/qmk_firmware/tree/p2ppcb>
 
 ### Swapping and testing key switches
 
-MJF frames have inherent stiffness and acoustics. They are very different from steel. 
-If you are interested in them, test it by yourself.
+Somos Ledo 6060 frames have inherent stiffness and acoustics. They are very different from them of steel, alloy, or FR-4 (common PCB).
 
-If you need stiffer material, SLA can be a good choice.
+### See 3D printing quality, precision, and tolerance
+
+You can see the overall quality by your eyes and fingers.
+
+There are indentations on the frame, as shown in below:
+
+![Precision checker](https://gist.github.com/assets/1212166/ee06529b-bf28-4a9b-a856-8bf5e53e0886)
+
+These indentations are precision checkers for verifying the precision of 3D printing results.
+Get an M3 screw or a 3.0 mm drill bit, and try to push it (chuck side or tail) into a gap between three indentations, 
+as shown in the figure below.
+
+<img width="398" alt="Precision check" src="https://user-images.githubusercontent.com/1212166/209415763-1a1ac968-f855-432b-82f8-1d7e7763d093.PNG">
+
+Seven indentations consist a section, and two sections are paired side-by-side. 
+The diameter of the green translucent cylinder shown in the figure above is 2.9 mm, or 3.1 mm in the drawings. 
+One of the section of a pair is 2.9 mm, and the other is 3.1 mm. Therefore, if a 3D printing 
+result is enough precise, you can easily insert a 3.0 mm cylinder into all six gaps of the 3.1 mm section, 
+and feel difficult to insert into any gaps of the 2.9 mm section.
+
+The section pairs are installed on the XY, XZ, and YZ planes of a frame because many 3D printers have anisotropy. 
+If your 3D printing result fails the test, you may face a problem during assembling. Actually 2.9 mm gaps
+can accept 3.0 mm (3D printers tend to have minus tolerance, -20 to -50 μm), but all 3.1 mm gaps must accept 3.0 mm.
