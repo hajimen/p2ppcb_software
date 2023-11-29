@@ -294,10 +294,6 @@ To avoid name collision with user's components, I add magic string 'mU0jU' to mo
 
 Prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
 
-On Mac, use python.org's or Homebrew's python 3.9 because Mac F360's python lacks `pip` module.
-If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
-It is true for F360 itself.
-
 ```
 python -m pip install --upgrade pip
 pip install piprepo setuptools wheel build
@@ -331,9 +327,11 @@ pip install -r requirements.txt -t app-packages-win_amd64 --extra-index-url ../.
 
 ## How to build `app-packages-macosx_*` (Mac)
 
-Use python.org's or Homebrew's python 3.9 because Mac F360's python lacks `pip` module.
+Use python.org's or Homebrew's python 3.11 because Mac F360's python lacks `pip` module.
 If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
 It is true for F360 itself.
+
+Architecture independent part:
 
 ```
 pip install --upgrade pip
@@ -358,10 +356,14 @@ cp dist/*.whl ../../pep503
 cd ..
 piprepo build ../pep503
 cd p2ppcb_composer_f360
-$tag = 'macosx_10_10_x86_64'  # or 'macosx_11_0_arm64'
-pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
 ```
 
+Architecture dependent part:
+
+```
+tag='macosx_10_10_x86_64'  # or 'macosx_11_0_arm64'
+pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
+```
 
 # Further development
 
