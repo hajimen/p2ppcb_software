@@ -43,7 +43,7 @@
     "F1\n\n\nMenu\nKC_F1\n\n\n\n\n\n\nKC_APPLICATION",
     "F2\n\n\nPrtScr\nKC_F2\n\n\n\n\n\n\nKC_PRINT_SCREEN",
     "F3\n\n\nPause\nKC_F3\n\n\n\n\n\n\nKC_PAUSE",
-    "F4\n\n\nSysRq\nKC_F4"
+    "F4\n\n\n\nKC_F4"
   ],
   [
     {
@@ -99,8 +99,7 @@
   [
     {
       "x": 1.5,
-      "a": 3,
-      "w": 1.25
+      "a": 3
     },
     "\n\n\n\nKC_SPACE"
   ],
@@ -122,7 +121,7 @@
   ],
   [
     {
-      "x": 3,
+      "x": 2.75,
       "w": 2.25
     },
     "Shift\n\n\n\nKC_LEFT_SHIFT\n\n\n\n\n\n\nKC_LEFT_SHIFT"

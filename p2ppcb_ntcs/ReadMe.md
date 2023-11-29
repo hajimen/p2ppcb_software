@@ -43,9 +43,9 @@ The price is $1000 without switches, keycaps, and the shipping charge.
 - P2PPCB split keyboard kit: 1 set
 - P2PPCB MX normal: 82 pcs of fragment (4 pcs of full board and 2 pcs of fragment)
 - P2PPCB MX LED: 2 pcs of fragment
-- M2.6 x 7 mm pan-head self-tapping screws for plastic: 14 pcs
+- M2.6 x 7 mm pan-head self-tapping screws for plastic: 16 pcs
 - Cherry MX compatible key switch: 84 pcs
-- Keycap set, row-independent uniform profile, common US-ASCII TKL (87-keys): 1 set
+- Keycap set, row-independent uniform profile, common US layout TKL (87-key): 1 set
 - Translucent 1u keycap: 2 pcs
 - Blank 1u keycap: 2 pcs
 - Cherry-style plate mount stabilizer for 2u: 4 pcs
@@ -66,11 +66,11 @@ Seven indentations consist a section, and two sections are paired side-by-side.
 The diameter of the green translucent cylinder shown in the figure above is 2.9 mm, or 3.1 mm in the drawings. 
 One of the section of a pair is 2.9 mm, and the other is 3.1 mm. Therefore, if a 3D printing 
 result is enough precise, you can easily insert a 3.0 mm cylinder into all six gaps of the 3.1 mm section, 
-and cannot insert into any gaps of the 2.9 mm section.
+and feel difficult to insert into any gaps of the 2.9 mm section.
 
 The section pairs are installed on the XY, XZ, and YZ planes of a cover because many 3D printers have anisotropy. 
 If your 3D printing result fails the test, you may face a problem during assembling. Actually 2.9 mm gaps
-can accept 3.0 mm (3D printers tend to have minus tolerance), but all 3.1 mm gaps must accept 3.0 mm.
+can accept 3.0 mm (3D printers tend to have minus tolerance, -20 to -50 μm), but all 3.1 mm gaps must accept 3.0 mm.
 
 ## Writing firmware
 
@@ -145,7 +145,7 @@ There was no room for wrist rests, like on a piano.
 Today we live on another planet. 
 NTCS has built-in wrist rests. It doesn't assume shoulder-and-arm typing. Long fingers should press distant keys.
 
-![Finger Assignment](https://private-user-images.githubusercontent.com/1212166/258407748-59f53b92-aedf-4dac-a3fb-7eda7aff9648.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE2OTExNDg5NzIsIm5iZiI6MTY5MTE0ODY3MiwicGF0aCI6Ii8xMjEyMTY2LzI1ODQwNzc0OC01OWY1M2I5Mi1hZWRmLTRkYWMtYTNmYi03ZWRhN2FmZjk2NDgucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQUlXTkpZQVg0Q1NWRUg1M0ElMkYyMDIzMDgwNCUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyMzA4MDRUMTEzMTEyWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9Y2FmMDIwY2IyOWVlNmRhNGZjOTNlODM0ZjI3OWI2OTA0NmM2ODYxYjk0ZDZkMjg3OTQ2ZDRlYTk3YmYyZjAyYiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.ZNrTL-nZq4jBeoNIdaa16_pTwOWGHJiprZT8z5c5pPI)
+![Finger Assignment](https://gist.github.com/assets/1212166/765ac001-6a24-4a5b-9e1b-88803966ebfe)
 
 # The design process of NTCS
 

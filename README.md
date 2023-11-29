@@ -5,7 +5,7 @@ offered by [DecentKeyboards](https://www.etsy.com/shop/DecentKeyboards).
 
 With P2PPCB platform, you can design your own 3D-shaped keyboards, like this one:
 
-![NTCS](https://user-images.githubusercontent.com/1212166/204071963-3679261d-637c-492d-8b60-ddd91955e88e.png)
+![NTCS](https://gist.github.com/assets/1212166/5eac8029-4535-4d98-ae82-df4ee381577a)
 
 The above is not easy. It takes several hours by a highly skilled operator (me).
 
@@ -37,8 +37,8 @@ Rapid and easy prototyping of ordinary keyboards is also a happy use.
 With P2PPCB platform, you don't need to build a dedicated PCB for each design.
 Just a 3D-printed frame, and the software helps your CAD operation a lot.
 
-[Kailh socket](https://www.aliexpress.com/item/32959301642.html) connects the switch to the PCB.
-There is nothing to solder, even in the case of split keyboards.
+[Socket](https://www.aliexpress.com/item/32959301642.html) connects the switch to the PCB.
+There is nothing to solder by yourself, even in the case of split keyboards.
 (But if you need to connect a debugger, soldering is required.)
 
 ## All softwares are open-source or charge-free for hobbyists
@@ -93,7 +93,7 @@ The following are available on PC0. You can of course put other keycaps on your 
 - [Kailh Choc V1](https://www.aliexpress.com/item/32979973961.html)
 - Junana for MX (New keycap from DecentKeyboards. Now in preparation)
 
-Only Junana for MX can mate with Choc V2, normally. In fact DSA 1u can do it in a deep geeky way.
+Only Junana for MX can mate with Choc V2 or Gateron LP, normally. In fact DSA 1u can do it in a deep geeky way.
 Dig into `P2PPCB Internal/Depot Parts mU0jU/Cap DSA 1u.*` component of your F360 file, and find what to do.
 
 # P2PPCB Components
@@ -196,12 +196,17 @@ in parallel to the switch-resistor. Reading and driving are multiplexed by time 
 To push a wire to a single IDC contact, use this mount. Insert the cuboid end into the switch hole of a frame.
 You can get this component by printing the F3D file: `p2ppcb_component_reference/contact-to-socket/Single IDC Contact Push Mount.f3d`.
 
-## Qwiic-to-TRRS assembly
+## Split keyboard kit
 
 ![Qwiic-to-TRRS](https://user-images.githubusercontent.com/1212166/204488371-f274d0c1-be72-4f98-81a5-a561463c563b.jpg)
 
 Charlotte uses Qwiic (3.3V I2C with Vdd on JST-SH 4-pin connector) for split keyboards.
 The Qwiic-to-TRRS assembly is available as a P2PPCB component. TRRS cable is a general-purpose part.
+
+P2PPCB split keyboard kit contains:
+
+- Qwiic-to-TRRS assembly: 2 pcs
+- TRRS cable 50 cm: 1 piece
 
 (No P2PPCB component for USART split keyboards of Alice. Connect by female / female Dupont wire or solder a terminal of your own choice.)
 

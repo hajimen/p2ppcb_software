@@ -1,9 +1,10 @@
 [
   [
     {
-      "x": 16.5,
+      "x": 15.5,
       "a": 0
     },
+    "(\n9\n\n\nKC_9",
     ")\n0\n\n\nKC_0",
     "_\n-\n\n\nKC_MINUS"
   ],
@@ -30,36 +31,20 @@
   ],
   [
     {
-      "y": 1.25,
-      "x": 18.5
-    },
-    "Home\n\n\n\nKC_HOME",
-    "PgUp\n\n\n\nKC_PAGE_UP"
-  ],
-  [
-    {
-      "x": 18.5
-    },
-    "End\n\n\n\nKC_END",
-    "PgDn\n\n\n\nKC_PAGE_DOWN"
-  ],
-  [
-    {
-      "rx": 0.25,
-      "x": 15.25
-    },
-    "(\n9\n\n\nKC_9"
-  ],
-  [
-    {
       "r": 6,
       "rx": 17.25,
       "ry": 4,
-      "y": -3.5,
-      "x": 1,
-      "w": 2
+      "y": -4.5,
+      "x": 2,
+      "h": 2
     },
     "Backspace\n\n\n\nKC_BACKSPACE"
+  ],
+  [
+    {
+      "x": 1
+    },
+    "+\n=\n\n\nKC_EQUAL"
   ],
   [
     {
@@ -70,18 +55,22 @@
   ],
   [
     {
-      "x": 0.5
-    },
-    ":\n;\n\n\nKC_SEMICOLON",
-    {
       "x": 0.5,
-      "h": 2.25
+      "w": 2.25
     },
-    "Ent\n\n\n\nKC_ENTER"
+    "Enter\n\n\n\nKC_ENTER"
   ],
   [
     ">\n.\n\n\nKC_DOT",
-    "?\n/\n\n\nKC_SLASH"
+    "Home\n\n\n\nKC_HOME",
+    "PgUp\n\n\n\nKC_PAGE_UP"
+  ],
+  [
+    {
+      "x": 1
+    },
+    "End\n\n\n\nKC_END",
+    "PgDn\n\n\n\nKC_PAGE_DOWN"
   ],
   [
     {
@@ -95,7 +84,7 @@
   ],
   [
     {
-      "x": -5.75,
+      "x": -5.5,
       "w": 2.75
     },
     "Shift\n\n\n\nKC_RIGHT_SHIFT\n\n\n\n\n\n\nKC_RIGHT_SHIFT"
@@ -115,8 +104,9 @@
     {
       "r": -15,
       "y": -5.5,
-      "x": -2
+      "x": -3
     },
+    "~\n`\n\n\nKC_GRAVE",
     "&\n7\n\n\nKC_7",
     "*\n8\n\n\nKC_8"
   ],
@@ -131,7 +121,7 @@
     {
       "x": -3.25
     },
-    "+\n=\n\n\nKC_EQUAL",
+    ":\n;\n\n\nKC_SEMICOLON",
     "H\n\n\n\nKC_H",
     {
       "n": true
@@ -142,30 +132,30 @@
     {
       "x": -3
     },
-    "~\n`\n\n\nKC_GRAVE",
+    "?\n/\n\n\nKC_SLASH",
     "N\n\n\n\nKC_N",
     "M\n\n\n\nKC_M"
   ],
   [
     {
-      "x": -2.75,
-      "a": 3,
-      "w": 1.25
+      "x": -2.5,
+      "a": 3
     },
     "\n\n\n\nKC_SPACE"
   ],
   [
     {
       "y": -0.75,
-      "x": -0.5,
+      "x": -1.5,
       "a": 0
     },
-    "↑\n\n\n\nKC_UP"
+    "↑\n\n\n\nKC_UP",
+    "←\n\n\n\nKC_LEFT"
   ],
   [
     {
       "y": -0.25,
-      "x": -2.75
+      "x": -2.5
     },
     "LANG1\n\n\nScrLk\nKC_LANGUAGE_1\n\n\n\n\n\n\nKC_SCROLL_LOCK"
   ],
@@ -174,7 +164,6 @@
       "y": -0.75,
       "x": -1.5
     },
-    "←\n\n\n\nKC_LEFT",
     "↓\n\n\n\nKC_DOWN",
     "→\n\n\n\nKC_RIGHT"
   ]
