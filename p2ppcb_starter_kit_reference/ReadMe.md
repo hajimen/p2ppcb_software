@@ -118,7 +118,7 @@ For the combination of screws and spacers, please refer to the paper manual incl
 
 Just push it to the switch. In Charlotte, OSM-Ctrl is a translucent keycap.
 
-![Starter-Kit-Bob](https://gist.github.com/assets/1212166/8dfbbca7-be66-4ea9-aa9c-559b533a91ab)
+![Starter-Kit-Bob](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/starter_kit_reference/bob.png)
 
 ## How to use
 
@@ -150,7 +150,7 @@ You can see the overall quality by your eyes and fingers.
 
 There are indentations on the frame, as shown in below:
 
-![Precision checker](https://gist.github.com/assets/1212166/ee06529b-bf28-4a9b-a856-8bf5e53e0886)
+![Precision checker](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/starter_kit_reference/precision_checker.png)
 
 These indentations are precision checkers for verifying the precision of 3D printing results.
 Get an M3 screw or a 3.0 mm drill bit, and try to push it (chuck side or tail) into a gap between three indentations, 

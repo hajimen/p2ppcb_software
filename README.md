@@ -5,7 +5,7 @@ offered by [DecentKeyboards](https://www.etsy.com/shop/DecentKeyboards).
 
 With P2PPCB platform, you can design your own 3D-shaped keyboards, like this one:
 
-![NTCS](https://gist.github.com/assets/1212166/5eac8029-4535-4d98-ae82-df4ee381577a)
+![NTCS](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/NTCS.png)
 
 The above is not easy. It takes several hours by a highly skilled operator (me).
 

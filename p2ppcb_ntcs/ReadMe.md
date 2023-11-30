@@ -1,8 +1,8 @@
 # P2PPCB NTCS keyboard overview
 
-![NTCS left](https://gist.github.com/assets/1212166/32299ca1-f364-4737-9eea-4bd8399780eb)
+![NTCS left](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/ntcs/NTCS_left.png)
 
-![NTCS right](https://gist.github.com/assets/1212166/e9124f41-d4e5-4bbc-bf16-de905afbb88d)
+![NTCS right](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/ntcs/NTCS_right.png)
 
 
 **P2PPCB NTCS** keyboard is a reference design of P2PPCB platform. It demonstrates the ability of P2PPCB platform 
@@ -148,7 +148,7 @@ There was no room for wrist rests, like on a piano.
 Today we live on another planet. 
 NTCS has built-in wrist rests. It doesn't assume shoulder-and-arm typing. Long fingers should press distant keys.
 
-![Finger Assignment](https://gist.github.com/assets/1212166/765ac001-6a24-4a5b-9e1b-88803966ebfe)
+![Finger Assignment](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/ntcs/assign.png)
 
 # The design process of NTCS
 
