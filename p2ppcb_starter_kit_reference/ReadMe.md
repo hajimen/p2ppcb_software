@@ -158,7 +158,7 @@ as shown in the figure below.
 
 <img width="398" alt="Precision check" src="https://user-images.githubusercontent.com/1212166/209415763-1a1ac968-f855-432b-82f8-1d7e7763d093.PNG">
 
-Seven indentations consist a section, and two sections are paired side-by-side. 
+Seven indentations consist a section, and there are two sections per XY, XZ, and YZ planes. 
 The diameter of the green translucent cylinder shown in the figure above is 2.9 mm, or 3.1 mm in the drawings. 
 One of the section of a pair is 2.9 mm, and the other is 3.1 mm. Therefore, if a 3D printing 
 result is enough precise, you can easily insert a 3.0 mm cylinder into all six gaps of the 3.1 mm section, 

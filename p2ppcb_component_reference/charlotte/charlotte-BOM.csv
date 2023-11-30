@@ -1,0 +1,14 @@
+Reference, Quantity, Value,
+C1 C2 C3 C4 C5 ,5,100n,https://lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_YAGEO-CC0402KRX7R6BB104_C309458.html
+D1 ,1,CMOZ2L2TR,https://www.lcsc.com/product-detail/Zener-Diodes_ROHM-Semicon-EDZVT2R2-2B_C209611.html
+IC1 IC2 IC3 ,3,IS31LT3178-STLS4-TR,https://www.mouser.com/ProductDetail/Lumissil/IS31LT3178-STLS4-TR?qs=BJlw7L4Cy78FU6Gw58J21g%3D%3D
+J1 ,1,PinHeader_01x05,https://lcsc.com/product-detail/Pin-Headers_HCTL-PZ254-1-05-Z-8-5_C2894928.html
+J2 ,1,Conn_02x18_Top_Bottom,https://lcsc.com/product-detail/IDC-Connectors_Wcon-3111-36SG0BK00T1_C920868.html
+J3 ,1,BM04B-SRSS-TB(LF)(SN),https://lcsc.com/product-detail/Wire-To-Board-Wire-To-Wire-Connector_HCTL-HC-1-0-4PLT_C2845372.html
+R1 R2 R3 ,3,80k,https://lcsc.com/product-detail/Chip-Resistor-Surface-Mount_YAGEO-RC0402JR-0782KL_C137836.html
+R4 ,1,10k,https://lcsc.com/product-detail/Chip-Resistor-Surface-Mount_YAGEO-RC0402JR-0710KL_C60489.html
+R5 R6 R7 ,3,47k,https://lcsc.com/product-detail/Chip-Resistor-Surface-Mount_YAGEO-AC0402JR-0747KL_C144710.html
+R8 ,1,50,https://lcsc.com/product-detail/Chip-Resistor-Surface-Mount_YAGEO-AC0402JR-0751RL_C227391.html
+U1 ,1,Pico,https://www.mouser.com/ProductDetail/SparkFun/DEV-17829?qs=sGAEpiMZZMv0NwlthflBi8NxDpSYKEiM3fbb2%2FVBX4k%3D
+U2 U3 ,2,74HC164,https://www.mouser.jp/ProductDetail/Texas-Instruments/SN74HCS164QBQARQ1?qs=iLbezkQI%252Bsg0rKdJotl1HQ%3D%3D
+U4 ,1,TS3A4751RGYR,https://lcsc.com/product-detail/Analog-Switches-Multiplexers_Texas-Instruments-TS3A4751RGYR_C130082.html

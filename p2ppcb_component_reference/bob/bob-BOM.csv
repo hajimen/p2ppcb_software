@@ -1,0 +1,6 @@
+Reference, Quantity, Value,
+C1 C2 ,2,100n,https://lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_YAGEO-CC0402KRX7R6BB104_C309458.html
+J1 ,1,PinHeader_01x05,https://lcsc.com/product-detail/Pin-Headers_HCTL-PZ254-1-05-Z-8-5_C2894928.html
+J2 ,1,STMM-115-02-L-D,https://lcsc.com/product-detail/IDC-Connectors_Wcon-3111-30SG0BK00T1_C783804.html
+U1 ,1,Pico,https://www.mouser.com/ProductDetail/SparkFun/DEV-17829?qs=sGAEpiMZZMv0NwlthflBi8NxDpSYKEiM3fbb2%2FVBX4k%3D
+U2 U3 ,2,74HC164,https://www.mouser.jp/ProductDetail/Texas-Instruments/SN74HCS164QBQARQ1?qs=iLbezkQI%252Bsg0rKdJotl1HQ%3D%3D

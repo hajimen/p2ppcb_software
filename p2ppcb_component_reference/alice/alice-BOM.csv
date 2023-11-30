@@ -1,0 +1,29 @@
+Reference, Quantity, Value,Substituted part,
+C1 C3 C4 C5 C6 C7 C8 C9 C10 C11 C17 C18 C22 ,13,100n,,https://www.digikey.com/product-detail/en/yageo/CC0402KRX7R6BB104/311-1345-1-ND/2103129
+C12 ,1,10n,,https://www.digikey.com/product-detail/en/yageo/CC0402KRX7R7BB103/311-1042-1-ND/302959
+C2 C13 C14 C19 ,4,4.7u,,https://www.digikey.com/product-detail/en/yageo/CC0402KRX5R5BB475/311-3476-1-ND/7164497
+C15 ,1,1u,,https://www.digikey.com/product-detail/en/yageo/CC0402KRX5R5BB105/311-1438-1-ND/2833744
+C16 ,1,2.2u,,https://www.digikey.com/product-detail/en/yageo/CC0402KRX5R6BB225/311-1686-1-ND/5195588
+C20 C21 ,2,47p,,https://www.digikey.com/product-detail/en/yageo/CC0402JRNPO9BN470/311-1021-1-ND/302938
+D1 ,1,CMOZ2L2TR,,https://www.digikey.com/product-detail/en/central-semiconductor-corp/CMOZ2L2-TR-PBFREE/1514-CMOZ2L2TRPBFREECT-ND/5211364
+D2 ,1,BAT60JFILM,*,https://www.digikey.com/en/products/detail/nexperia-usa-inc/PMEG2010EA135/2780240?s=N4IgTCBcDaIAoFkCiBxMAGAjOpBBANJgMwCsIAugL5A
+J1 ,1,COLS,,https://www.aliexpress.com/item/32676568854.html?spm=2114.12010612.8148356.63.76d42bfdmlM1SD
+J2 ,1,ROWS,,https://www.aliexpress.com/item/32675338804.html?spm=2114.12010612.8148356.65.2892d4f7k8DH4p
+J3 ,1,USB_C_Receptacle_USB2.0,,https://www.digikey.com/product-detail/en/gct/USB4085-GF-A/2073-USB4085-GF-ACT-ND/9859733
+J4 ,1,SWD_USART_RGBDI_BOOT0,,https://www.aliexpress.com/item/32675338804.html?spm=2114.12010612.8148356.65.2892d4f7k8DH4p
+J5 ,1,I2C,,https://www.digikey.com/product-detail/en/jst-sales-america-inc/BM04B-SRSS-TB-LF-SN/455-1790-1-ND/926861
+R1 R2 ,2,10k,,https://www.digikey.com/product-detail/en/yageo/RC0402JR-0710KL/311-10KJRCT-ND/729365
+R3 R8 R9 ,3,1k,,https://www.digikey.com/product-detail/en/yageo/RC0402JR-071KL/311-1-0KJRCT-ND/729355
+R4 R5 ,2,5.1k,,https://www.digikey.com/products/en/resistors/chip-resistor-surface-mount/52?k=yageo+RC0402&k=&pkeyword=yageo+RC0402&sv=0&pv2085=u5.1+kOhms&sf=0&FV=3%7C2503%2C7%7C2%2C-8%7C52&quantity=&ColumnSort=0&page=1&pageSize=25
+R6 R7 R10 R11 ,4,22,,https://www.digikey.com/product-detail/en/yageo/RC0402JR-0722RP/YAG1285CT-ND/4935398
+RN1 RN2 RN3 ,3,10k,,https://www.digikey.com/product-detail/en/cts-resistor-products/746X101103JP/746X101103JPCT-ND/1118444
+RN4 ,1,47k,,https://www.digikey.com/product-detail/en/cts-resistor-products/746X101473JP/746X101473JPCT-ND/1118431
+SW1 ,1,Omron_B3FS,,https://www.digikey.com/product-detail/en/omron-electronics-inc-emc-div/B3FS-1012P/SW1237CT-ND/2747253
+U1 U2 U4 ,3,74HC165,,https://www.digikey.com/product-detail/en/nexperia-usa-inc/74HC165BQ-115/1727-6032-1-ND/2753868
+U10 ,1,STP08CP05,,https://www.digikey.com/en/products/detail/stmicroelectronics/STP08CP05XTTR/1702997
+U3 ,1,"74HC02BQ,115",,https://www.digikey.com/product-detail/en/nexperia-usa-inc/74HC02BQ-115/1727-4525-1-ND/2530902
+U5 ,1,STM32F072C8Ux,,https://www.digikey.com/product-detail/en/stmicroelectronics/STM32F072C8U6/497-17360-ND/5051283
+U6 ,1,USBLC6-2P6,,https://www.digikey.com/product-detail/en/stmicroelectronics/USBLC6-2P6/497-5026-1-ND/1007464
+U7 ,1,SN74LV1T34DCK,,https://www.digikey.com/product-detail/en/texas-instruments/SN74LV1T34DCKR/296-37177-1-ND/4555594
+U8 ,1,TLV75533PDRVR,*,https://www.digikey.com/en/products/detail/texas-instruments/TPS74533PQWDRVRQ1/11308854?s=N4IgTCBcDaICoAUDKB2ALAVgMxYQRQHUARAJQDUS8BGEAXQF8g
+U9 ,1,TS3A4751RGYR,,https://www.digikey.com/product-detail/en/texas-instruments/TS3A4751RGYR/296-24477-1-ND/2057705

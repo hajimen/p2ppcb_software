@@ -1,5 +1,10 @@
 # P2PPCB NTCS keyboard overview
 
+![NTCS left](https://gist.github.com/assets/1212166/32299ca1-f364-4737-9eea-4bd8399780eb)
+
+![NTCS right](https://gist.github.com/assets/1212166/e9124f41-d4e5-4bbc-bf16-de905afbb88d)
+
+
 **P2PPCB NTCS** keyboard is a reference design of P2PPCB platform. It demonstrates the ability of P2PPCB platform 
 to produce elaborate and real-world (not mass-produced) products.
 
