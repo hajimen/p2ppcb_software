@@ -43,7 +43,7 @@ There is nothing to solder by yourself, even in the case of split keyboards.
 
 ## All softwares are open-source or charge-free for hobbyists
 
-- [keyboard-layout-editor.com](https://keyboard-layout-editor.com) : Open-source
+- [keyboard-layout-editor.com](http://keyboard-layout-editor.com) : Open-source
 - [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360/overview): Charge-free for hobbyists
 - [P2PPCB Composer F360](https://github.com/hajimen/p2ppcb_software/tree/main/p2ppcb_composer_f360): Open-source
 - [QMK firmware](https://qmk.fm/): Open-source
