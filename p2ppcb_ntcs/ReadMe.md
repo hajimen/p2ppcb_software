@@ -43,10 +43,10 @@ The price is $1000 without switches, keycaps, and the shipping charge.
 ## Parts list
 
 - P2PPCB mainboard Charlotte set: 2 sets
-- P2PPCB matrix wire cable for Charlotte: 2 pcs
+- P2PPCB matrix wire for Charlotte: 2 pcs
 - P2PPCB adjustable foot kit: 4 sets
 - P2PPCB split keyboard kit: 1 set
-- P2PPCB MX normal: 82 pcs of fragment (4 pcs of full board and 2 pcs of fragment)
+- P2PPCB MX normal: 82 pcs of fragment
 - P2PPCB MX LED: 2 pcs of fragment
 - M2.6 x 7 mm pan-head self-tapping screws for plastic: 16 pcs
 - Cherry MX compatible key switch: 84 pcs

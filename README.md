@@ -45,7 +45,7 @@ There is nothing to solder by yourself, even in the case of split keyboards.
 
 - [keyboard-layout-editor.com](https://keyboard-layout-editor.com) : Open-source
 - [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360/overview): Charge-free for hobbyists
-- [P2PPCB Composer F360](https://github.com/hajimen/p2ppcb_software/tree/dev/p2ppcb_composer_f360): Open-source
+- [P2PPCB Composer F360](https://github.com/hajimen/p2ppcb_software/tree/main/p2ppcb_composer_f360): Open-source
 - [QMK firmware](https://qmk.fm/): Open-source
 
 As long as your project stays on a PC screen, there is no charge.
@@ -240,7 +240,9 @@ up to three times (according to Kyocera AVX. I guess much more actually).
 So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdriver). Just by getting this kit,
 you can build and test a P2PPCB-based keyboard by hand.
 
-TODO link to item
+[Starter Kit Bob](https://www.etsy.com/listing/1631407997/starter-kit-bob?ref=listings_manager_table)
+
+[Starter Kit Charlotte](https://www.etsy.com/listing/1617242134/starter-kit-charlotte)
 
 # Technical Details
 
