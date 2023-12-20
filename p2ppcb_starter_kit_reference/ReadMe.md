@@ -56,9 +56,9 @@ https://user-images.githubusercontent.com/1212166/223650886-23f14d98-9855-4501-9
 The tightening force should be much less than for normal screws. Just enough to stop rattling. 
 It cannot withstand too many tightening-loosening iterations.
 
-### 5. Put matrix wiring cable to the mainboard
+### 5. Put matrix wire to the mainboard
 
-### 6. Peel the matrix wiring cable and cut the unused wires
+### 6. Peel the ribbon cable and cut the unused wires
 
 Look carefully at the wiring diagram on the paper manual. If you feel hard to read it, use the digital images below.
 
@@ -68,7 +68,7 @@ Look carefully at the wiring diagram on the paper manual. If you feel hard to re
 ### 7. Install wires into the contacts
 
 Again, look carefully at the wiring diagram. But it is difficult. So the kit bundles two 
-matrix wiring cables :-).
+matrix wires :-).
 
 https://user-images.githubusercontent.com/1212166/223652054-34629ded-7a83-4f41-a15c-5276e1920c53.mov
 

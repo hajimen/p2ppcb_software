@@ -79,7 +79,7 @@ But by modifying a Cherry-style plate-mount stabilizer with a knife, it works (v
 
 **P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360) on Windows PC.
 F360 runs on Mac too, but PC0 lacks some features on Mac.
-More details can be found here: <https://github.com/hajimen/p2ppcb_software/tree/dev/p2ppcb_composer_f360>
+More details can be found here: <https://github.com/hajimen/p2ppcb_software/tree/main/p2ppcb_composer_f360>
 
 ## Keycaps
 
@@ -91,9 +91,9 @@ The following are available on PC0. You can of course put other keycaps on your 
 - Cherry profile
 - OEM profile
 - [Kailh Choc V1](https://www.aliexpress.com/item/32979973961.html)
-- Junana for MX (New keycap from DecentKeyboards. Now in preparation)
+- [Junana MX](https://www.etsy.com/listing/1636124875/blank-junana-mx-keycaps) (New profile from DecentKeyboards)
 
-Only Junana for MX can mate with Choc V2 or Gateron LP, normally. In fact DSA 1u can do it in a deep geeky way.
+Only Junana MX can mate with Choc V2 or Gateron LP, normally. In fact DSA 1u can do it in a deep geeky way.
 Dig into `P2PPCB Internal/Depot Parts mU0jU/Cap DSA 1u.*` component of your F360 file, and find what to do.
 
 # P2PPCB Components
@@ -141,6 +141,8 @@ But 1.27 mm pitch ribbon cable (common thing) is too thick for a single IDC cont
 
 ![Bob](https://user-images.githubusercontent.com/1212166/204481608-7f183b4c-1801-4136-88ea-a06abbbf45b7.jpg)
 
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1609788806/mainboard-set?variation0=4138702941)
+
 **Bob** is the smallest and cheapest but lacks a lot of features.
 You can configure most things with VIA <https://www.caniusevia.com/>.
 With Bob, you can live without QMK firmware configuration in most cases.
@@ -149,15 +151,19 @@ With Bob, you can live without QMK firmware configuration in most cases.
 
 ![Charlotte](https://user-images.githubusercontent.com/1212166/204481740-dc1d4314-9420-4dec-b742-34981c9d06d9.jpg)
 
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1609788806/mainboard-set?variation0=4138702945)
+
 If you need a split keyboard / switch LED / Qwiic connector, **Charlotte** is recommended.
 If you go with Charlotte, QMK firmware is a must.
 
 (You may wonder how Charlotte uses I2C for split keyboards. I implemented I2C slave mode
 that ChibiOS doesn't have. The code is RP2040 only, sorry.)
 
-## Matrix wire cable
+## Matrix wire
 
 ![36-pin 1.00 mm pitch IDC ribbon rainbow cable](https://user-images.githubusercontent.com/1212166/204482169-f5ddf0f1-f670-47e1-9cb6-9a9a42c60313.jpg)
+
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1623836437/matrix-wire)
 
 A matrix wire connects a mainboard to contacts.
 
@@ -183,6 +189,8 @@ are available.
 
 ![Contact-to-socket](https://user-images.githubusercontent.com/1212166/204484257-108bf20a-2522-4053-b8ea-9a14f05be936.jpg)
 
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1609640258/normal-contact-to-socket-assembly-20pcs)
+
 (You may wonder how an LED and a switch both can be driven / read by only one pair of wires.
 By utilizing the forward voltage (Vf) of LEDs. Below its Vf, an LED has no current flow (no light, of course).
 We can read a switch by applying a voltage lower than the Vf. To drive an LED, a resistor is connected in series with the switch.
@@ -200,6 +208,8 @@ You can get this component by printing the F3D file: `p2ppcb_component_reference
 
 ![Qwiic-to-TRRS](https://user-images.githubusercontent.com/1212166/204488371-f274d0c1-be72-4f98-81a5-a561463c563b.jpg)
 
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1609781062/split-keyboard-kit)
+
 Charlotte uses Qwiic (3.3V I2C with Vdd on JST-SH 4-pin connector) for split keyboards.
 The Qwiic-to-TRRS assembly is available as a P2PPCB component. TRRS cable is a general-purpose part.
 
@@ -216,6 +226,8 @@ P2PPCB split keyboard kit contains:
 
 ![Height comparison](https://user-images.githubusercontent.com/1212166/204489172-3572e1eb-9682-45ff-8fd9-cbaf93daf2f4.jpg)
 
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1623947013/adjustable-foot-kit)
+
 Even with 3D-shaped keyboards, height-adjustable feet are indispensable for many reasons.
 Rubber sole is also indispensable. P2PPCB platform has its own foot kit.
 
@@ -227,7 +239,7 @@ P2PPCB platform requires so many parts to build a real keyboard.
 - Mainboard (with screws)
 - Contact-to-socket assembly
 - Single IDC contact push mount
-- Matrix wire cable
+- Matrix wire
 - Adjustable foot kit
 - Key switch
 - Keycap
@@ -240,9 +252,9 @@ up to three times (according to Kyocera AVX. I guess much more actually).
 So DecentKeyboards combined them into P2PPCB Starter Kit (except screwdriver). Just by getting this kit,
 you can build and test a P2PPCB-based keyboard by hand.
 
-[Starter Kit Bob](https://www.etsy.com/listing/1631407997/starter-kit-bob?ref=listings_manager_table)
+[Purchase Starter Kit Bob from DecentKeyboards](https://www.etsy.com/listing/1631407997/starter-kit-bob)
 
-[Starter Kit Charlotte](https://www.etsy.com/listing/1617242134/starter-kit-charlotte)
+[Purchase Starter Kit Charlotte from DecentKeyboards](https://www.etsy.com/listing/1617242134/starter-kit-charlotte)
 
 # Technical Details
 
