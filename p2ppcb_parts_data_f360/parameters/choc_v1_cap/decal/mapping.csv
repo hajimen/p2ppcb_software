@@ -1,3 +1,4 @@
 Specifier,filename,Parameter
 ISO_Enter,,x_distance y_distance z_angle scale_plane_xy
+.*,,y_distance z_angle scale_plane_xy pointer_offset_y
 .*,,y_distance z_angle scale_plane_xy

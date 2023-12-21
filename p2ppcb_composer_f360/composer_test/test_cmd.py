@@ -199,6 +199,8 @@ class TestCmdCache(unittest.TestCase):
         cls.test_docname = 'Test P2PPCB Document'
         doc = open_test_document(TEST_F3D_DIR / 'after_init.f3d')
         doc.saveAs(cls.test_docname, admin_folder, 'Init', '')
+        import time
+        time.sleep(1.)
         while not doc.dataFile.isComplete:
             do_many_events()
         cls.doc_version_id = doc.dataFile.versionId

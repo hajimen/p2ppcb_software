@@ -1,5 +1,5 @@
 Specifier,z_angle,scale_plane_xy,y_distance
-Convex 1u,0 deg,1.6,0.5mm
+Convex 1u,5 deg,1.6,0.5mm
 Homing 1u,0 deg,1.6,1mm
 1u,0 deg,1.6,0.5mm
 Convex 15u,0 deg,1.9,-0.5mm
