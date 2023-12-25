@@ -62,8 +62,8 @@ It cannot withstand too many tightening-loosening iterations.
 
 Look carefully at the wiring diagram on the paper manual. If you feel hard to read it, use the digital images below.
 
-- Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/bob/wiring_D.png> <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/bob/wiring_S.png>
-- Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/charlotte/wiring_D.png> <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/charlotte/wiring_S.png>
+- Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/bob/wiring_D.png> <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/bob/wiring_S.png>
+- Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/charlotte/wiring_D.png> <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/charlotte/wiring_S.png>
 
 ### 7. Install wires into the contacts
 
@@ -100,8 +100,8 @@ https://user-images.githubusercontent.com/1212166/223882839-7949211d-c44f-41d8-9
 
 Load the draft definition file of your mainboard into VIA.
 
-- Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/bob/via_keymap.json>
-- Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/charlotte/via_keymap.json>
+- Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/bob/via_keymap.json>
+- Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/charlotte/via_keymap.json>
 
 If you find non-operating key switches, check the wire-to-socket conduct. If it fails, press the contact again with the tool.
 Otherwise, pull the key switch off and look at the contacts.
@@ -127,8 +127,8 @@ Just push it to the switch. In Charlotte, OSM-Ctrl is a translucent keycap.
 Prepare [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360/overview) on your 
 Windows PC or Mac (just for the inspection, Mac is OK, non-English language is OK), and open the F3D file below.
 
-- Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/bob/Starter Kit Bob.f3d>
-- Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit/charlotte/Starter Kit Charlotte.f3d>
+- Starter Kit Bob: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/bob/Starter Kit Bob.f3d>
+- Starter Kit Charlotte: <https://github.com/hajimen/p2ppcb_software/blob/main/p2ppcb_starter_kit_reference/charlotte/Starter Kit Charlotte.f3d>
 
 `P2PPCB Internal:1` in the object browser is an important one. Expand it and inspect it. Toggling the eye icons is also useful.
 
