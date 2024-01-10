@@ -512,6 +512,10 @@ class TestEditFrame(unittest.TestCase):
         from p2ppcb_composer.cmd_edit_frame import HolePartsCommandHandler
         execute_command(HolePartsCommandHandler)
 
+    def test_cmd_interactive_insert_misc(self):
+        from p2ppcb_composer.cmd_edit_frame import InsertMiscCommandHandler
+        execute_command(InsertMiscCommandHandler)
+
     def test_fill(self):
         from p2ppcb_composer.cmd_edit_frame import fill_frame
         doc = open_test_document(TEST_F3D_DIR / 'fill_frame.f3d')

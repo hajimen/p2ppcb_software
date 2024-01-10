@@ -6,7 +6,7 @@ import typing as ty
 import itertools
 import adsk.core as ac
 import adsk.fusion as af
-from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, CommandInputs, SelectionCommandInput,\
+from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, CommandInputs, SelectionCommandInput, \
     SelectionEventArgs, ValidateInputsEventArgs, Selection
 from f360_common import AN_HOLE, AN_MEV, AN_MF, AN_TERRITORY, \
     BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \

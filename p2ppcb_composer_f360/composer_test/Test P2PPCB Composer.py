@@ -130,6 +130,7 @@ def run(context):
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_place_mb'))
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_place_foot'))
     # test_suite.addTest(TestEditFrame('test_cmd_interactive_hole'))
+    # test_suite.addTest(TestEditFrame('test_cmd_interactive_insert_misc'))
 
     # from composer_test.test_cmd import TestSetAttribute
     # test_suite.addTest(TestSetAttribute('test_cmd_interactive'))

@@ -8,7 +8,7 @@ from p2ppcb_composer.cmd_info import InfoCommandHandler
 from p2ppcb_composer.cmd_move_key import MoveKeyCommandHandler, SyncKeyCommandHandler
 from p2ppcb_composer.cmd_change_key import ChangeKeyDescsCommandHandler, CheckKeyAssemblyCommandHandler
 from p2ppcb_composer.cmd_matrix_route import AssignMatrixCommandHandler, GenerateRouteCommandHandler
-from p2ppcb_composer.cmd_edit_frame import FillFrameCommandHandler, PlaceMainboardCommandHandler, PlaceFootCommandHandler, HolePartsCommandHandler
+from p2ppcb_composer.cmd_edit_frame import FillFrameCommandHandler, PlaceMainboardCommandHandler, PlaceFootCommandHandler, HolePartsCommandHandler, InsertMiscCommandHandler
 from p2ppcb_composer.cmd_set_attribute import SetAttributeCommandHandler
 from p2ppcb_composer.cmd_remove_undercut import RemoveUndercutCommandHandler
 from p2ppcb_composer.cmd_regex_selector import RegexSelectCommandHandler
@@ -21,7 +21,7 @@ PANEL_CLASSES: ty.List[ty.Tuple[str, str, ty.List[ty.Tuple[ty.Type, bool]]]] = [
     ('p2ppcbEditKeyToolbarPanel', 'Edit Key', [(MoveKeyCommandHandler, True), (ChangeKeyDescsCommandHandler, True), (SyncKeyCommandHandler, True)]),
     ('p2ppcbMatrixToolbarPanel', 'Matrix', [(AssignMatrixCommandHandler, True), (GenerateRouteCommandHandler, True)]),
     ('p2ppcbFillHoleToolbarPanel', 'Fill/Hole', [(FillFrameCommandHandler, True), (HolePartsCommandHandler, True)]),
-    ('p2ppcbPlacePartsToolbarPanel', 'Place Parts', [(PlaceMainboardCommandHandler, True), (PlaceFootCommandHandler, True)]),
+    ('p2ppcbPlacePartsToolbarPanel', 'Place Parts', [(PlaceMainboardCommandHandler, True), (PlaceFootCommandHandler, True), (InsertMiscCommandHandler, False)]),
     ('p2ppcbCoverToolbarPanel', 'Cover', [(RegexSelectCommandHandler, True), (RemoveUndercutCommandHandler, True)]),
     ('p2ppcbPartsEditToolbarPanel', 'Parts Edit', [(SetAttributeCommandHandler, True), (CheckKeyAssemblyCommandHandler, True)]),
 ]

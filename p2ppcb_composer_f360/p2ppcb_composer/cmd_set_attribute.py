@@ -99,7 +99,7 @@ class SetAttributeCommandHandler(CommandHandlerBase):
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         bodies, attr_name, attr_value = self.get_inputs()
         for b in bodies:
-            for a in b.attributes:
-                a.deleteMe()
+            while len(b.attributes) > 0:
+                b.attributes[0].deleteMe()
             if len(attr_name) != 0:
                 b.attributes.add(ATTR_GROUP, attr_name, attr_value)

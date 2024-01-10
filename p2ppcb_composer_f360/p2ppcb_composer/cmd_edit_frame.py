@@ -2,14 +2,17 @@ from operator import attrgetter
 import typing as ty
 import pickle
 import base64
+import pathlib
+import time
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN
 from pint import Quantity
+import adsk
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_FILL, AN_HOLE, AN_LOCATORS_ENABLED, AN_LOCATORS_I, AN_LOCATORS_PATTERN_NAME, AV_FLIP, AV_RIGHT, CN_DEPOT_PARTS, CN_FOOT, CN_FOOT_PLACEHOLDERS, CN_KEY_LOCATORS, CN_MISC_PLACEHOLDERS, \
     CNP_KEY_ASSEMBLY, CN_KEY_PLACEHOLDERS, MAGIC, FLOOR_CLEARANCE, ORIGIN_P3D, XU_V3D, YU_V3D, ZU_V3D, BadCodeException, BadConditionException, BodyFinder, CreateObjectCollectionT, F3Occurrence, \
-    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, AN_PLACEHOLDER, key_placeholder_name
+    VirtualF3Occurrence, capture_position, get_context, CN_INTERNAL, AN_PLACEHOLDER, key_placeholder_name, CURRENT_DIR, create_component, CNP_PARTS, EYE_M3D
 from p2ppcb_composer.cmd_common import AN_MB_LOCATION_INPUTS, CheckInterferenceCommandBlock, MoveComponentCommandBlock, CommandHandlerBase, get_ci, has_sel_in, load_mb_location_inputs
 from route.route import get_cn_mainboard
 
@@ -21,6 +24,7 @@ INP_ID_FOOT_LOCATOR_SEL = 'footLocator'
 INP_ID_OFFSET_STR = 'offset'
 INP_ID_NUM_FOOT_RADIO = 'numFoot'
 INP_ID_FRAME_BODY_SEL = 'frameBody'
+INP_ID_MISC_TRIAD = 'miscTriad'
 
 TOOLTIPS_GENERATE_BRIDGE = ('Generate Bridge', 'Generates a bridge body which connects the key/PCB mounts.')
 
@@ -832,6 +836,80 @@ class HolePartsCommandHandler(CommandHandlerBase):
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)
         event_args.isValidResult = True
+
+    def notify_execute(self, event_args: CommandEventArgs) -> None:
+        self.execute_common(event_args)
+
+
+class InsertMiscCommandHandler(CommandHandlerBase):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def cmd_name(self) -> str:
+        return 'Insert misc'
+
+    @property
+    def tooltip(self) -> str:
+        return 'Inserts and places miscellaneous F3D file. You should run this command after Fill command and before Hole command.'
+
+    @property
+    def resource_folder(self) -> str:
+        return 'Resources/insert_misc'
+
+    def notify_create(self, event_args: CommandCreatedEventArgs):
+        con = get_context()
+        file_dlg = con.ui.createFileDialog()
+        file_dlg.isMultiSelectEnabled = False
+        file_dlg.initialDirectory = str(CURRENT_DIR / 'f3d')
+        file_dlg.title = 'Open F3D file'
+        file_dlg.filter = 'F3D File (*.f3d)'
+        
+        if file_dlg.showOpen() != ac.DialogResults.DialogOK:
+            self.create_ok = False
+            return
+        f3d_file_path = pathlib.Path(file_dlg.filename)
+
+        depot_occ = con.child[CN_INTERNAL].child.get_real(CN_DEPOT_PARTS)
+
+        if f3d_file_path.name + CNP_PARTS in depot_occ.child:
+            part_occ = depot_occ.child.get_real(f3d_file_path.name + CNP_PARTS)
+        else:
+            with create_component(depot_occ.comp, f3d_file_path.name, CNP_PARTS) as container:
+                im = con.app.importManager
+                try:
+                    im.importToTarget(im.createFusionArchiveImportOptions(str(f3d_file_path)), depot_occ.comp)
+                    for _ in range(200):  # F360's bug workaround
+                        time.sleep(0.01)
+                        adsk.doEvents()
+                except Exception:
+                    raise BadConditionException(f'F3D file import failed: {str(f3d_file_path)}')
+            part_occ = container.pop()
+        self.part_occ = part_occ
+        self.triad_in = self.inputs.addTriadCommandInput(INP_ID_MISC_TRIAD, EYE_M3D)
+
+        self.check_interference_cb = CheckInterferenceCommandBlock(self)
+        self.check_interference_cb.notify_create(event_args)
+        if_in = self.check_interference_cb.get_checkbox_ins()[0]
+        if_in.isVisible = True
+
+    def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
+        self.check_interference_cb.notify_input_changed(event_args, changed_input)
+
+    def execute_common(self, event_args: CommandEventArgs):
+        inl_occ = get_context().child[CN_INTERNAL]
+        misc_occ = inl_occ.child.get_real(CN_MISC_PLACEHOLDERS)
+        o = misc_occ.child.add(self.part_occ)
+        o.light_bulb = True
+        o.transform = self.triad_in.transform
+        return o
+
+    def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
+        o = self.execute_common(event_args)
+
+        if_in = self.check_interference_cb.get_checkbox_ins()[0]
+        if if_in.value:
+            self.check_interference_cb.b_notify_execute_preview([ty.cast(F3Occurrence, o)])
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)
