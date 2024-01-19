@@ -224,7 +224,7 @@ the placeholders of keys sometimes slip. This is F360's bug. In this case, use t
 
 ## Advanced features and design
 
-### 'Insert misc' command
+### 'Insert Misc' command
 
 This command inserts and places a miscellaneous F3D file for miscellaneous parts and components.
 So far this command is for trackpads and its Qwiic-to-FFC adapters.
@@ -232,7 +232,7 @@ So far this command is for trackpads and its Qwiic-to-FFC adapters.
 The F3D files should provide Placeholder / Fill / Hole / MF / MEV / Territory bodies.
 
 After **Fill** command and before **Hole** command,
-run the **Insert misc** command (should be found under the **PLACE PARTS**) in the P2PPCB tab.
+run the **Insert Misc** command (should be found under the **PLACE PARTS**) in the P2PPCB tab.
 It opens a file dialog. Choose an appropriate F3D file. Adjust the place.
 
 After insertion, you need to use **Move/Copy** command in SOLID tab to adjust the place.

@@ -799,8 +799,11 @@ def hole_all_parts(frame: af.BRepBody):
         if not hit:
             nbs.append(b)
     for b in list(nbs):
-        if b.volume < CHIPPING_BODY_THRESHOLD:
-            nbs.remove(b)
+        try:
+            if b.volume < CHIPPING_BODY_THRESHOLD:
+                nbs.remove(b)
+        except RuntimeError:  # Sometimes b.volume raises "RuntimeError: 2 : InternalValidationError : ASMInterface::getEntityVolume((ENTITY*)body, res, achieved_precision)"
+            pass
 
     inl_occ.light_bulb = False
 
@@ -847,7 +850,7 @@ class InsertMiscCommandHandler(CommandHandlerBase):
 
     @property
     def cmd_name(self) -> str:
-        return 'Insert misc'
+        return 'Insert Misc'
 
     @property
     def tooltip(self) -> str:
