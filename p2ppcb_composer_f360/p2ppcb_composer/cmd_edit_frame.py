@@ -844,7 +844,7 @@ class HolePartsCommandHandler(CommandHandlerBase):
         self.execute_common(event_args)
 
 
-class InsertMiscCommandHandler(CommandHandlerBase):
+class PlaceMiscCommandHandler(CommandHandlerBase):
     def __init__(self):
         super().__init__()
 
@@ -854,11 +854,11 @@ class InsertMiscCommandHandler(CommandHandlerBase):
 
     @property
     def tooltip(self) -> str:
-        return 'Inserts and places miscellaneous F3D file. You should run this command after Fill command and before Hole command.'
+        return 'Places miscellaneous F3D file. You should run this command after Fill command and before Hole command.'
 
     @property
     def resource_folder(self) -> str:
-        return 'Resources/insert_misc'
+        return 'Resources/place_misc'
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         con = get_context()
@@ -871,25 +871,31 @@ class InsertMiscCommandHandler(CommandHandlerBase):
         if file_dlg.showOpen() != ac.DialogResults.DialogOK:
             self.create_ok = False
             return
-        f3d_file_path = pathlib.Path(file_dlg.filename)
+        p = file_dlg.filename
+        n = pathlib.Path(p).stem
 
-        depot_occ = con.child[CN_INTERNAL].child.get_real(CN_DEPOT_PARTS)
+        inl_occ = get_context().child[CN_INTERNAL]
+        depot_occ = inl_occ.child.get_real(CN_DEPOT_PARTS)
 
-        if f3d_file_path.name + CNP_PARTS in depot_occ.child:
-            part_occ = depot_occ.child.get_real(f3d_file_path.name + CNP_PARTS)
+        if n + CNP_PARTS in depot_occ.child:
+            part_occ = depot_occ.child.get_real(n + CNP_PARTS)
         else:
-            with create_component(depot_occ.comp, f3d_file_path.name, CNP_PARTS) as container:
+            with create_component(depot_occ.comp, n, CNP_PARTS) as container:
                 im = con.app.importManager
                 try:
-                    im.importToTarget(im.createFusionArchiveImportOptions(str(f3d_file_path)), depot_occ.comp)
-                    for _ in range(200):  # F360's bug workaround
+                    im.importToTarget(im.createFusionArchiveImportOptions(p), depot_occ.comp)
+                    for _ in range(100):  # F360's bug workaround
                         time.sleep(0.01)
                         adsk.doEvents()
                 except Exception:
-                    raise BadConditionException(f'F3D file import failed: {str(f3d_file_path)}')
+                    raise BadConditionException(f'F3D file import failed: {p}')
             part_occ = container.pop()
         self.part_occ = part_occ
         self.triad_in = self.inputs.addTriadCommandInput(INP_ID_MISC_TRIAD, EYE_M3D)
+        misc_occ = inl_occ.child.get_real(CN_MISC_PLACEHOLDERS)
+        if self.part_occ.name in misc_occ.child:
+            o = misc_occ.child[self.part_occ.name]
+            self.triad_in.transform = o.transform
 
         self.check_interference_cb = CheckInterferenceCommandBlock(self)
         self.check_interference_cb.notify_create(event_args)
@@ -902,7 +908,10 @@ class InsertMiscCommandHandler(CommandHandlerBase):
     def execute_common(self, event_args: CommandEventArgs):
         inl_occ = get_context().child[CN_INTERNAL]
         misc_occ = inl_occ.child.get_real(CN_MISC_PLACEHOLDERS)
-        o = misc_occ.child.add(self.part_occ)
+        if self.part_occ.name in misc_occ.child:
+            o = misc_occ.child[self.part_occ.name]
+        else:
+            o = misc_occ.child.add(self.part_occ)
         o.light_bulb = True
         o.transform = self.triad_in.transform
         return o
