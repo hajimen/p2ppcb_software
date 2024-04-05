@@ -584,6 +584,10 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
                                     break
                             if sum(hits) == 1:
                                 break
+                        if sum(hits) == 2:
+                            # no way to distinguish cs[0] and cs[1].
+                            lr = cs2
+                            break
                         if sum(hits) != 1:
                             raise BadCodeException()
                         lr.append(cs2[hits.index(True)])

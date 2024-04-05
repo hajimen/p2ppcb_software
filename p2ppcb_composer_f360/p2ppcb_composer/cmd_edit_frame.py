@@ -850,7 +850,7 @@ class PlaceMiscCommandHandler(CommandHandlerBase):
 
     @property
     def cmd_name(self) -> str:
-        return 'Insert Misc'
+        return 'Place Misc'
 
     @property
     def tooltip(self) -> str:
