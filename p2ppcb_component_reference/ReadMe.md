@@ -1,4 +1,4 @@
-# P2PPCB Component Reference
+# P2PPCB component reference
 
 Mainly it contains schematic diagrams of the components.
 
@@ -24,9 +24,9 @@ Charlotte's: <https://lcsc.com/product-detail/IDC-Connectors_Wcon-3111-36SG0BK00
 
 - The pin header J1 for debugger is not implemented. Solder 1x5 pin header if you need it.
 
-# Matrix Wire
+# Matrix wire
 
-## Wire Harness for Alice
+## Wire harness for Alice
 
 Length: 1 m
 
@@ -40,15 +40,15 @@ Connector of Bob: <https://lcsc.com/product-detail/IDC-Connectors_Wcon-5222-30YP
 
 Connector of Charlotte: <https://lcsc.com/product-detail/IDC-Connectors_span-style-background-color-ff0-Wcon-span-5222-36YPS0BW01_C843029.html>
 
-# Contact-to-Socket Assembly
+# Contact-to-Socket assembly
 
-Single IDC Contact: <https://www.digikey.com/en/products/detail/avx-corporation/709176001443006/3074530>
+Single IDC contact: <https://www.digikey.com/en/products/detail/avx-corporation/709176001443006/3074530>
 
 LED: <https://www.digikey.com/en/products/detail/lite-on-inc/LTST-C230KGKT/386855>
 
 Diode: <https://www.digikey.com/en/products/detail/rohm-semiconductor/1SS400CMT2R/10495190>
 
-# Qwiic-to-TRRS Assembly
+# Qwiic-to-TRRS assembly
 
 Length: 12 cm
 
@@ -60,3 +60,13 @@ TRRS jack: <https://lcsc.com/product-detail/Audio-Connectors_XKB-Connectivity-PJ
 |Sleeve-side Ring| 3.3V|
 |Tip-side Ring| SCL|
 |Tip| SCA|
+
+# Qwiic-to-FFC adapter
+
+FFC connector for Azoteq: <https://www.lcsc.com/product-detail/FFC-FPC-Connectors_AFC11-S06ICA-00_C262496.html>
+
+FFC connector for Cirque: <https://www.lcsc.com/product-detail/FFC-FPC-Connectors_JUSHUO-AFC11-S12ICA-00_C262499.html>
+
+Single IDC contact: <https://www.digikey.com/en/products/detail/avx-corporation/709176001443006/3074530>
+
+The FFC should be reverse type.

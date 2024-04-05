@@ -224,6 +224,28 @@ the placeholders of keys sometimes slip. This is F360's bug. In this case, use t
 
 ## Advanced features and design
 
+### 'Place Misc' command
+
+This command places a F3D file for miscellaneous parts and components.
+So far this command is for:
+
+- trackpads and its Qwiic-to-FFC adapters
+- cover bosses
+
+The F3D files should provide Placeholder / Fill / Hole / MF / MEV / Territory bodies.
+
+After **Fill** command and before **Hole** command,
+run the **Place Misc** command (should be found under the **PLACE PARTS**) in the P2PPCB tab.
+It opens a file dialog. Choose an appropriate F3D file. Adjust the place. You can run the command
+repeatedly on the same F3D file.
+
+The inserted component should be found in **P2PPCB Internal/Misc Placeholders mU0jU**.
+If you need multiple occurrences, copy it and paste.
+
+Once the place is adjusted perfectly,
+copy the Fill body to the root component and connect it to the frame body.
+Hole will be done by running **Hole** command.
+
 ### 'Regex Select' command
 
 You can create a fully functional keyboard that has only a frame, no cover.

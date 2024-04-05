@@ -5,7 +5,7 @@ import numpy as np
 import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
-from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, BadCodeException, BadConditionException, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, CNP_KEY_LOCATOR
+from f360_common import AN_COL_NAME, AN_ROW_NAME, ANS_RC_NAME, CN_MISC_PLACEHOLDERS, BadCodeException, BadConditionException, F3Occurrence, get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, CNP_KEY_LOCATOR, AN_LOCATORS_ENABLED
 from p2ppcb_composer.cmd_common import AN_MAIN_LAYOUT_PLANE, CommandHandlerBase, get_ci, has_sel_in, load_mb_location_inputs
 from route import route as rt
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_plane_transform
@@ -77,11 +77,15 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             event_args.isSelectable = False
             return
 
+        ent = F3Occurrence(e.assemblyContext)
+        if not bool(ent.comp_attr[AN_LOCATORS_ENABLED]):
+            event_args.isSelectable = False
+            return
+
         if self.get_locator_in().selectionCount <= 1:
             return
 
         is_led = self.get_ledkey_in().value
-        ent = F3Occurrence(e.assemblyContext)
         for rc in rt.RC:
             if ANS_RC_NAME[rc] in ent.comp_attr and is_led_name(ent.comp_attr[ANS_RC_NAME[rc]]) != is_led:
                 event_args.isSelectable = False
@@ -260,6 +264,8 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
 
         matrix: ty.Dict[str, ty.Dict[str, str]] = defaultdict(lambda: defaultdict(str))
         for kl_occ in inl_occ.child[CN_KEY_LOCATORS].child.values():
+            if not bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED]):
+                continue
             if AN_ROW_NAME in kl_occ.comp_attr and AN_COL_NAME in kl_occ.comp_attr:
                 matrix[kl_occ.comp_attr[AN_ROW_NAME]][kl_occ.comp_attr[AN_COL_NAME]] = kl_occ.name
             else:

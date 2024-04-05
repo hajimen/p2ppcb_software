@@ -19,7 +19,7 @@ from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
 from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
     get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH_W, AN_KEY_PITCH_D, FourOrientation, AN_KLE_B64, \
-    CURRENT_DIR, BadConditionException
+    CURRENT_DIR, BadConditionException, AN_LOCATORS_ENABLED
 from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
@@ -229,6 +229,8 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
                 raise BadCodeException()
             kl_name = key_locator_name(i, pattern_name)
             kl_occ = locators_occ.child[kl_name]
+            if not bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED]):
+                continue
             switch_desc = kl_occ.comp_attr[AN_SWITCH_DESC]
             codes = op.legend[I_CODE0_LABEL:I_CODE0_LABEL + N_CODES]
             if kl_occ.comp_attr[AN_ROW_NAME].startswith('LED'):
@@ -517,11 +519,9 @@ def read_json_by_b64(json_b64: str) -> ty.Any:
 def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstants'):
     con = get_context()
     matrix_code: ty.Dict[int, ty.Dict[int, ty.List[str]]] = defaultdict(dict)
-    keys: ty.List[Key] = []
-    for ks in keys_rc[RC.Row].values():
-        keys.extend(ks)
-    keys = sorted(keys, key=attrgetter('i_kle'))
-    for k in keys:
+    keys: ty.Dict[int, Key] = {}
+    for k in sum(keys_rc[RC.Row].values(), []):
+        keys[k.i_kle] = k
         matrix_code[k.i_logical_row][k.i_logical_col] = k.codes
 
     kle_json = []
@@ -530,8 +530,9 @@ def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstant
         nr = []
         for e in r:
             if isinstance(e, str):
-                k = keys[i_kle]
-                nr.append(f'{k.i_logical_row},{k.i_logical_col}')
+                if i_kle in keys:
+                    k = keys[i_kle]
+                    nr.append(f'{k.i_logical_row},{k.i_logical_col}')
                 i_kle += 1
             elif isinstance(e, dict):
                 ne = {}

@@ -231,6 +231,24 @@ P2PPCB split keyboard kit contains:
 Even with 3D-shaped keyboards, height-adjustable feet are indispensable for many reasons.
 Rubber sole is also indispensable. P2PPCB platform has its own foot kit.
 
+# Trackpad embedding kit
+
+You can embed trackpads to your keyboards. Available models:
+
+- Azoteq ProxSense TPS43 / TPS65
+- Cirque TM023023 / TM035035 / TM040040
+
+A trackpad embedding kit contains a Qwiic-to-FFC adapter.
+
+TODO photo
+
+The trackpads above have FFC connectors. The Qwiic-to-FFC adapters
+connect the trackpads to the mainboards of P2PPCB.
+
+The Qwiic-to-FFC adapters have RD or RDY contact, but you don't need to use it.
+They are for power saving and QMK doesn't support them.
+In the future, they may be good for wireless keyboards.
+
 # Starter kit
 
 P2PPCB platform requires so many parts to build a real keyboard.

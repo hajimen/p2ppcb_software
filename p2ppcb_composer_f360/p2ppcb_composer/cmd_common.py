@@ -6,7 +6,7 @@ import typing as ty
 import itertools
 import adsk.core as ac
 import adsk.fusion as af
-from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, CommandInputs, SelectionCommandInput,\
+from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, CommandInputs, SelectionCommandInput, \
     SelectionEventArgs, ValidateInputsEventArgs, Selection
 from f360_common import AN_HOLE, AN_MEV, AN_MF, AN_TERRITORY, \
     BN_APPEARANCE_HOLE, BN_APPEARANCE_MEV, BN_APPEARANCE_MF, CN_DEPOT_APPEARANCE, CN_INTERNAL, CN_KEY_LOCATORS, CN_KEY_PLACEHOLDERS, \
@@ -584,6 +584,10 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
                                     break
                             if sum(hits) == 1:
                                 break
+                        if sum(hits) == 2:
+                            # no way to distinguish cs[0] and cs[1].
+                            lr = cs2
+                            break
                         if sum(hits) != 1:
                             raise BadCodeException()
                         lr.append(cs2[hits.index(True)])
