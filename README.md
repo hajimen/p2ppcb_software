@@ -220,6 +220,8 @@ P2PPCB split keyboard kit contains:
 
 (No P2PPCB component for USART split keyboards of Alice. Connect by female / female Dupont wire or solder a terminal of your own choice.)
 
+You can use the 3D model of TRRS terminal by **Insert Misc** command of PC0.
+
 ## Adjustable foot kit
 
 ![Foot spacers](https://user-images.githubusercontent.com/1212166/204488560-f9f35b51-4cd7-4369-bd15-2f8b73eed9d3.jpg)
@@ -231,22 +233,29 @@ P2PPCB split keyboard kit contains:
 Even with 3D-shaped keyboards, height-adjustable feet are indispensable for many reasons.
 Rubber sole is also indispensable. P2PPCB platform has its own foot kit.
 
-# Trackpad embedding kit
+# Qwiic-to-FFC adapter kits for trackpad modules
 
-You can embed trackpads to your keyboards. Available models:
+You can embed trackpad modules to your keyboards. Available trackpad models:
 
-- Azoteq ProxSense TPS43 / TPS65
-- Cirque TM023023 / TM035035 / TM040040
+- Azoteq ProxSense TPS43 / TPS65 after Dec 2022
+- (With light modification) Cirque TM023023 / TM035035 / TM040040
 
-A trackpad embedding kit contains a Qwiic-to-FFC adapter.
+A Qwiic-to-FFC adapter kit contains a Qwiic-to-FFC adapter and the FFC.
 
-TODO photo
+![Qwiic-to-FFC adapter for Azoteq TPS43/65 after Dec 2022, with overlay for TPS43/65](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/p2ppcb_component/azoteq-qwiic-to-ffc.jpg)
 
-The trackpads above have FFC connectors. The Qwiic-to-FFC adapters
-connect the trackpads to the mainboards of P2PPCB.
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1708346877/qwiic-to-ffc-adapter-kit-for-azoteq)
 
-The Qwiic-to-FFC adapters have RD or RDY contact, but you don't need to use it.
-They are for power saving and QMK doesn't support them.
+![Qwiic-to-FFC adapter for Cirque 12-pin trackpad](https://raw.githubusercontent.com/hajimen/p2ppcb_software_image/main/p2ppcb_component/cirque-qwiic-to-ffc.jpg)
+
+[Purchase from DecentKeyboards](https://www.etsy.com/listing/1708366579/qwiic-to-ffc-adapter-kit-for-cirque-12)
+
+The trackpad modules above have FFC connectors. The Qwiic-to-FFC adapters
+connect the trackpad modules to the mainboards of P2PPCB.
+
+You can use the 3D models of the adapter and the trackpad modules by **Insert Misc** command of PC0.
+
+The Qwiic-to-FFC adapters have DR or RDY contact. They are for power saving. QMK doesn't need them.
 In the future, they may be good for wireless keyboards.
 
 # Starter kit

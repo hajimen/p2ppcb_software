@@ -69,4 +69,4 @@ FFC connector for Cirque: <https://www.lcsc.com/product-detail/FFC-FPC-Connector
 
 Single IDC contact: <https://www.digikey.com/en/products/detail/avx-corporation/709176001443006/3074530>
 
-The FFC should be reverse type.
+The FFC should be A-A type.

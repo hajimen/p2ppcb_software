@@ -109,6 +109,9 @@ This command uses RPA when the cache is not enough. You cannot use the mouse/key
 
 https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b48b-c263d903dbeb.mp4
 
+DISCLAIMER: Key decals will be odd if the display scale is not 150%. It comes from the bizarre behavior of F360.
+F360 lacks decal API.
+
 5. Adjust any key
 
 Of course you can move any key.
