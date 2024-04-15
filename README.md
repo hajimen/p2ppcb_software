@@ -220,7 +220,7 @@ P2PPCB split keyboard kit contains:
 
 (No P2PPCB component for USART split keyboards of Alice. Connect by female / female Dupont wire or solder a terminal of your own choice.)
 
-You can use the 3D model of TRRS terminal by **Insert Misc** command of PC0.
+You can use the 3D model of TRRS terminal by **Place Misc** command of PC0.
 
 ## Adjustable foot kit
 
@@ -253,7 +253,7 @@ A Qwiic-to-FFC adapter kit contains a Qwiic-to-FFC adapter and the FFC.
 The trackpad modules above have FFC connectors. The Qwiic-to-FFC adapters
 connect the trackpad modules to the mainboards of P2PPCB.
 
-You can use the 3D models of the adapter and the trackpad modules by **Insert Misc** command of PC0.
+You can use the 3D models of the adapter and the trackpad modules by **Place Misc** command of PC0.
 
 The Qwiic-to-FFC adapters have DR or RDY contact. They are for power saving. QMK doesn't need them.
 In the future, they may be good for wireless keyboards.

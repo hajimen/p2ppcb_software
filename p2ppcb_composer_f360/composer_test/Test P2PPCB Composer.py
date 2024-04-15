@@ -76,14 +76,15 @@ def load_notorious_tests(test_suite: unittest.TestSuite):
     This test contains some side effects. You should restart F360 after this test.
     Manual operation is required.
     '''
-    from composer_test.test_cmd import TestCmdCache
+    from composer_test.test_cmd import Test2CmdCache
     # test_suite.addTest(TestCmdCache('test_prepare_parts_sync'))  # For regression testing, this is redundant.
-    test_suite.addTest(TestCmdCache('test_cherry'))
-    test_suite.addTest(TestCmdCache('test_choc_v1'))
-    test_suite.addTest(TestCmdCache('test_dsa'))
-    test_suite.addTest(TestCmdCache('test_junana'))
-    test_suite.addTest(TestCmdCache('test_mx_oem'))
-    test_suite.addTest(TestCmdCache('test_xda'))
+    # test_suite.addTest(TestCmdCache('test_cherry'))
+    # test_suite.addTest(TestCmdCache('test_choc_v1'))
+    # test_suite.addTest(TestCmdCache('test_dsa'))
+    # test_suite.addTest(TestCmdCache('test_junana'))
+    # test_suite.addTest(TestCmdCache('test_mx_oem'))
+    # test_suite.addTest(TestCmdCache('test_xda'))
+    test_suite.addTest(Test2CmdCache('test_tmp'))
 
 
 @catch_exception
@@ -91,20 +92,23 @@ def run(context):
     global APP
     APP = ac.Application.get()
 
-    t1 = time.time()
-    breakpoint()
-    t2 = time.time()
-    # The code around this document is a hack to ensure Edit button (opens VSCode) -> F5 key.
-    # If a debugger is enabled, you cannot go through these codes under 0.1 second.
-    # If you feel bothersome to hit continue (F5), just comment out them.
-    if t2 - t1 < 0.1:
-        APP.userInterface.messageBox('Use Edit button -> F5 key, instead of Run button.')
-        return
+    # t1 = time.time()
+    # breakpoint()
+    # t2 = time.time()
+    # # The code around this document is a hack to ensure Edit button (opens VSCode) -> F5 key.
+    # # If a debugger is enabled, you cannot go through these codes under 0.1 second.
+    # # If you feel bothersome to hit continue (F5), just comment out them.
+    # if t2 - t1 < 0.1:
+    #     APP.userInterface.messageBox('Use Edit button -> F5 key, instead of Run button.')
+    #     return
 
+    print('a')
     test_suite = unittest.TestSuite()
 
-    load_automated_tests(test_suite)
-    # load_notorious_tests(test_suite)
+    # load_automated_tests(test_suite)
+    print('b')
+    load_notorious_tests(test_suite)
+    print('c')
 
     # Run a command interactively
 
@@ -141,8 +145,11 @@ def run(context):
     # from composer_test.test_cmd import TestRemoveUndercut
     # test_suite.addTest(TestRemoveUndercut('test_cmd_interactive'))
 
+    print('d')
     runner = unittest.TextTestRunner()
+    print('e')
     runner.run(test_suite)
+    print('f')
 
 
 @catch_exception

@@ -1,4 +1,3 @@
 Specifier,filename,Parameter
 (ISO|Bigass)_Enter,,x_distance y_distance z_angle scale_plane_xy
-1u,,z_angle scale_plane_xy pointer_offset_y
 .*,,z_angle scale_plane_xy
