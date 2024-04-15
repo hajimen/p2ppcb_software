@@ -325,6 +325,9 @@ pip install piprepo setuptools wheel build
 mkdir repos
 cd repos
 mkdir pep503
+cd pep503
+curl -OL https://github.com/hajimen/cefpython/releases/download/20231109/cefpython3_v66.1_for_python_3.11_unofficial-66.1-py3-none-win_amd64.whl
+cd ..
 git clone https://github.com/hajimen/f360_insert_decal_rpa
 cd f360_insert_decal_rpa
 python -m build --wheel
