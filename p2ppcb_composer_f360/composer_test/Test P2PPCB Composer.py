@@ -103,8 +103,8 @@ def run(context):
 
     test_suite = unittest.TestSuite()
 
-    # load_automated_tests(test_suite)
-    load_notorious_tests(test_suite)
+    load_automated_tests(test_suite)
+    # load_notorious_tests(test_suite)
 
     # Run a command interactively
 
