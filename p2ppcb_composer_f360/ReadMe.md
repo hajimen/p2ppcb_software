@@ -12,18 +12,16 @@ and waste a lot of time to get around it.
 
 ## Requirements: Just design a Keyboard
 
-- Windows PC, English
-
-PC0 uses RPA to get around the lack of F360 API features (Windows only). Windows' language should be English
-for RPA. In this case, RPA is platform-dependent.
-
-Also, PC0 uses [`cefpython3`](https://github.com/hajimen/cefpython) package. It doesn't run on Apple Silicon Mac.
+- Windows PC
 
 Mac can do most of PC0 features. But it lacks decals (key top images). Apple Silicon Mac lacks wire route generation too.
 
-- Autodesk Fusion 360 (F360) <https://www.autodesk.com/products/fusion-360/overview>
+- Autodesk Fusion (F360) <https://www.autodesk.com/products/fusion-360/overview>
 
-F360 is a proprietary 3D CAD. Autodesk generously offers charge-free plans for hobbyists so far.
+Autodesk Fusion is a proprietary 3D CAD. Autodesk generously offers charge-free plans for hobbyists so far.
+
+Why does F360 mean Autodesk Fusion? Autodesk has rebranded Fusion 360 to Fusion in 2024. I am too lazy to follow
+such pastime. I will call it Fusion 360 or F360 in all other places.
 
 - QMK Firmware <https://qmk.fm/>
 
