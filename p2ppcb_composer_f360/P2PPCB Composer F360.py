@@ -15,7 +15,20 @@ from p2ppcb_composer.toolbar import init_toolbar, terminate_toolbar
 
 @catch_exception
 def run(context):
+    import adsk.core as ac
+    import adsk.fusion as af
     print('Run P2PPCB Composer F360')
+    app = ac.Application.get()
+    fp: af.FusionProductPreferences = app.preferences.productPreferences.itemByName('Design')
+    if fp.isFirstComponentGroundToParent:
+        ui = app.userInterface
+        r = ui.messageBox(
+                'P2PPCB requires "First component grounded to parent" preference to be disabled, but it is now enabled. Change the preference? If you need to make it enabled, see General -> Design of the Preferences.',
+                'P2PPCB',
+                ac.MessageBoxButtonTypes.OKCancelButtonType)
+        if r != ac.DialogResults.DialogOK:
+            return
+        fp.isFirstComponentGroundToParent = False
     init_toolbar()
 
 

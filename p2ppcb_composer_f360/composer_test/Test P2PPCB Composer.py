@@ -88,8 +88,11 @@ def load_notorious_tests(test_suite: unittest.TestSuite):
 
 @catch_exception
 def run(context):
+    import adsk.fusion as af
     global APP
     APP = ac.Application.get()
+    fp: af.FusionProductPreferences = APP.preferences.productPreferences.itemByName('Design')
+    fp.isFirstComponentGroundToParent = False
 
     t1 = time.time()
     breakpoint()

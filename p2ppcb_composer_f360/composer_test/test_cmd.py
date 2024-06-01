@@ -63,8 +63,8 @@ class TestCmdCommon(unittest.TestCase):
         from p2ppcb_composer.cmd_common import check_layout_plane
         doc = new_document()
         con = reset_context()
-        yz_sk = con.root_comp.sketches.add(con.root_comp.yZConstructionPlane)
-        sp = yz_sk.sketchPoints
+        xy_sk = con.root_comp.sketches.add(con.root_comp.xYConstructionPlane)
+        sp = xy_sk.sketchPoints
         planes = con.root_comp.constructionPlanes
         cp_in = planes.createInput()
         right_points = [
