@@ -310,9 +310,15 @@ class GenerateRouteCommandHandler(CommandHandlerBase):
                 angle = mr.value if end.y < start.y else -mr.value
             flat_cable_placements.append(rt.FlatCablePlacement((start.x, start.y), angle, cable, flip))
         sk.deleteMe()
-        keys_rc, entries_rccp, route_rccp = rt.generate_route(matrix, flat_cable_placements)
-        img_row, img_col = rt.draw_wire(keys_rc, entries_rccp, route_rccp, flat_cable_placements)
-        generated_snippet, via_json = rt.generate_keymap(keys_rc, mc)
+
+        pb = con.ui.progressBar
+        try:
+            pb.show('Generating Route...', 0, 1, True)
+            keys_rc, entries_rccp, route_rccp = rt.generate_route(matrix, flat_cable_placements)
+            img_row, img_col = rt.draw_wire(keys_rc, entries_rccp, route_rccp, flat_cable_placements)
+            generated_snippet, via_json = rt.generate_keymap(keys_rc, mc)
+        finally:
+            pb.hide()
 
         with open(output_dir_path / 'qmk_keymap.txt', 'w') as f:
             f.write(generated_snippet)

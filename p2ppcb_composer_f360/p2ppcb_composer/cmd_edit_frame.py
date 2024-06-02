@@ -105,9 +105,15 @@ def collect_body_from_key(an: str):
 def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_frame_bodies: ty.List[af.BRepBody], offset: float):
     con = get_context()
 
+    def pb_show():
+        con.ui.progressBar.show('Filling Frame...', 0, 1, True)
+    
+    pb_show()
+
     for b in con.comp.bRepBodies:
         if b.name.startswith(BN_FRAME):
             b.deleteMe()
+    pb_show()
 
     combines = con.root_comp.features.combineFeatures
     thicken_fs = con.comp.features.thickenFeatures
@@ -138,21 +144,25 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
                 col.add(f)
             thicken_inp = thicken_fs.createInput(col, ac.ValueInput.createByReal(-(0.3 + offset)), False, af.FeatureOperations.NewBodyFeatureOperation, False)
             tf = thicken_fs.add(thicken_inp)
+            pb_show()
 
             if offset > 0.:
                 thicken_inp2 = thicken_fs.createInput(col, ac.ValueInput.createByReal(-offset), False, af.FeatureOperations.NewBodyFeatureOperation, False)
                 tf2 = thicken_fs.add(thicken_inp2)
+                pb_show()
                 col3 = CreateObjectCollectionT(af.BRepBody)
                 col3.add(tf2.bodies[0])
                 co_in2 = combines.createInput(tf.bodies[0], col3)
                 co_in2.operation = af.FeatureOperations.CutFeatureOperation
                 co_in2.isKeepToolBodies = False
                 _ = combines.add(co_in2)
+                pb_show()
 
             co_in = combines.createInput(tf.bodies[0], col2)
             co_in.operation = af.FeatureOperations.IntersectFeatureOperation
             co_in.isKeepToolBodies = True
             _ = combines.add(co_in)
+            pb_show()
 
         after_bridge_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
         for b in after_bridge_bodies:
@@ -161,6 +171,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         
         for b in list(col2):
             b.deleteMe()
+        pb_show()
 
     if is_generate_bridge:
         if len(ss_bodies) == 0:
@@ -176,6 +187,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
             fill_body_col.add(b)
     else:
         base_body = fill_body_col[0].copyToComponent(con.comp)
+        pb_show()
         fill_body_col.removeByIndex(0)
         base_body.isLightBulbOn = True
 
@@ -184,6 +196,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         co_in3.operation = af.FeatureOperations.JoinFeatureOperation
         co_in3.isKeepToolBodies = True
         _ = combines.add(co_in3)
+        pb_show()
 
     fbs: ty.List[af.BRepBody] = []
     for b in con.comp.bRepBodies:
@@ -194,6 +207,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
             continue
         if b not in before_frame_bodies:
             fbs.append(b)
+    pb_show()
 
     if len(fbs) == 0:
         raise BadCodeException('Bad code or bad parts data.')
@@ -220,6 +234,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
     ifp = planes.itemByName(CPN_FLOOR)
     if ifp is not None:
         ifp.deleteMe()
+        pb_show()
     floor_plane = planes.add(plane_in)
     floor_plane.name = CPN_FLOOR
     plane_z = floor_plane.geometry.origin.z  # F360's bug workaround
@@ -324,7 +339,11 @@ class FillFrameCommandHandler(CommandHandlerBase):
         before_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
         offset = self.offset_cb.get_value()
 
-        fill_frame(self.get_bridge_in().value, profs, before_frame_bodies, offset)
+        pb = con.ui.progressBar
+        try:
+            fill_frame(self.get_bridge_in().value, profs, before_frame_bodies, offset)
+        finally:
+            pb.hide()
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         key_placeholders_occ = get_context().child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
@@ -756,6 +775,12 @@ class PlaceFootCommandHandler(CommandHandlerBase):
 
 def hole_all_parts(frame: af.BRepBody):
     con = get_context()
+
+    def pb_show():
+        con.ui.progressBar.show('Holing Frame...', 0, 1, True)
+    
+    pb_show()
+
     hole_body_col = collect_body_from_key(AN_HOLE)
     other_occs: ty.List[VirtualF3Occurrence] = []
     inl_occ = con.child[CN_INTERNAL]
@@ -787,6 +812,7 @@ def hole_all_parts(frame: af.BRepBody):
         co_in4.operation = af.FeatureOperations.CutFeatureOperation
         co_in4.isKeepToolBodies = True
         _ = combines.add(co_in4)
+        pb_show()
 
     after_frame_bodies = [b for b in con.comp.bRepBodies if b.isSolid]
     nbs: ty.List[af.BRepBody] = []
@@ -834,7 +860,11 @@ class HolePartsCommandHandler(CommandHandlerBase):
 
     def execute_common(self, event_args: CommandEventArgs):
         frame = af.BRepBody.cast(self.get_frame_in().selection(0).entity)
-        hole_all_parts(frame)
+        pb = get_context().ui.progressBar
+        try:
+            hole_all_parts(frame)
+        finally:
+            pb.hide()
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args)

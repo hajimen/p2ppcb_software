@@ -25,6 +25,8 @@ TOOLTIPS_MAIN_LAYOUT_PLANE = ('Main Layout Plane', 'Specify a construction plane
 
 def initialize():
     con = get_context()
+    pb = con.ui.progressBar
+    pb.show('Initializing...', 0, 1, True)
     im = con.app.importManager
 
     def _import(o: F3Occurrence, fn: str, cn: str):
@@ -32,6 +34,7 @@ def initialize():
             con.des.designType = af.DesignTypes.ParametricDesignType  # importToTarget() requires parametric design.
         with create_component(o.comp, cn):
             im.importToTarget(im.createFusionArchiveImportOptions(str(CURRENT_DIR / 'f3d' / fn)), o.comp)
+        pb.show('Initializing...', 0, 1, True)
 
     inl_occ = con.child.get_real(CN_INTERNAL)
     if CN_DEPOT_APPEARANCE not in inl_occ.child:
@@ -51,6 +54,17 @@ def initialize():
 
 
 def generate_scaffold():
+    con = get_context()
+    pb = con.ui.progressBar
+    try:
+        pb.show('Generating...', 0, 1, True)
+        ret = _generate_scaffold_impl()
+    finally:
+        pb.hide()
+    return ret
+
+
+def _generate_scaffold_impl():
     con = get_context()
 
     planes = con.root_comp.constructionPlanes
@@ -139,7 +153,11 @@ class InitializeEventHandler(OnceEventHandler):
         super().__init__(CUSTOM_EVENT_ID_INITIALIZE)
 
     def notify_event(self):
-        initialize()
+        pb = get_context().ui.progressBar
+        try:
+            initialize()
+        finally:
+            pb.hide()
 
 
 class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):

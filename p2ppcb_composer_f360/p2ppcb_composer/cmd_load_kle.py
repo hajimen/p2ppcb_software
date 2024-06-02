@@ -140,24 +140,32 @@ class LoadKleFileCommandHandler(CommandHandlerBase):
 
         pi = get_part_info()
 
+        pb = con.ui.progressBar
         try:
-            place_locators_args = load_kle(kle_file_path, pi)
-        except Exception:
-            raise BadConditionException('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
-
-        place_locators(pi, *place_locators_args)
-
-        place_key_placeholders()
-        specs_ops_on_pn, _, _ = place_locators_args
-        try:
-            pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
-        except parts_resolver.SpecifierException as e:
-            raise BadConditionException(f'Specifier "{e.missed_specifier}" is not available.\nAvailable specifiers:\n' + '\n'.join(e.available_specifiers))
-
-        if len(pps_part) > 0:
-            success = prepare_parts_sync(pps_part)
-            if not success:
+            pb.show('Load KLE is processing %v of %m.', 1, 4)
+            try:
+                place_locators_args = load_kle(kle_file_path, pi)
+            except Exception:
                 raise BadConditionException('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
+            pb.progressValue = 2
+
+            place_locators(pi, *place_locators_args)
+            place_key_placeholders()
+
+            specs_ops_on_pn, _, _ = place_locators_args
+            try:
+                pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
+            except parts_resolver.SpecifierException as e:
+                raise BadConditionException(f'Specifier "{e.missed_specifier}" is not available.\nAvailable specifiers:\n' + '\n'.join(e.available_specifiers))
+
+            pb.progressValue = 3
+
+            if len(pps_part) > 0:
+                success = prepare_parts_sync(pps_part)
+                if not success:
+                    raise BadConditionException('Internal Error: Please restart Fusion 360. If this error occurs again, something is corrupted.')
+        finally:
+            pb.hide()
 
         self.move_comp_cb = MoveComponentCommandBlock(self)
         self.move_comp_cb.notify_create(event_args)

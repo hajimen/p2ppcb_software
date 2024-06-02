@@ -740,7 +740,12 @@ class CheckInterferenceCommandBlock:
             cn: inp.value
             for cn, inp in zip([AN_HOLE, AN_MF, AN_MEV], self.get_checkbox_ins()[1:])
         }
-        return _check_interference(category_enables, move_occs, av)
+        pb = get_context().ui.progressBar
+        try:
+            pb.show('Checking Interference...', 0, 1, True)
+            return _check_interference(category_enables, move_occs, av)
+        finally:
+            pb.hide()
 
 
 class MoveComponentCommandBlock:
