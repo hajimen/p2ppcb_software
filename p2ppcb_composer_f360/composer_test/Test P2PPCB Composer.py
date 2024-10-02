@@ -57,7 +57,7 @@ def load_automated_tests(test_suite: unittest.TestSuite):
     test_suite.addTest(TestLoadKle('test_place_locators'))
 
     from composer_test.test_cmd import TestMatrixRoute
-    test_suite.addTest(TestMatrixRoute('test_generate_route'))
+    test_suite.addTest(TestMatrixRoute('test_generate_route'))  # this test is notoriously slow
     test_suite.addTest(TestMatrixRoute('test_draw_wire'))
     test_suite.addTest(TestMatrixRoute('test_generate_keymap'))
 

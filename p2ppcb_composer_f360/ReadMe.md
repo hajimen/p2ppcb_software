@@ -1,6 +1,6 @@
 # P2PPCB Composer F360
 
-**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360). It helps you to design your own keyboard
+**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion (f.k.a. Fusion 360). It helps you to design your own keyboard
 based on P2PPCB platform <https://github.com/hajimen/p2ppcb_software>.
 I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, provide P2PPCB platform.
 
@@ -315,7 +315,7 @@ To avoid name collision with user's components, I add magic string 'mU0jU' to mo
 
 ## How to build `app-packages-win_amd64` (Windows)
 
-Prepare `%PATH%` for F360's `python.exe` and its `Scripts` directory.
+Prepare venv with python.org's `python.exe`.
 
 ```
 python -m pip install --upgrade pip
@@ -324,7 +324,7 @@ mkdir repos
 cd repos
 mkdir pep503
 cd pep503
-curl -OL https://github.com/hajimen/cefpython/releases/download/20231109/cefpython3_v66.1_for_python_3.11_unofficial-66.1-py3-none-win_amd64.whl
+curl -OL https://github.com/hajimen/cefpython/releases/download/20241002/cefpython3_v66.1_for_python_3.12_unofficial-66.1-py3-none-win_amd64.whl
 cd ..
 git clone https://github.com/hajimen/f360_insert_decal_rpa
 cd f360_insert_decal_rpa
@@ -353,7 +353,7 @@ pip install -r requirements.txt -t app-packages-win_amd64 --extra-index-url ../.
 
 ## How to build `app-packages-macosx_*` (Mac)
 
-Use python.org's or Homebrew's python 3.11 because Mac F360's python lacks `pip` module.
+Use python.org's or Homebrew's python 3.12 because Mac F360's python lacks `pip` module.
 If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
 It is true for F360 itself.
 
@@ -422,7 +422,7 @@ A component by Insert Derive goes wrong about decal:
 
 We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk adds decal API.
 
-Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and I need to build it for Python 3.11.
+Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and I need to build it for Python 3.12.
 It can be a big problem for Windows someday.
 
 (Why using CEF, instead of custom rendering? Because a web browser is a super font resolver and text renderer.
