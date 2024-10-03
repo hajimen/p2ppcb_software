@@ -108,7 +108,7 @@ This command uses RPA when the cache is not enough. You cannot use the mouse/key
 https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b48b-c263d903dbeb.mp4
 
 DISCLAIMER: Key decals will be odd if the display scale is not 150%. It comes from the bizarre behavior of F360.
-F360 lacks decal API.
+F360 has decal API but it doesn't work. See: [Decal API in direct modeling mode raises "RuntimeError: 2 : InternalValidationError : timelineObj"](https://forums.autodesk.com/t5/fusion-api-and-scripts/decal-api-in-direct-modeling-mode-raises-quot-runtimeerror-2/td-p/13056509).
 
 5. Adjust any key
 
@@ -420,7 +420,7 @@ A component by Insert Derive goes wrong about decal:
 
 ## Mac and decals
 
-We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk adds decal API.
+We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk fixes decal API.
 
 Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and I need to build it for Python 3.12.
 It can be a big problem for Windows someday.
