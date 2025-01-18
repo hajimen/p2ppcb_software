@@ -18,7 +18,7 @@ import adsk
 from f360_insert_decal_rpa import start as insert_decal_rpa_start
 from f360_insert_decal_rpa import InsertDecalParameter
 from f360_common import ANS_KEY_PITCH, BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
-    CreateObjectCollectionT, SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, prepare_tmp_dir, reset_context, set_context
+    SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, prepare_tmp_dir, reset_context, set_context
 
 CUSTOM_EVENT_DONE_ID = 'rpa_done'
 CUSTOM_EVENT_ERROR_ID = 'rpa_error'
@@ -303,7 +303,7 @@ class PartsDepot:
                 else:
                     pil_image = Image.open(image)
                     all_white = True
-                    for rgb in pil_image.getdata():
+                    for rgb in pil_image.getdata():  # type: ignore
                         if rgb != (255, 255, 255):
                             all_white = False
                             break
@@ -334,7 +334,7 @@ class PartsDepot:
                                 ('P2PPCB Depot', 'pattern_hash', hashlib.md5(pattern_hash_bytes).hexdigest()),
                                 ('P2PPCB Depot', 'img_hash', hashlib.md5(img_hash_bytes).hexdigest())
                             ],
-                            **convert_quantity_to_float(lp.decal_parameters)))
+                            **convert_quantity_to_float(lp.decal_parameters)))  # type: ignore
             locator_hashes_on_patterns.append(locator_hashes)
 
         self.pattern_hashes = pattern_hashes
@@ -453,7 +453,7 @@ class PartsDepot:
                                     ('P2PPCB Depot', 'fp_hash', fp_hash),
                                     ('P2PPCB Depot', 'cpdp_hash', hashlib.md5(cpdp_hash_bytes).hexdigest()),
                                     ('P2PPCB Depot', 'img_hash', hashlib.md5(img_hash_bytes).hexdigest())
-                                ], **convert_quantity_to_float(pp.cap_placeholder_parameters.decal_parameters)))
+                                ], **convert_quantity_to_float(pp.cap_placeholder_parameters.decal_parameters)))  # type: ignore
                 cp_img_cpdp_hashes_on_fps.append(cp_img_cpdp_hashes)
 
         self.fp_hashes = fp_hashes
