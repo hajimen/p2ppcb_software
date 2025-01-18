@@ -159,7 +159,8 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict
     sketch: af.Sketch = occ.comp.sketches.add(occ.comp.xYConstructionPlane)
     lines = sketch.sketchCurves.sketchLines
     p: float = min([pitch_wd[an].m_as('cm') for an in ANS_KEY_PITCH])
-    src_slc = CreateObjectCollectionT(af.SketchLine)
+    # src_slc = CreateObjectCollectionT(af.SketchLine)
+    src_slc: list[af.SketchCurve] = []
     for v, d in zip(vertices, directions):
         s = v * p
         s = (s[1], -s[0])
@@ -169,17 +170,26 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict
             ac.Point3D.create(*s, 0.),
             ac.Point3D.create(*e, 0.)
         )
-        src_slc.add(sl)
-    new_slc: ac.ObjectCollectionT[af.SketchLine] = sketch.offset(
-        src_slc, ac.Point3D.create(0., 0., 0.),
-        (p * (54 - 42)) / 2 / 54  # KLE's pitch is 54 and key top is 42.
-    )  # type: ignore
+        src_slc.append(sl)
+    # new_slc: ac.ObjectCollectionT[af.SketchLine] = sketch.offset(
+    #     src_slc, ac.Point3D.create(0., 0., 0.),
+    #     (p * (54 - 42)) / 2 / 54  # KLE's pitch is 54 and key top is 42.
+    # )  # type: ignore
+    ci = sketch.geometricConstraints.createOffsetInput(
+        src_slc,
+        ac.ValueInput.createByReal((p * (54 - 42)) / 2 / 54)  # KLE's pitch is 54 and key top is 42.
+    )
+    oc = sketch.geometricConstraints.addOffset2(ci)
+    new_slc = [af.SketchLine.cast(c) for c in oc.childCurves]
+
     for sl in src_slc:
         sl.deleteMe()
+
     arcs = sketch.sketchCurves.sketchArcs
     for i in range(len(new_slc)):
         sl1 = new_slc[i]
         sl2 = new_slc[(i + 1) % len(new_slc)]
+        sl1.length
         arcs.addFillet(sl1, sl1.endSketchPoint.geometry, sl2, sl2.startSketchPoint.geometry, 0.2)
     prof = sketch.profiles[0]
     pa_in = occ.comp.features.patchFeatures.createInput(prof, af.FeatureOperations.NewBodyFeatureOperation)
@@ -415,7 +425,7 @@ class PartsDepot:
                     else:
                         pil_image = Image.open(image)
                         all_white = True
-                        for rgb in pil_image.getdata():
+                        for rgb in pil_image.getdata():  # type: ignore
                             if rgb != (255, 255, 255):
                                 all_white = False
                                 break
