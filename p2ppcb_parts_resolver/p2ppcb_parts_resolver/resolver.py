@@ -410,7 +410,7 @@ class PartsInfo:
             wh = sorted([k.width, k.height])
             if wh[0] == 1 and k.width2 == k.width and k.height == k.height2 and k.x2 == 0 and k.y2 == 0:
                 if k.height > k.width:
-                    pattern_rotation = Image.ROTATE_90
+                    pattern_rotation = Image.Transpose.ROTATE_90
                 w = wh[1]
                 if w == 1:
                     if k.nub:
@@ -435,7 +435,7 @@ class PartsInfo:
                 def _find():
                     for pattern_name, pattern in KEY_AREA_PATTERN_DIC.items():
                         rp = pattern
-                        for r in [None, Image.ROTATE_270, Image.ROTATE_180, Image.ROTATE_90]:
+                        for r in [None, Image.Transpose.ROTATE_270, Image.Transpose.ROTATE_180, Image.Transpose.ROTATE_90]:
                             hit = np.all(sliding_window_view(area, rp.shape) == rp, (2, 3))
                             if np.any(hit):
                                 hit_iy, hit_ix = np.argwhere(hit)[0]
@@ -463,14 +463,18 @@ class PartsInfo:
                     image = Image.open(image_path)
                     image = image.transpose(pattern_rotation)
                     image.save(image_path)
-                angle += {Image.ROTATE_270: -90, Image.ROTATE_180: 180, Image.ROTATE_90: 90}[pattern_rotation]
+                angle += {
+                    Image.Transpose.ROTATE_270: -90,
+                    Image.Transpose.ROTATE_180: 180,
+                    Image.Transpose.ROTATE_90: 90
+                }[pattern_rotation]
                 rot_mat = np.array({
-                    Image.ROTATE_90: [[0., 1.], [-1., 0.]],
-                    Image.ROTATE_180: [[-1., 0.], [0., -1.]],
-                    Image.ROTATE_270: [[0., -1.], [1., 0.]],
+                    Image.Transpose.ROTATE_90: [[0., 1.], [-1., 0.]],
+                    Image.Transpose.ROTATE_180: [[-1., 0.], [0., -1.]],
+                    Image.Transpose.ROTATE_270: [[0., -1.], [1., 0.]],
                 }[pattern_rotation])
                 image_center_offset_u = ty.cast(ty.Tuple[float, float], tuple(rot_mat @ np.array(image_center_offset_u)))
-                image_whu = image_whu if pattern_rotation == Image.ROTATE_180 else (image_whu[1], image_whu[0])
+                image_whu = image_whu if pattern_rotation == Image.Transpose.ROTATE_180 else (image_whu[1], image_whu[0])
             if k.rotation_angle != 0:
                 orig_mat = np.array([[1., 0., -k.rotation_x], [0., 1., -k.rotation_y], [0., 0., 1.]])
                 trans_mat = np.array([[1., 0., k.rotation_x], [0., 1., k.rotation_y], [0., 0., 1.]])

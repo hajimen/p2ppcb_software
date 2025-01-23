@@ -1,33 +1,40 @@
 # Changelog
 
-## Initial Release: Version 0.1.4 : 2021/12/13
+## [0.1.12] - 2025-02-XX
 
-## Version 0.1.5 : 2021/12/19
+- Runs with latest dependencies.
+- Changelog style has been changed.
 
-- Spacebar width threshold has been changed to 5u.
-- Now `Placeholder` parameter is collected as a special parameter.
+## [0.1.11] - 2023-07-25
 
-## Version 0.1.6 : 2021/12/20
+- `resolve_kle()` without image is available now. It doesn't require `kle-scraper` too.
+
+## [0.1.10] - 2022-05-25
+
+- Special parameters `Stabilizer[X|Y|Angle]` added.
+
+## [0.1.9] - 2022-05-01
+
+- `StabilizerTravel` added. Now stabilizer's `z_pos` is adjusted by travel bottom.
+
+## [0.1.8] - 2022-02-01
+
+- Now `OccurrenceParameter` holds `i_kle`.
+
+## [0.1.7] - 2022-01-20
+
+- The return type of `resolve_kle()` has been modified.
+
+## [0.1.6] - 2021-12-20
 
 - Special parameters `SwitchAngle`, `SwitchX`, and `SwitchY` are added. Now `resolve_specifier()` returns
 `switch_xya`.
 
-## Version 0.1.7 : 2022/1/20
+## [0.1.5] - 2021-12-19
 
-- The return type of `resolve_kle()` has been modified.
+- Spacebar width threshold has been changed to 5u.
+- Now `Placeholder` parameter is collected as a special parameter.
 
-## Version 0.1.8 : 2022/2/1
+## [0.1.4] - 2021-12-13
 
-- Now `OccurrenceParameter` holds `i_kle`.
-
-## Version 0.1.9 : 2022/5/1
-
-- `StabilizerTravel` added. Now stabilizer's `z_pos` is adjusted by travel bottom.
-
-## Version 0.1.10 : 2022/5/25
-
-- Special parameters `Stabilizer[X|Y|Angle]` added.
-
-## Version 0.1.11 : 2023/7/25
-
-- `resolve_kle()` without image is available now. It doesn't require `kle-scraper` too.
+- Initial release

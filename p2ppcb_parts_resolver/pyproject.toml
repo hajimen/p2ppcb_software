@@ -9,7 +9,7 @@ description = "p2ppcb_parts_resolver is a resolver for deeply complicated parame
 authors = [{name = "Hajime Nakazato", email = "hajime@kaoriha.org"},]
 license ={text = "MIT License"}
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -23,7 +23,7 @@ dependencies = [
     "numpy",
     "pillow",
     "pykle-serial",
-    "kle-scraper ; platform_system == \"Windows\"",
+    "kle-scraper",
 ]
 
 [project.urls]
