@@ -2,7 +2,6 @@ import base64
 import importlib
 import json5
 import json
-from operator import attrgetter
 import re
 from itertools import product
 from collections import defaultdict
@@ -11,7 +10,6 @@ from dataclasses import dataclass, field
 import typing as ty
 import zlib
 
-import mip
 from PIL import Image, ImageDraw, ImageOps, ImageFont
 from PIL.Image import Image as ImageType
 import numpy as np
@@ -19,7 +17,7 @@ from p2ppcb_composer.cmd_common import AN_MAINBOARD
 from route import dubins
 from f360_common import AN_ROW_NAME, AN_SWITCH_DESC, AN_SWITCH_ORIENTATION, CN_INTERNAL, CN_KEY_LOCATORS, CNP_PARTS, BadCodeException, \
     get_context, key_locator_name, load_kle_by_b64, get_part_info, get_parts_data_path, AN_KEY_PITCH_W, AN_KEY_PITCH_D, FourOrientation, AN_KLE_B64, \
-    CURRENT_DIR, BadConditionException, AN_LOCATORS_ENABLED
+    CURRENT_DIR, AN_LOCATORS_ENABLED
 from p2ppcb_parts_resolver.resolver import SPN_SWITCH_ANGLE
 
 
@@ -202,10 +200,9 @@ def _make_dist_map(keys: ty.List[Key], rc: RC, entry: Entry):
 
 
 def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty.List[FlatCablePlacement]):
-    try:
-        import mip.cbc
-    except NameError:
-        raise BadConditionException('Currently PC0 cannot generate route on Apple Silicon. Dig "arch" command to run F360 by x86_64.')
+    import pulp
+    from pulp import lpSum
+
     reverse_matrix: ty.Dict[str, ty.Tuple[str, str]] = {}
     for row_name, col_dic in matrix.items():
         for col_name, kl_name in col_dic.items():
@@ -301,46 +298,87 @@ def generate_route(matrix: ty.Dict[str, ty.Dict[str, str]], cable_placements: ty
             GOAL: VertexType = (N, TerminalDirection.Left)
             V_GOAL = V | {GOAL}
 
-            model = mip.Model()
+            model = pulp.LpProblem(sense=pulp.LpMinimize)
             # binary variables indicating if arc (i,j) is used on the route or not
-            x = {(i, j): model.add_var(var_type=mip.BINARY) for i, j in product(V_START, V_GOAL) if i[0] != j[0] and not (i == START and j == GOAL)}
+            x = {
+                (i, j): pulp.LpVariable(f'x({i}, {j})', cat=pulp.LpBinary)
+                for i, j in product(V_START, V_GOAL)
+                if i[0] != j[0] and not (i == START and j == GOAL)
+            }
 
             # continuous variable to prevent subtours: each terminal will have a
             # different sequential id in the planned route except the first one
-            y = {n: model.add_var() for n in T}
+            y = {n: pulp.LpVariable(f'y({n})', cat=pulp.LpContinuous) for n in T}
 
             # objective function: minimize the distance
-            model.objective = mip.minimize(mip.xsum(dist_map[i, j] * x[i, j] for i, j in product(V_START, V) if i[0] != j[0]))  # type: ignore
+            model += (
+                lpSum(
+                    dist_map[i, j] * x[i, j]
+                    for i, j in product(V_START, V)
+                    if i[0] != j[0]
+                )
+            )
 
             # constraint: cannot use the same direction of a terminal for enter / leave both
             for v in V:
-                model += mip.xsum(x[v, j] for j in V_GOAL if j[0] != v[0]) + mip.xsum(x[i, v] for i in V_START if i[0] != v[0]) <= 1  # type: ignore
+                model += (
+                    lpSum(
+                        x[v, j]
+                        for j in V_GOAL
+                        if j[0] != v[0]
+                    ) + lpSum(
+                        x[i, v]
+                        for i in V_START
+                        if i[0] != v[0]
+                    ) <= 1
+                )
 
             # constraint : leave each terminal only once except goal
-            model += mip.xsum(x[START, j] for j in V) == 1
+            model += (
+                lpSum(x[START, j] for j in V) == 1
+            )
             for n in range(N):
-                model += mip.xsum(x[(n, td), j] for td, j in product(TerminalDirection, V_GOAL) if n != j[0]) == 1
+                model += (
+                    lpSum(
+                        x[(n, td), j]
+                        for td, j in product(TerminalDirection, V_GOAL)
+                        if n != j[0]
+                    ) == 1
+                )
 
             # constraint : enter each terminal only once except start
             for m in range(N):
-                model += mip.xsum(x[i, (m, td)] for td, i in product(TerminalDirection, V_START) if m != i[0]) == 1
-            model += mip.xsum(x[i, GOAL] for i in V) == 1
+                model += (
+                    lpSum(
+                        x[i, (m, td)]
+                        for td, i in product(TerminalDirection, V_START)
+                        if m != i[0]
+                    ) == 1
+                )
+            model += (
+                lpSum(x[i, GOAL] for i in V) == 1
+            )
 
             # subtour elimination
             for (n, m) in product(range(N), range(N)):
                 if n != m:
-                    model += y[n] - (N + 1) * mip.xsum(x[(n, td1), (m, td2)] for td1, td2 in product(TerminalDirection, TerminalDirection)) >= y[m] - N  # type: ignore
+                    model += (
+                        y[n] - (N + 1) * lpSum(
+                            x[(n, td1), (m, td2)]
+                            for td1, td2 in product(TerminalDirection, TerminalDirection)
+                        ) >= y[m] - N
+                    )
 
             # optimizing
-            model.threads = 4
-            model.optimize(max_seconds=5)  # type: ignore
+            model.solve()
 
-            if model.num_solutions == 0:
+            # if model.num_solutions == 0:
+            if model.status != 1:
                 raise BadCodeException()
             line: Line = []
             i = START
             while True:
-                js = [j for j in V_GOAL if (i, j) in x and x[i, j].x >= 0.99]  # type: ignore
+                js = [j for j in V_GOAL if (i, j) in x and pulp.value(x[i, j]) >= 0.99]  # type: ignore
                 if len(js) == 0:
                     raise BadCodeException()
                 j = js[0]
@@ -513,7 +551,7 @@ def draw_wire(keys_rc: ty.Dict[RC, KeysOnPinType], entries_rccp: ty.Dict[RC_CP, 
 
 def read_json_by_b64(json_b64: str) -> ty.Any:
     content = zlib.decompress(base64.b64decode(json_b64))
-    return json5.loads(content)
+    return json5.loads(content.decode('utf-8'))
 
 
 def generate_keymap(keys_rc: ty.Dict[RC, KeysOnPinType], mbc: 'MainboardConstants'):

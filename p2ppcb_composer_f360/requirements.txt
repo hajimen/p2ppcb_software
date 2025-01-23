@@ -1,4 +1,4 @@
 p2ppcb_parts_resolver
 f360_insert_decal_rpa >= 0.1.13
 kle-scraper
-mip == 1.16rc0
+pulp == 2.9.0
