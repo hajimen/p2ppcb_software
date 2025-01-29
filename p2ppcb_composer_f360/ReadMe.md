@@ -4,11 +4,8 @@
 based on P2PPCB platform <https://github.com/hajimen/p2ppcb_software>.
 I, DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>, provide P2PPCB platform.
 
-DISCLAIMER: PC0 is slow for a large keyboard, so far. Initial "Load KLE" command can take several minutes.
+DISCLAIMER: PC0 is slow for a large keyboard, so far. Initial **Load KLE** command can take several minutes.
 Please start with making small studies and get a good grasp of the time consumption.
-
-DISCLAIMER: So far, PC0 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug
-and waste a lot of time to get around it.
 
 ## Requirements: Just designing a Keyboard
 
@@ -22,13 +19,6 @@ Autodesk Fusion is a proprietary 3D CAD. Autodesk generously offers charge-free 
 
 Why does F360 mean Autodesk Fusion? Autodesk has rebranded Fusion 360 to Fusion in 2024. I am too lazy to follow
 such pastime. I will call it Fusion 360 or F360 in all other places.
-
-- QMK Firmware <https://qmk.fm/>
-
-You need your own firmware for your own design. PC0 will help you, but you need to be well informed about QMK.
-
-P2PPCB mainboards require special code for their own hardware. I have prepared the codebase which handles the custom hardware:
-<https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork the `p2ppcb` branch for your own design.
 
 ## Requirements: Building your own design
 
@@ -54,6 +44,13 @@ an elaborated design. Failure teaches success.
 - P2PPCB components by DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>
 
 PC0 is free, but P2PPCB components aren't :-).
+
+- QMK Firmware <https://qmk.fm/>
+
+You need your own firmware for your own design. PC0 will help you, but you need to be well informed about QMK.
+
+P2PPCB mainboards require special code for their own hardware. I have prepared the codebase which handles the custom hardware:
+<https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork the `p2ppcb` branch for your own design.
 
 - Switches, keycaps, stabilizers
 
@@ -107,8 +104,10 @@ This command uses RPA when the cache is not enough. You cannot use the mouse/key
 
 https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b48b-c263d903dbeb.mp4
 
-DISCLAIMER: Key decals will be odd if the display scale is not 150%. It comes from the bizarre behavior of F360.
-F360 has decal API but it doesn't work. See: [Decal API in direct modeling mode raises "RuntimeError: 2 : InternalValidationError : timelineObj"](https://forums.autodesk.com/t5/fusion-api-and-scripts/decal-api-in-direct-modeling-mode-raises-quot-runtimeerror-2/td-p/13056509).
+DISCLAIMER: Key decals can be odd if the display scale is not 150%. It comes from the bizarre behavior of F360.
+F360 has decal API but it doesn't work. 
+See: [Decal API in direct modeling mode raises "RuntimeError: 2 : InternalValidationError : timelineObj"](https://forums.autodesk.com/t5/fusion-api-and-scripts/decal-api-in-direct-modeling-mode-raises-quot-runtimeerror-2/td-p/13056509)
+and [Odd bug of Decal API](https://forums.autodesk.com/t5/fusion-api-and-scripts/odd-bug-of-decal-api/m-p/13268922).
 
 5. Adjust any key
 
@@ -225,7 +224,7 @@ the placeholders of keys sometimes slip. This is F360's bug. In this case, use t
 
 ## Advanced features and design
 
-### 'Place Misc' command
+### **Place Misc** command
 
 This command places a F3D file for miscellaneous parts and components.
 So far this command is for:
@@ -247,7 +246,7 @@ Once the place is adjusted perfectly,
 copy the Fill body to the root component and connect it to the frame body.
 Hole will be done by running **Hole** command.
 
-### 'Regex Select' command
+### **Regex Select** command
 
 You can create a fully functional keyboard that has only a frame, no cover.
 This is good enough for prototyping. But in some cases you may need a cover.
@@ -263,13 +262,13 @@ The bug: <https://forums.autodesk.com/t5/fusion-360-api-and-scripts/selectionset
 
 CAUTION: Unselect all objects before running the command.
 
-### 'Remove Undercut' command
+### **Remove Undercut** command
 
-Covers should be assemblable with their frames. You will encounter undercuts by running 'Combine' command.
+Covers should be assemblable with their frames. You will encounter undercuts by running **Combine** command.
 They will make a cover impossible to assemble.
-To remove undercuts, run 'Remove Undercut' command, select surfaces and a cover body.
+To remove undercuts, run **Remove Undercut** command, select surfaces and a cover body.
 
-### 'Set Attribute' and 'Check Key Assembly' commands
+### **Set Attribute** and **Check Key Assembly** commands
 
 See the tooltips for each command. Creating a part's data requires deep knowledge, including F360's bug.
 You should be a developer of PC0 if you want to create a part's data.
@@ -375,16 +374,21 @@ cd p2ppcb_composer_f360
 
 Architecture dependent part:
 
-```
+```bash
 tag='macosx_10_10_x86_64'  # or 'macosx_11_0_arm64'
 pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
 ```
 
 # Further development
 
-So far, PC0 remains in sketchy quality. *In many cases*, it helps you to design your own keyboard.
-In some cases, it annoys you more than it helps.
-In other cases, it gets stuck in F360's bugs. We need further development to improve the quality of PC0.
+PC0 has been improved over the past few years. But I am thinking about the future of F360.
+In my opinion, rebranding (Fusion 360 to Fusion) is a bad sign of the business.
+Recent decal API bugs are quite easy to find, but shipped in the product.
+Furthermore, Autodesk guys say nothing to the bug reports on the official forum (No bug fix after three months, of course).
+I can't help but doubt F360 is going to die. So now I am reluctant to invest much more on F360.
+
+If decal API bugs are fixed, I will use the API. I will follow embedded Python update (so far).
+But no big improvements will be done.
 
 ## F360's bugs that can annoy you or get you stuck
 
