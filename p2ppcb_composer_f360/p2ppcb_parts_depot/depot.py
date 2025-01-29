@@ -474,25 +474,17 @@ class PartsDepot:
     def _prepare_next_impl(self, acc_occ: F3Occurrence) -> None:
         con = get_context()
 
-        def exec(cmd, fail_object):
-            result = con.app.executeTextCommand(cmd)
-            if result != 'Ok':
-                raise BadCodeException(f"Failed to do {fail_object}.")
-        
         def copy_paste_new(obj_occ: F3Occurrence, acc_occ: F3Occurrence, new_name: str, is_visible: bool):
-            acs = con.ui.activeSelections
             if new_name is acc_occ.child:
                 del acc_occ.child[new_name]
-            with create_component(acc_occ.comp, new_name) as container:
-                acs.clear()
-                acs.add(obj_occ.raw_occ)
-                exec('Commands.Start CopyCommand', 'Ctrl-C copy')
-                acs.clear()
-                acs.add(acc_occ.raw_occ)
-                exec('Commands.Start FusionPasteNewCommand', '"Paste New"')
-                exec('NuCommands.CommitCmd', 'OK in the dialog')
-                acs.clear()
-            o = container.pop()
+
+            m = ac.Matrix3D.create()
+            m.setToIdentity()
+            raw_o = acc_occ.comp.occurrences.addNewComponentCopy(obj_occ.comp, m)
+            if raw_o is None:
+                raise Exception('addNewComponentCopy returned None')
+            o = F3Occurrence(raw_o)
+            o.name = new_name
             o.light_bulb = is_visible
             return
 
