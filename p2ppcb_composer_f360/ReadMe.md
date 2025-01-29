@@ -10,11 +10,11 @@ Please start with making small studies and get a good grasp of the time consumpt
 DISCLAIMER: So far, PC0 remains at sketchy quality. In some cases, you'll get stuck into F360's critical bug
 and waste a lot of time to get around it.
 
-## Requirements: Just design a Keyboard
+## Requirements: Just designing a Keyboard
 
 - Windows PC
 
-Mac can do most of PC0 features. But it lacks decals (key top images). Apple Silicon Mac lacks wire route generation too.
+Mac can do most of PC0 features. But it lacks decals (key top images).
 
 - Autodesk Fusion (F360) <https://www.autodesk.com/products/fusion-360/overview>
 
@@ -30,7 +30,7 @@ You need your own firmware for your own design. PC0 will help you, but you need 
 P2PPCB mainboards require special code for their own hardware. I have prepared the codebase which handles the custom hardware:
 <https://github.com/hajimen/qmk_firmware/tree/p2ppcb>. Fork the `p2ppcb` branch for your own design.
 
-## Requirements: Create your own design
+## Requirements: Building your own design
 
 - A 3D printing service shop
 
@@ -60,7 +60,7 @@ PC0 is free, but P2PPCB components aren't :-).
 If you need custom printed keycaps for your own design, contact DecentKeyboards <https://www.etsy.com/shop/DecentKeyboards>.
 I can make custom printed PBT keycaps. The total cost will be from about $30.
 
-## Installation
+## Install
 
 Download the latest release file from here: <https://github.com/hajimen/p2ppcb_software/releases>
 
@@ -72,7 +72,7 @@ Now the "P2PPCB" tab should appear in the F360 menu.
 
 https://user-images.githubusercontent.com/1212166/205190084-6b400099-2b3c-4de8-aa02-cd9ade1af381.mp4
 
-## Overview of operation
+## Overview of operations
 
 1. Design your own key layout using KLE <http://www.keyboard-layout-editor.com/> and download the result in JSON. The file is a KLE file.
 
@@ -281,7 +281,12 @@ Let's see the hacks.
 
 ## RPA for decals
 
-F360 API cannot handle decals yet. So I need to get around the limitation by using RPA.
+Now (2025/01/29) F360 decal API has two severe bugs:
+
+- [Decal API in direct modeling mode raises "RuntimeError: 2 : InternalValidationError : timelineObj"](https://forums.autodesk.com/t5/fusion-api-and-scripts/decal-api-in-direct-modeling-mode-raises-quot-runtimeerror-2/m-p/13056509)
+- [Odd bug of Decal API](https://forums.autodesk.com/t5/fusion-api-and-scripts/odd-bug-of-decal-api/m-p/13268922/highlight/true#M22761)
+
+So I need to get around the bugs by using RPA.
 The hack is modularized as **f360_insert_decal_rpa** <https://github.com/hajimen/f360_insert_decal_rpa>.
 
 ## Regression tests
@@ -291,8 +296,7 @@ hacks.
 
 Convenient command launchers for debugging are available in `composer_test`. See the code.
 
-`test_generate_route` is quite slow while the VSCode debugger is attached.
-This is due to the behavior of cefpython3 under F360 + VSCode debugger. I don't know why.
+`test_generate_route` is quite slow while the VSCode debugger is attached. I don't know why.
 
 ## Lazy binding through surrogate
 
@@ -317,27 +321,17 @@ To avoid name collision with user's components, I add magic string 'mU0jU' to mo
 
 Prepare venv with python.org's `python.exe`.
 
-```
+```powershell
 python -m pip install --upgrade pip
 pip install piprepo setuptools wheel build
 mkdir repos
 cd repos
 mkdir pep503
 cd pep503
-curl -OL https://github.com/hajimen/cefpython/releases/download/20241002/cefpython3_v66.1_for_python_3.12_unofficial-66.1-py3-none-win_amd64.whl
+curl -OL https://github.com/hajimen/cef-capi-py/releases/download/131.3.5/cef_capi_py-131.3.5-py3-none-win_amd64.whl
 cd ..
 git clone https://github.com/hajimen/f360_insert_decal_rpa
 cd f360_insert_decal_rpa
-python -m build --wheel
-cp dist/*.whl ../pep503
-cd ..
-git clone https://github.com/hajimen/pykle_serial
-cd pykle_serial
-python -m build --wheel
-cp dist/*.whl ../pep503
-cd ..
-git clone https://github.com/hajimen/kle_scraper
-cd kle_scraper
 python -m build --wheel
 cp dist/*.whl ../pep503
 cd ..
@@ -359,7 +353,7 @@ It is true for F360 itself.
 
 Architecture independent part:
 
-```
+```bash
 pip install --upgrade pip
 pip install piprepo setuptools wheel build
 mkdir repos
@@ -367,11 +361,6 @@ cd repos
 mkdir pep503
 git clone https://github.com/hajimen/f360_insert_decal_rpa
 cd f360_insert_decal_rpa
-python -m build --wheel
-cp dist/*.whl ../pep503
-cd ..
-git clone https://github.com/hajimen/pykle_serial
-cd pykle_serial
 python -m build --wheel
 cp dist/*.whl ../pep503
 cd ..
@@ -420,15 +409,4 @@ A component by Insert Derive goes wrong about decal:
 
 ## Mac and decals
 
-We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk fixes decal API.
-
-Moreover, `cefpython3` is going to be obsolete. It haven't be updated from 2021 and I need to build it for Python 3.12.
-It can be a big problem for Windows someday.
-
-(Why using CEF, instead of custom rendering? Because a web browser is a super font resolver and text renderer.
-The resolution and rendering is almost impossible to mimic.)
-
-## Route generation on Apple Silicone
-
-Actually we can make it work by building the COIN-OR CBC source and setting the environment variables.
-But I think we should wait for Python-MIP project make it available.
+We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk fixes decal API bugs.
