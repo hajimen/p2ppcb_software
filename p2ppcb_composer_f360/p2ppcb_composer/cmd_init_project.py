@@ -266,8 +266,8 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             scaffold_disabled = not scaffold_in.value
             for ci in self.get_selection_ins() + self.parts_cb.get_option_ins() \
                     + (self.get_pitch_w_in(), self.get_pitch_d_in(), self.get_mainboard_in(), self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in()):
-                ci.isEnabled = scaffold_disabled
                 ci.isVisible = scaffold_disabled
+                ci.isEnabled = scaffold_disabled
             for sci in self.get_selection_ins():
                 c = 1 if scaffold_disabled else 0
                 sci.setSelectionLimits(c, c)
