@@ -611,7 +611,7 @@ def _check_interference(category_enables: ty.Dict[str, bool], move_occs: ty.List
                 raise BadCodeException()
             if handedness[1]:
                 lr = lr[::-1]
-            ret.append(tuple(lr))
+            ret.append((lr[0], lr[1]))
         return ret
 
     def _check_mev_mev(left_part_occ: VirtualF3Occurrence, right_part_occ: VirtualF3Occurrence) -> list[tuple[af.BRepBody, af.BRepBody]]:

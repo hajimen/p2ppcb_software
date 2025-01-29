@@ -19,7 +19,11 @@ def run(context):
     import adsk.fusion as af
     print('Run P2PPCB Composer F360')
     app = ac.Application.get()
-    fp: af.FusionProductPreferences = app.preferences.productPreferences.itemByName('Design')
+    _fp = app.preferences.productPreferences.itemByName('Design')
+    if _fp is None:
+        print("ERROR: app.preferences.productPreferences.itemByName('Design') is None")
+        raise Exception("app.preferences.productPreferences.itemByName('Design') is None")
+    fp = af.FusionProductPreferences.cast(_fp)
     if fp.isFirstComponentGroundToParent:
         ui = app.userInterface
         r = ui.messageBox(
