@@ -17,7 +17,7 @@ def get_tag():
     elif ps == 'Darwin':
         pm = platform.machine()
         if pm == 'x86_64':
-            return 'macosx_10_10_x86_64'
+            return 'macosx_11_0_x86_64'
         elif pm == 'arm64':
             return 'macosx_11_0_arm64'
     ac.Application.get().userInterface.messageBox('This platform is not available.')

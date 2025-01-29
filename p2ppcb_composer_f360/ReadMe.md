@@ -358,6 +358,10 @@ pip install piprepo setuptools wheel build
 mkdir repos
 cd repos
 mkdir pep503
+cd pep503
+curl -OL https://github.com/hajimen/cef-capi-py/releases/download/131.3.5/cef_capi_py-131.3.5-py3-none-macosx_11_0_arm64.whl
+curl -OL https://github.com/hajimen/cef-capi-py/releases/download/131.3.5/cef_capi_py-131.3.5-py3-none-macosx_11_0_x86_64.whl
+cd ..
 git clone https://github.com/hajimen/f360_insert_decal_rpa
 cd f360_insert_decal_rpa
 python -m build --wheel
@@ -375,7 +379,7 @@ cd p2ppcb_composer_f360
 Architecture dependent part:
 
 ```bash
-tag='macosx_10_10_x86_64'  # or 'macosx_11_0_arm64'
+tag='macosx_11_0_x86_64'  # or 'macosx_11_0_arm64'
 pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
 ```
 
