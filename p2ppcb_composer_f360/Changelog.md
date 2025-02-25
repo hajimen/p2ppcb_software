@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.x] - 2025-0x-xx
+
+- PCB snap design has been adjusted.
+
 ## [0.1.2] - 2025-01-29
 
 - Now it looks stable enough to track changelog.
