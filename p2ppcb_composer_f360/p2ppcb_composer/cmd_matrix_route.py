@@ -26,14 +26,16 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             rt.RC.Row: af.CustomGraphicsSolidColorEffect.create(ac.Color.create(255, 0, 0, 255)),
             rt.RC.Col: af.CustomGraphicsSolidColorEffect.create(ac.Color.create(0, 0, 255, 255)),
         }
+        self.text_color_warn = af.CustomGraphicsSolidColorEffect.create(ac.Color.create(255, 255, 0, 255))
         m = ac.Matrix3D.create()
         m.setCell(0, 3, -0.7)
         m.setCell(2, 3, 0.3)
         mr = m.copy()
         mr.setCell(1, 3, -0.6)
-        mc = m
+        mc = m.copy()
         mc.setCell(1, 3, 0.4)
         self.m_rc = {rt.RC.Row: mr, rt.RC.Col: mc}
+        self.m_warn = m
         self.bb = af.CustomGraphicsBillBoard.create(ORIGIN_P3D)
         self.bb.billBoardStyle = af.CustomGraphicsBillBoardStyles.ScreenBillBoardStyle
         self.last_light_bulb = False
@@ -194,6 +196,11 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         cgt.billBoarding = self.bb
         cgt.color = self.text_color_rc[rc]
 
+    def add_unfilled_text(self, cg: af.CustomGraphicsGroup):
+        cgt = cg.addText('X', 'Arial', 1, self.m_warn)
+        cgt.billBoarding = self.bb
+        cgt.color = self.text_color_warn
+
     def show_billboard(self):
         key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
         self.last_light_bulb = key_locators.light_bulb
@@ -206,16 +213,25 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                 cg = cgs.add()
                 if ANS_RC_NAME[irc] in kl_occ.comp_attr:
                     self.add_cg_text(kl_occ, cg, irc)
+            cg = cgs.add()
+            if not all(ANS_RC_NAME[irc] in kl_occ.comp_attr for irc in rt.RC):
+                self.add_unfilled_text(cg)
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.notify_execute_common(event_args)
         rc = self.get_rc()
         for kl_occ in self.get_selected_locators():
-            cg = kl_occ.comp.customGraphicsGroups[rc]
-            for cge in list(cg):
+            cgs = kl_occ.comp.customGraphicsGroups
+            for cge in list(cgs[rc]):
                 cge.deleteMe()
             if ANS_RC_NAME[rc] in kl_occ.comp_attr:
-                self.add_cg_text(kl_occ, cg, rc)
+                self.add_cg_text(kl_occ, cgs[rc], rc)
+            cg = cgs[2]
+            for cge in list(cg):
+                cge.deleteMe()
+            if not all(ANS_RC_NAME[irc] in kl_occ.comp_attr for irc in rt.RC):
+                self.add_unfilled_text(cg)
+        get_context().app.activeViewport.refresh()
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         self.notify_execute_common(event_args)
