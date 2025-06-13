@@ -218,7 +218,7 @@ def fill_frame(is_generate_bridge: bool, profs: ty.List[af.Profile], before_fram
         con.ui.messageBox('Separated frames has been generated.')
         fbs = sorted(fbs, key=attrgetter('volume'), reverse=True)
         for i, b in enumerate(fbs):
-            b.name = BN_FRAME + f' {i}'
+            b.name = BN_FRAME + (f' ({i})' if i > 0 else '')
 
     def get_minpoint(xyz: str):
         return min(fbs, key=attrgetter('boundingBox.minPoint.' + xyz)).boundingBox.minPoint
@@ -344,6 +344,7 @@ class FillFrameCommandHandler(CommandHandlerBase):
             fill_frame(self.get_bridge_in().value, profs, before_frame_bodies, offset)
         finally:
             pb.hide()
+        con.app.activeViewport.refresh()
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         key_placeholders_occ = get_context().child[CN_INTERNAL].child[CN_KEY_PLACEHOLDERS]
