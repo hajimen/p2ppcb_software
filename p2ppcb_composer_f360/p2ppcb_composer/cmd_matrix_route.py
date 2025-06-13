@@ -13,6 +13,7 @@ from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, get_layout_pl
 INP_ID_LEDKEY_BOOL = 'ledKey'
 INP_ID_ROW_COL_RADIO = 'rowCol'
 INP_ID_WIRE_NAME_DD = 'wireName'
+INP_ID_MARK_UNASSIGNED_BOOL = 'unassigned'
 
 
 def is_led_name(name):
@@ -31,13 +32,14 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         m.setCell(0, 3, -0.7)
         m.setCell(2, 3, 0.3)
         mr = m.copy()
-        mr.setCell(1, 3, -0.6)
+        mr.setCell(1, 3, -0.5)
         mc = m.copy()
-        mc.setCell(1, 3, 0.4)
+        mc.setCell(1, 3, 0.3)
         self.m_rc = {rt.RC.Row: mr, rt.RC.Col: mc}
         self.m_warn = m
         self.bb = af.CustomGraphicsBillBoard.create(ORIGIN_P3D)
         self.bb.billBoardStyle = af.CustomGraphicsBillBoardStyles.ScreenBillBoardStyle
+        self.last_inl_bulb = False
         self.last_light_bulb = False
 
     @property
@@ -60,6 +62,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
         _ = self.inputs.addBoolValueInput(INP_ID_LEDKEY_BOOL, 'LED key', True)
 
+        _ = self.inputs.addBoolValueInput(INP_ID_MARK_UNASSIGNED_BOOL, 'Mark Unassigned', True)
+
         rowcol_in = inputs.addRadioButtonGroupCommandInput(INP_ID_ROW_COL_RADIO, 'S / D')
         rowcol_in.listItems.add('S', True)
         rowcol_in.listItems.add('D', False)
@@ -67,8 +71,12 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         _ = inputs.addDropDownCommandInput(INP_ID_WIRE_NAME_DD, 'Wire Name', ac.DropDownStyles.TextListDropDownStyle)
         self.set_wire_in()
 
-        get_context().child[CN_INTERNAL].light_bulb = True
-        self.show_billboard()
+        inl_occ = get_context().child[CN_INTERNAL]
+        self.last_inl_bulb = inl_occ.light_bulb
+        inl_occ.light_bulb = True
+        key_locators = inl_occ.child[CN_KEY_LOCATORS]
+        self.last_light_bulb = key_locators.light_bulb
+        key_locators.light_bulb = True
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id != INP_ID_KEY_LOCATOR_SEL:
@@ -98,6 +106,9 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
 
     def get_ledkey_in(self):
         return get_ci(self.inputs, INP_ID_LEDKEY_BOOL, ac.BoolValueCommandInput)
+
+    def get_mark_unassigned_in(self):
+        return get_ci(self.inputs, INP_ID_MARK_UNASSIGNED_BOOL, ac.BoolValueCommandInput)
 
     def get_selected_locators(self):
         locator_in = self.get_locator_in()
@@ -159,6 +170,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             self.set_wire_in(True)
         elif changed_input.id == INP_ID_LEDKEY_BOOL:
             self.set_wire_in()
+        elif changed_input.id == INP_ID_MARK_UNASSIGNED_BOOL:
+            self.show_billboard()
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
         locator_in = self.get_locator_in()
@@ -192,34 +205,43 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                     matrix_hits[r][c] = kl_occ.name
 
     def add_cg_text(self, kl_occ: F3Occurrence, cg: af.CustomGraphicsGroup, rc: rt.RC):
-        cgt = cg.addText(kl_occ.comp_attr[ANS_RC_NAME[rc]], 'Arial', 0.3, self.m_rc[rc])
+        cgt = cg.addText(kl_occ.comp_attr[ANS_RC_NAME[rc]], 'Arial', 0.4, self.m_rc[rc])
         cgt.billBoarding = self.bb
         cgt.color = self.text_color_rc[rc]
 
-    def add_unfilled_text(self, cg: af.CustomGraphicsGroup):
+    def add_unassigned_text(self, cg: af.CustomGraphicsGroup):
         cgt = cg.addText('X', 'Arial', 1, self.m_warn)
         cgt.billBoarding = self.bb
         cgt.color = self.text_color_warn
 
     def show_billboard(self):
-        key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
-        self.last_light_bulb = key_locators.light_bulb
-        key_locators.light_bulb = True
-        for kl_occ in key_locators.child.values():
+        mark_unassigned = self.get_mark_unassigned_in().value
+        for kl_occ in get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS].child.values():
             if not isinstance(kl_occ, F3Occurrence):
                 raise BadCodeException()
+            if not bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED]):
+                continue
             cgs = kl_occ.comp.customGraphicsGroups
+            if len(cgs) == 0:
+                for _ in range(3):  # 3: R, C, Unassigned
+                    cgs.add()
             for irc in rt.RC:
-                cg = cgs.add()
+                cg = cgs[irc]
+                for cge in list(cg):
+                    cge.deleteMe()
                 if ANS_RC_NAME[irc] in kl_occ.comp_attr:
                     self.add_cg_text(kl_occ, cg, irc)
-            cg = cgs.add()
-            if not all(ANS_RC_NAME[irc] in kl_occ.comp_attr for irc in rt.RC):
-                self.add_unfilled_text(cg)
+            cg = cgs[2]
+            for cge in list(cg):
+                cge.deleteMe()
+            if mark_unassigned and not all(ANS_RC_NAME[irc] in kl_occ.comp_attr for irc in rt.RC):
+                self.add_unassigned_text(cg)
+        get_context().app.activeViewport.refresh()
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.notify_execute_common(event_args)
         rc = self.get_rc()
+        mark_unassigned = self.get_mark_unassigned_in().value
         for kl_occ in self.get_selected_locators():
             cgs = kl_occ.comp.customGraphicsGroups
             for cge in list(cgs[rc]):
@@ -229,8 +251,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
             cg = cgs[2]
             for cge in list(cg):
                 cge.deleteMe()
-            if not all(ANS_RC_NAME[irc] in kl_occ.comp_attr for irc in rt.RC):
-                self.add_unfilled_text(cg)
+            if mark_unassigned and not all(ANS_RC_NAME[irc] in kl_occ.comp_attr for irc in rt.RC):
+                self.add_unassigned_text(cg)
         get_context().app.activeViewport.refresh()
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
@@ -247,8 +269,10 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
                     del kl_occ.comp_attr[ANS_RC_NAME[inv_rc]]
 
     def notify_destroy(self, event_args: CommandEventArgs) -> None:
-        key_locators = get_context().child[CN_INTERNAL].child[CN_KEY_LOCATORS]
+        inl_occ = get_context().child[CN_INTERNAL]
+        key_locators = inl_occ.child[CN_KEY_LOCATORS]
         key_locators.light_bulb = self.last_light_bulb
+        inl_occ.light_bulb = self.last_inl_bulb
         for kl_occ in key_locators.child.values():
             if not isinstance(kl_occ, F3Occurrence):
                 raise BadCodeException()

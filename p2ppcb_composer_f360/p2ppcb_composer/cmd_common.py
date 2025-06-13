@@ -310,12 +310,15 @@ class CommandHandlerBase(ac.CommandCreatedEventHandler):  # type: ignore
         pass
 
 
-def get_ci(inputs: CommandInputs, in_id: str, cls: ty.Type):
-    return cls.cast(inputs.itemById(in_id))
+CI_T = ty.TypeVar('CI_T')
 
 
-def get_cis(inputs: CommandInputs, ins_id: ty.List[str], cls: ty.Type):
-    return tuple(cls.cast(inputs.itemById(in_id)) for in_id in ins_id)
+def get_ci(inputs: CommandInputs, in_id: str, cls: type[CI_T]) -> CI_T:
+    return cls.cast(inputs.itemById(in_id))  # type: ignore
+
+
+def get_cis(inputs: CommandInputs, ins_id: ty.List[str], cls: type[CI_T]) -> tuple[CI_T]:
+    return tuple(cls.cast(inputs.itemById(in_id)) for in_id in ins_id)  # type: ignore
 
 
 def has_sel_in(sel_in: ac.SelectionCommandInput):
