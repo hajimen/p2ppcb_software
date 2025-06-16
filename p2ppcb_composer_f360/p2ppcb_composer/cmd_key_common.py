@@ -543,14 +543,15 @@ def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cach
     prepare_finished = False
     prepare_success = False
 
-    def _error():
+    def _error(msg: str):
         nonlocal prepare_finished
+        con.ui.messageBox(msg, 'P2PPCB')
         try:
             pd.close()
         finally:
             prepare_finished = True
 
-    def _next():
+    def _next(_: str):
         nonlocal prepare_finished, prepare_success
         try:
             pd.close()

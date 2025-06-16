@@ -189,10 +189,6 @@ class TestCmdCache(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         con = get_context()
-        con.ui.messageBox(
-            "Don't touch the mouse and the keyboard except while showing a command dialog which requires your eyes and comparison.",
-            'Test P2PPCB Composer',
-            ac.MessageBoxButtonTypes.OKButtonType, ac.MessageBoxIconTypes.InformationIconType)
 
         cls.cache_docname = 'Test P2PPCB Cache'
         admin_folder: ac.DataFolder = con.app.data.dataProjects[0].rootFolder
@@ -203,7 +199,7 @@ class TestCmdCache(unittest.TestCase):
             try:
                 if doc.dataFile.isComplete:
                     break
-            except:
+            except:  # noqa
                 pass
             do_many_events()
         cls.doc_version_id = doc.dataFile.versionId
@@ -269,7 +265,8 @@ class TestCmdCache(unittest.TestCase):
         place_key_placeholders()
         specs_ops_on_pn, _, _ = place_locators_args
         pps_part = prepare_key_assembly(specs_ops_on_pn, pi)
-        prepare_parts_sync(pps_part, self.cache_docname, True)
+        if not prepare_parts_sync(pps_part, self.cache_docname, True):
+            raise Exception('prepare_parts_sync() failed.')
         con.child[CN_INTERNAL].child[CN_KEY_LOCATORS].light_bulb = False
         img = capture_viewport()
         if make_oracle:

@@ -112,15 +112,15 @@ class EventAndHandler:
 
 
 class RpaEventHandler(ac.CustomEventHandler):
-    def __init__(self, parts_depot: 'PartsDepot', call: ty.Callable) -> None:
+    def __init__(self, parts_depot: 'PartsDepot', call: ty.Callable[[str], None]) -> None:
         super().__init__()
         self.parts_depot = parts_depot
         self.call = call
 
     @catch_exception
-    def notify(self, _) -> None:
+    def notify(self, event_args: ac.CustomEventArgs) -> None:
         self.parts_depot.finish_rpa()
-        self.call()
+        self.call(event_args.additionalInfo)
 
 
 def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict[str, Quantity], occ: F3Occurrence) -> None:
@@ -268,7 +268,14 @@ class PartsDepot:
             pass  # I don't know why "RuntimeError: 2 : InternalValidationError : res" occurs. F360's bug? But activate() works nevertheless.
         return reset_context(af.Design.cast(self.cache_doc.products[0]))
 
-    def prepare(self, acc_occ: F3Occurrence, prepare_locator_parameters: ty.List[PrepareKeyLocatorParameter], prepare_part_parameters: ty.List[PreparePartParameter], next: ty.Callable, error: ty.Callable, silent=False) -> None:
+    def prepare(
+            self,
+            acc_occ: F3Occurrence,
+            prepare_locator_parameters: ty.List[PrepareKeyLocatorParameter],
+            prepare_part_parameters: ty.List[PreparePartParameter],
+            next: ty.Callable[[str], None],
+            error: ty.Callable[[str], None],
+            silent=False) -> None:
         def on_create_cache_doc_modified(_):
             self.cache_doc_is_modified = True
 
@@ -462,7 +469,7 @@ class PartsDepot:
         self.names_images_on_fps = [pp.cap_placeholder_parameters.names_images if pp.cap_placeholder_parameters is not None else None for pp in prepare_part_parameters]
 
         # prepare f360_insert_decal_rpa
-        self.done = EventAndHandler(RpaEventHandler(self, lambda: self.prepare_next(acc_occ, next, error)), CUSTOM_EVENT_DONE_ID)
+        self.done = EventAndHandler(RpaEventHandler(self, lambda _: self.prepare_next(acc_occ, next, error)), CUSTOM_EVENT_DONE_ID)
         self.error = EventAndHandler(RpaEventHandler(self, error), CUSTOM_EVENT_ERROR_ID)
 
         if len(idps) > 0:
@@ -621,15 +628,14 @@ class PartsDepot:
         # tg = con.des.timeline.timelineGroups.add(i_timeline_before, i_timeline_after - 1)
         # tg.name = 'P2PPCB Insert'
 
-    def prepare_next(self, acc_occ: F3Occurrence, next: ty.Callable, error: ty.Callable) -> None:
+    def prepare_next(self, acc_occ: F3Occurrence, next: ty.Callable[[str], None], error: ty.Callable[[str], None]) -> None:
         try:
             self._prepare_next_impl(acc_occ)
         except Exception as e:
             traceback.print_exc()
-            get_context().ui.messageBox(str(e), 'P2PPCB')
-            error()
+            error(str(e))
             return
-        next()
+        next('')
 
     def close(self) -> None:
         if self.is_close:
