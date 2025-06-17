@@ -4,6 +4,8 @@
 
 - PCB snap design has been adjusted.
 - Decal RPA has been removed and replaced by API.
+- New feature in Assign Matrix command: You can find unassigned key easily by showing yellow X.
+- Bug fix: Now separated frames have correct body name.
 
 ## [0.1.2] - 2025-01-29
 
