@@ -124,7 +124,9 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: dict[st
     p: float = min([pitch_wd[an].m_as('cm') for an in ANS_KEY_PITCH])
     # src_slc = CreateObjectCollectionT(af.SketchLine)
     src_slc: list[af.SketchCurve] = []
-    for v, d in zip(vertices, directions):
+    v: np.ndarray
+    d: np.ndarray
+    for v, d in zip(vertices, directions):  # type: ignore
         s = v * p
         s = (s[1], -s[0])
         e = (v + d) * p
@@ -331,13 +333,7 @@ class PartsDepot:
                 with create_component(fixed_root_occ.comp, fp_hash, CNP_FIXED) as container:
                     im = con.app.importManager
                     try:
-                        for _ in range(200):  # F360's bug workaround
-                            time.sleep(0.01)
-                            adsk.doEvents()
                         im.importToTarget(im.createFusionArchiveImportOptions(pp.part_source_filename), fixed_root_occ.comp)
-                        for _ in range(200):  # F360's bug workaround
-                            time.sleep(0.01)
-                            adsk.doEvents()
                     except Exception:
                         raise BadConditionException(f'F3D file import failed: {pp.part_source_filename}')
                 comp = container.pop().comp
@@ -433,7 +429,7 @@ class PartsDepot:
 
         if len(idps) > 0:
             self.cache_doc_is_modified = True
-            start_batch(ac.ViewOrientations.TopViewOrientation, ac.Point3D.create(0., 0., 0.), idps)
+            start_batch(idps)
 
         def copy_paste_new(obj_occ: F3Occurrence, acc_occ: F3Occurrence, new_name: str, is_visible: bool):
             if new_name is acc_occ.child:

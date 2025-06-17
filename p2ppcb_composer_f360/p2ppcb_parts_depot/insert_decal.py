@@ -1,15 +1,13 @@
 from dataclasses import dataclass
 from collections.abc import Iterable
 import pathlib
-import time
 
-import adsk
 import adsk.core as ac
 import adsk.fusion as af
 
 
-Z_AXIS = ac.Vector3D.create(0, 0, 1)
 ORIGIN_P = ac.Point3D.create(0, 0, 0)
+EYE_POINT = ac.Point3D.create(0, 0, 70)
 
 
 @dataclass
@@ -61,48 +59,28 @@ class InsertDecalParameter:
     pointer_offset_z: float | None = None
 
 
-def start_batch(view_orientation: ac.ViewOrientations, target_point: ac.Point3D, insert_decal_parameters: Iterable[InsertDecalParameter]):  # noqa: E501
+def start_batch(insert_decal_parameters: Iterable[InsertDecalParameter]):  # noqa: E501
     '''Runs a batch of InsertDecalParameter list.
 
     Parameters
     ----------
-    view_orientation:
-        Usually ac.ViewOrientations.TopViewOrientation is a good choice. But if you need to insert
-        a decal on the back side of the component, ac.ViewOrientations.BottomViewOrientation will be
-        your choice.
-    target_point:
-        The location where mouse clicks while selecting the surface to insert a decal. Usually ac.Point3D.create(0., 0., 0.).
     insert_decal_parameters:
         You can process multiple source / decal image / dialog parameter set in a call.
     '''
     global APP
     APP = ac.Application.get()
-    camera: ac.Camera = APP.activeViewport.camera
-    camera.target = target_point
-    camera.viewOrientation = view_orientation
-    camera.isSmoothTransition = False
-    last_camera = APP.activeViewport.camera
-    APP.activeViewport.camera = camera
 
     last_dt = APP.activeProduct.designType  # type: ignore
     APP.activeProduct.designType = af.DesignTypes.ParametricDesignType  # type: ignore  # Now (2025-06-15) Decal API cannot work in DirectDesignType.
 
-    # wait for camera transition
-    from_time = time.time()
-    while time.time() - from_time < 1.:
-        adsk.doEvents()
-
-    eye_point = APP.activeViewport.camera.eye
-
     for i, p in enumerate(insert_decal_parameters):
-        if insert_decal(p, eye_point, target_point):
+        if insert_decal(p, ORIGIN_P):
             raise Exception(f'f360_insert_decal_rpa error: #{i} of insert_decal_parameters looks wrong.')
 
-    APP.activeViewport.camera = last_camera
     APP.activeProduct.designType = last_dt  # type: ignore
 
 
-def insert_decal(p: InsertDecalParameter, eye_point: ac.Point3D, target_point: ac.Point3D) -> bool:
+def insert_decal(p: InsertDecalParameter, target_point: ac.Point3D) -> bool:
     if paste_new(p):
         return True
 
@@ -118,8 +96,8 @@ def insert_decal(p: InsertDecalParameter, eye_point: ac.Point3D, target_point: a
     # find face to insert decal
     hit_points: ac.ObjectCollectionT[ac.Point3D] = ac.ObjectCollection.create()  # type: ignore
     faces: ac.ObjectCollectionT[af.BRepFace] = rc.findBRepUsingRay(  # type: ignore
-        eye_point,
-        eye_point.vectorTo(tp),
+        EYE_POINT,
+        EYE_POINT.vectorTo(tp),
         af.BRepEntityTypes.BRepFaceEntityType,
         -1,
         True,
@@ -167,8 +145,8 @@ def insert_decal(p: InsertDecalParameter, eye_point: ac.Point3D, target_point: a
         tp.translateBy(dv)
         hit_points.clear()
         faces: ac.ObjectCollectionT[af.BRepFace] = rc.findBRepUsingRay(  # type: ignore
-            eye_point,
-            eye_point.vectorTo(tp),
+            EYE_POINT,
+            EYE_POINT.vectorTo(tp),
             af.BRepEntityTypes.BRepFaceEntityType,
             -1,
             True,

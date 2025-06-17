@@ -20,7 +20,7 @@ importlib.reload(_to_reload)
 from reimport import reimport
 
 reimport(['p2ppcb_parts_resolver.resolver', 'f360_common', 'p2ppcb_parts_depot.depot',
-          'route.route'], ['mainboard', 'composer_test', 'p2ppcb_composer'])
+          'p2ppcb_parts_depot.insert_decal', 'route.route'], ['mainboard', 'composer_test', 'p2ppcb_composer'])
 
 from composer_test.test_base import HANDLERS
 
@@ -78,12 +78,12 @@ def load_notorious_tests(test_suite: unittest.TestSuite):
     '''
     from composer_test.test_cmd import TestCmdCache
     # test_suite.addTest(TestCmdCache('test_prepare_parts_sync'))  # For regression testing, this is redundant.
-    # test_suite.addTest(TestCmdCache('test_cherry'))
-    # test_suite.addTest(TestCmdCache('test_choc_v1'))
-    # test_suite.addTest(TestCmdCache('test_dsa'))
+    test_suite.addTest(TestCmdCache('test_cherry'))
+    test_suite.addTest(TestCmdCache('test_choc_v1'))
+    test_suite.addTest(TestCmdCache('test_dsa'))
     test_suite.addTest(TestCmdCache('test_junana'))
-    # test_suite.addTest(TestCmdCache('test_mx_oem'))
-    # test_suite.addTest(TestCmdCache('test_xda'))
+    test_suite.addTest(TestCmdCache('test_mx_oem'))
+    test_suite.addTest(TestCmdCache('test_xda'))
 
 
 @catch_exception
@@ -91,23 +91,23 @@ def run(context):
     import adsk.fusion as af
     global APP
     APP = ac.Application.get()
-    fp: af.FusionProductPreferences = APP.preferences.productPreferences.itemByName('Design')
+    fp: af.FusionProductPreferences = APP.preferences.productPreferences.itemByName('Design')  # type: ignore
     fp.isFirstComponentGroundToParent = False
 
-    # t1 = time.time()
-    # breakpoint()
-    # t2 = time.time()
-    # # The code around this document is a hack to ensure Edit button (opens VSCode) -> F5 key.
-    # # If a debugger is enabled, you cannot go through these codes under 0.1 second.
-    # # If you feel bothersome to hit continue (F5), just comment out them.
-    # if t2 - t1 < 0.1:
-    #     APP.userInterface.messageBox('Use Edit button -> F5 key, instead of Run button.')
-    #     return
+    t1 = time.time()
+    breakpoint()
+    t2 = time.time()
+    # The code around this document is a hack to ensure Edit button (opens VSCode) -> F5 key.
+    # If a debugger is enabled, you cannot go through these codes under 0.1 second.
+    # If you feel bothersome to hit continue (F5), just comment out them.
+    if t2 - t1 < 0.1:
+        APP.userInterface.messageBox('Use Edit button -> F5 key, instead of Run button.')
+        return
 
     test_suite = unittest.TestSuite()
 
-    # load_automated_tests(test_suite)
-    load_notorious_tests(test_suite)
+    load_automated_tests(test_suite)
+    # load_notorious_tests(test_suite)
 
     # Run a command interactively
 
