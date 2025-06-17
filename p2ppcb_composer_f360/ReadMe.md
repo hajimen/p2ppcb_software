@@ -9,9 +9,7 @@ Please start with making small studies and get a good grasp of the time consumpt
 
 ## Requirements: Just designing a Keyboard
 
-- Windows PC
-
-Mac can do most of PC0 features. But it lacks decals (key top images).
+- Windows PC or Mac
 
 - Autodesk Fusion (F360) <https://www.autodesk.com/products/fusion-360/overview>
 
@@ -103,11 +101,6 @@ thousands of USD for CATIA, I guess.
 This command uses RPA when the cache is not enough. You cannot use the mouse/keyboard while running RPA.
 
 https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b48b-c263d903dbeb.mp4
-
-DISCLAIMER: Key decals can be odd if the display scale is not 150%. It comes from the bizarre behavior of F360.
-F360 has decal API but it doesn't work. 
-See: [Decal API in direct modeling mode raises "RuntimeError: 2 : InternalValidationError : timelineObj"](https://forums.autodesk.com/t5/fusion-api-and-scripts/decal-api-in-direct-modeling-mode-raises-quot-runtimeerror-2/td-p/13056509)
-and [Odd bug of Decal API](https://forums.autodesk.com/t5/fusion-api-and-scripts/odd-bug-of-decal-api/m-p/13268922).
 
 5. Adjust any key
 
@@ -278,16 +271,6 @@ You should be a developer of PC0 if you want to create a part's data.
 If you are familiar with F360 add-in development, you'll notice that PC0 uses a bunch of bizarre hacks.
 Let's see the hacks.
 
-## RPA for decals
-
-Now (2025/01/29) F360 decal API has two severe bugs:
-
-- [Decal API in direct modeling mode raises "RuntimeError: 2 : InternalValidationError : timelineObj"](https://forums.autodesk.com/t5/fusion-api-and-scripts/decal-api-in-direct-modeling-mode-raises-quot-runtimeerror-2/m-p/13056509)
-- [Odd bug of Decal API](https://forums.autodesk.com/t5/fusion-api-and-scripts/odd-bug-of-decal-api/m-p/13268922/highlight/true#M22761)
-
-So I need to get around the bugs by using RPA.
-The hack is modularized as **f360_insert_decal_rpa** <https://github.com/hajimen/f360_insert_decal_rpa>.
-
 ## Regression tests
 
 The F360 script in `composer_test` runs regression tests. Please take a close look at `sys.path.append()` and `reimport.py`
@@ -322,26 +305,12 @@ Prepare venv with python.org's `python.exe`.
 
 ```powershell
 python -m pip install --upgrade pip
-pip install piprepo setuptools wheel build
+pip install -U setuptools wheel build
 mkdir repos
 cd repos
-mkdir pep503
-cd pep503
-curl -OL https://github.com/hajimen/cef-capi-py/releases/download/131.3.5/cef_capi_py-131.3.5-py3-none-win_amd64.whl
-cd ..
-git clone https://github.com/hajimen/f360_insert_decal_rpa
-cd f360_insert_decal_rpa
-python -m build --wheel
-cp dist/*.whl ../pep503
-cd ..
 git clone https://github.com/hajimen/p2ppcb_software
-cd p2ppcb_software/p2ppcb_parts_resolver
-python -m build --wheel
-cp dist/*.whl ../../pep503
-cd ..
-piprepo build ../pep503
-cd p2ppcb_composer_f360
-pip install -r requirements.txt -t app-packages-win_amd64 --extra-index-url ../../pep503/simple
+cd p2ppcb_software/p2ppcb_composer_f360
+pip install ../p2ppcb_parts_resolver -r requirements.txt -t app-packages-win_amd64
 ```
 
 ## How to build `app-packages-macosx_*` (Mac)
@@ -353,46 +322,27 @@ It is true for F360 itself.
 Architecture independent part:
 
 ```bash
-pip install --upgrade pip
-pip install piprepo setuptools wheel build
+python3.12 -m pip install --upgrade pip
+pip3.12 install -U setuptools wheel build
 mkdir repos
 cd repos
-mkdir pep503
-cd pep503
-curl -OL https://github.com/hajimen/cef-capi-py/releases/download/131.3.5/cef_capi_py-131.3.5-py3-none-macosx_11_0_arm64.whl
-curl -OL https://github.com/hajimen/cef-capi-py/releases/download/131.3.5/cef_capi_py-131.3.5-py3-none-macosx_11_0_x86_64.whl
-cd ..
-git clone https://github.com/hajimen/f360_insert_decal_rpa
-cd f360_insert_decal_rpa
-python -m build --wheel
-cp dist/*.whl ../pep503
-cd ..
 git clone https://github.com/hajimen/p2ppcb_software
-cd p2ppcb_software/p2ppcb_parts_resolver
-python -m build --wheel
-cp dist/*.whl ../../pep503
-cd ..
-piprepo build ../pep503
-cd p2ppcb_composer_f360
+cd p2ppcb_software/p2ppcb_composer_f360
 ```
 
 Architecture dependent part:
 
 ```bash
 tag='macosx_11_0_x86_64'  # or 'macosx_11_0_arm64'
-pip install -r requirements.txt -t app-packages-$tag --extra-index-url ../../pep503/simple
+pip3.12 install ../p2ppcb_parts_resolver -r requirements.txt -t app-packages-$tag
 ```
 
 # Further development
 
 PC0 has been improved over the past few years. But I am thinking about the future of F360.
 In my opinion, rebranding (Fusion 360 to Fusion) is a bad sign of the business.
-Recent decal API bugs are quite easy to find, but shipped in the product.
-Furthermore, Autodesk guys say nothing to the bug reports on the official forum (No bug fix after three months, of course).
+Recent decal API bugs were quite easy to find, but shipped in the product.
 I can't help but doubt F360 is going to die. So now I am reluctant to invest much more on F360.
-
-If decal API bugs are fixed, I will use the API. I will follow embedded Python update (so far).
-But no big improvements will be done.
 
 ## F360's bugs that can annoy you or get you stuck
 
@@ -414,7 +364,3 @@ I think we should forget Intel Mac. It is going to be obsolete.
 
 A component by Insert Derive goes wrong about decal:
 <https://forums.autodesk.com/t5/fusion-360-support/a-component-by-insert-derive-goes-wrong-about-decal/m-p/11913925>
-
-## Mac and decals
-
-We can make f360_insert_decal_rpa functional on Mac, but I think we should wait for Autodesk fixes decal API bugs.

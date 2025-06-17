@@ -1,8 +1,9 @@
 # Changelog
 
-## [0.1.x] - 2025-0x-xx
+## [0.2.1] - 2025-06-17
 
 - PCB snap design has been adjusted.
+- Decal RPA has been removed and replaced by API.
 
 ## [0.1.2] - 2025-01-29
 

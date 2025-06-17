@@ -1,4 +1,5 @@
 p2ppcb_parts_resolver
-f360_insert_decal_rpa >= 0.1.13
 kle-scraper >= 0.1.1
 pulp == 2.9.0
+cef-capi-py >= 131.3.5
+Pillow == 11.2.1

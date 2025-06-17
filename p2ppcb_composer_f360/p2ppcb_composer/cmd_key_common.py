@@ -540,40 +540,15 @@ def prepare_parts_sync(pps_part: ty.List[parts_depot.PreparePartParameter], cach
     pd = parts_depot.PartsDepot(cache_docname)
     pp_kl_on_specifier: ty.Dict[str, parts_depot.PrepareKeyLocatorParameter] = con.prepare_parameter_dict[PP_KEY_LOCATORS_ON_SPECIFIER]
     pls = list(pp_kl_on_specifier.values())
-    prepare_finished = False
-    prepare_success = False
-
-    def _error(msg: str):
-        nonlocal prepare_finished
-        con.ui.messageBox(msg, 'P2PPCB')
-        try:
-            pd.close()
-        finally:
-            prepare_finished = True
-
-    def _next(_: str):
-        nonlocal prepare_finished, prepare_success
-        try:
-            pd.close()
-            pp_kl_on_specifier.clear()
-            pps_part.clear()
-            prepare_success = True
-        finally:
-            prepare_finished = True
 
     try:
-        pd.prepare(con.child.get_real(CN_INTERNAL), pls, pps_part, _next, _error, silent)
-    except BadConditionException:
+        pd.prepare(con.child.get_real(CN_INTERNAL), pls, pps_part)
+    finally:
         pd.close()
-        raise
 
-    while not prepare_finished:
-        adsk.doEvents()
-
-    if prepare_success:
-        capture_position()
-        fill_surrogate()
-    return prepare_success
+    capture_position()
+    fill_surrogate()
+    return True
 
 
 def get_layout_plane_transform(cp: af.ConstructionPlane):

@@ -450,12 +450,7 @@ class TestMatrixRoute(unittest.TestCase):
         with open(TEST_PKL_DIR / 'matrix.pkl', 'rb') as f:
             matrix = pickle.load(f)
         flat_cable_placements = self.fcp()
-        try:
-            result = rt.generate_route(matrix, flat_cable_placements)
-        except BadConditionException:
-            # Apple Silicon Python-MIP problem
-            doc.close(False)
-            return
+        result = rt.generate_route(matrix, flat_cable_placements)
         # with open(TEST_PKL_DIR / 'route.pkl', 'wb') as f:
         #     pickle.dump(result, f)
         with open(TEST_PKL_DIR / 'route.pkl', 'rb') as f:

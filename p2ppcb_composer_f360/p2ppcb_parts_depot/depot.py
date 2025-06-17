@@ -3,7 +3,6 @@ import sys
 import pathlib
 import hashlib
 import json
-import traceback
 import time
 import typing as ty
 from dataclasses import dataclass
@@ -15,13 +14,10 @@ import adsk.fusion as af
 import adsk
 
 
-from f360_insert_decal_rpa import start as insert_decal_rpa_start
-from f360_insert_decal_rpa import InsertDecalParameter
+from .insert_decal import start_batch
+from .insert_decal import InsertDecalParameter
 from f360_common import ANS_KEY_PITCH, BN_APPEARANCE_KEY_LOCATOR, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_KEY_LOCATORS, CURRENT_DIR, BadCodeException, BadConditionException, F3AttributeDict, F3Occurrence, CNP_KEY_LOCATOR, CN_DEPOT_CAP_PLACEHOLDER, ATTR_GROUP, \
-    SurrogateF3Occurrence, catch_exception, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, prepare_tmp_dir, reset_context, set_context
-
-CUSTOM_EVENT_DONE_ID = 'rpa_done'
-CUSTOM_EVENT_ERROR_ID = 'rpa_error'
+    SurrogateF3Occurrence, create_component, MAGIC, CNP_CAP_PLACEHOLDER, get_context, prepare_tmp_dir, reset_context, set_context
 
 DEFAULT_CACHE_DOCNAME = 'P2PPCB Cache'
 
@@ -38,30 +34,28 @@ CN_DEPOT_PORTING = 'Port from Cache' + MAGIC
 PCN_DEPOT_PORTING = 'DP_'  # PCN: prefix component name
 CNP_DEPOT_PORTING = '_DP' + MAGIC
 
-HANDLERS: ty.Dict[str, ac.CustomEventHandler] = {}
-
 
 @dataclass
 class CapPlaceholderParameter:
-    decal_parameters: ty.Dict[str, Quantity]
-    names_images: ty.List[ty.Tuple[str, ty.Optional[pathlib.Path]]]
+    decal_parameters: dict[str, Quantity]
+    names_images: list[tuple[str, pathlib.Path | None]]
 
 
 @dataclass
 class PrepareKeyLocatorParameter:
-    decal_parameters: ty.Dict[str, Quantity]
+    decal_parameters: dict[str, Quantity]
     pattern: np.ndarray
-    pitch_wd: ty.Dict[str, Quantity]
-    names_images: ty.List[ty.Tuple[str, ty.Optional[pathlib.Path]]]
+    pitch_wd: dict[str, Quantity]
+    names_images: list[tuple[str, pathlib.Path | None]]
 
 
 @dataclass
 class PreparePartParameter:
     part_source_filename: str
-    new_name: ty.Optional[str]
-    model_parameters: ty.Dict[str, Quantity]
-    placeholder: ty.Union[str, None] = None
-    cap_placeholder_parameters: ty.Union[CapPlaceholderParameter, None] = None
+    new_name: str | None
+    model_parameters: dict[str, Quantity]
+    placeholder: str | None = None
+    cap_placeholder_parameters: CapPlaceholderParameter | None = None
 
 
 def open_a360_file(folder: ac.DataFolder, name: str) -> ac.DataFile:
@@ -80,8 +74,8 @@ def open_a360_file(folder: ac.DataFolder, name: str) -> ac.DataFile:
     raise FileNotFoundError(f'Cannot find {name}.')
 
 
-def convert_quantity_to_float(qs: ty.Dict[str, Quantity]):
-    ret: ty.Dict[str, float] = {}
+def convert_quantity_to_float(qs: dict[str, Quantity]):
+    ret: dict[str, float] = {}
     for k, v in qs.items():
         if v.is_compatible_with('rad'):
             ret[k] = v.m_as('rad')  # dimensionless value too
@@ -92,38 +86,7 @@ def convert_quantity_to_float(qs: ty.Dict[str, Quantity]):
     return ret
 
 
-class EventAndHandler:
-    def __init__(self, handler: ac.CustomEventHandler, event_id: str) -> None:
-        con = get_context()
-        con.app.unregisterCustomEvent(event_id)
-        self.event = con.app.registerCustomEvent(event_id)
-        self.event.add(handler)
-        self.event_id = event_id
-        HANDLERS[event_id] = handler
-
-    def finish(self) -> None:
-        con = get_context()
-        if self.event is None:
-            return
-        self.event.remove(HANDLERS[self.event_id])
-        con.app.unregisterCustomEvent(self.event_id)
-        self.event = None
-        del HANDLERS[self.event_id]
-
-
-class RpaEventHandler(ac.CustomEventHandler):
-    def __init__(self, parts_depot: 'PartsDepot', call: ty.Callable[[str], None]) -> None:
-        super().__init__()
-        self.parts_depot = parts_depot
-        self.call = call
-
-    @catch_exception
-    def notify(self, event_args: ac.CustomEventArgs) -> None:
-        self.parts_depot.finish_rpa()
-        self.call(event_args.additionalInfo)
-
-
-def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict[str, Quantity], occ: F3Occurrence) -> None:
+def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: dict[str, Quantity], occ: F3Occurrence) -> None:
     lp = np.zeros((pattern.shape[0] + 2, pattern.shape[1] + 2), np.bool_)
     lp[1:-1, 1:-1] = pattern
     cw = np.array([[0, -1], [1, 0]], int)
@@ -132,7 +95,7 @@ def create_key_locator_surface_by_pattern(pattern: np.ndarray, pitch_wd: ty.Dict
     yx = initial_yx
     current_direction = np.array([0, 1], int)
     vertices_list = []
-    directions_list: ty.List[np.ndarray] = []
+    directions_list: list[np.ndarray] = []
     while True:
         go_on = len(directions_list) > 0
         hit = False
@@ -247,50 +210,54 @@ class PartsDepot:
         self.cache_doc_is_modified = False
         orig_doc.activate()
 
-        self.pattern_hashes: ty.Optional[ty.List[str]] = None
-        self.fp_hashes: ty.Optional[ty.List[str]] = None
-
-        # f360_insert_decal_rpa
-        self.done: ty.Union[EventAndHandler, None] = None
-        self.error: ty.Union[EventAndHandler, None] = None
-
-    def _prepare_context(self):
+    def prepare(
+            self,
+            acc_occ: F3Occurrence,
+            prepare_locator_parameters: list[PrepareKeyLocatorParameter],
+            prepare_part_parameters: list[PreparePartParameter]
+    ) -> None:
         if self.is_close:
             raise BadConditionException('Already closed.')
+
         con = get_context()
-        self.orig_con = con
-        self.orig_doc = con.app.activeDocument
-        if not self.orig_doc.isSaved:
+        orig_con = con
+        orig_doc = con.app.activeDocument
+        if not orig_doc.isSaved:
             raise BadConditionException('Start from a saved document.')
         try:
             self.cache_doc.activate()
         except RuntimeError:
             pass  # I don't know why "RuntimeError: 2 : InternalValidationError : res" occurs. F360's bug? But activate() works nevertheless.
-        return reset_context(af.Design.cast(self.cache_doc.products[0]))
+        reset_context(af.Design.cast(self.cache_doc.products[0]))
 
-    def prepare(
+        try:
+            cache_container_fn = self._prepare_on_cache(prepare_locator_parameters, prepare_part_parameters)
+        finally:
+            orig_doc.activate()
+            set_context(orig_con)
+
+        self._prepare_on_orig(acc_occ, cache_container_fn)
+
+    def _prepare_on_cache(
             self,
-            acc_occ: F3Occurrence,
-            prepare_locator_parameters: ty.List[PrepareKeyLocatorParameter],
-            prepare_part_parameters: ty.List[PreparePartParameter],
-            next: ty.Callable[[str], None],
-            error: ty.Callable[[str], None],
-            silent=False) -> None:
+            prepare_locator_parameters: list[PrepareKeyLocatorParameter],
+            prepare_part_parameters: list[PreparePartParameter]
+    ) -> str:
         def on_create_cache_doc_modified(_):
             self.cache_doc_is_modified = True
 
-        con = self._prepare_context()
+        con = get_context()
         fixed_root_occ = con.child.get_real(CN_SRC_FIXED, on_create=on_create_cache_doc_modified)
         decaled_root_occ = con.child.get_real(CN_SRC_DECALED, on_create=on_create_cache_doc_modified)
         locator_root_occ = decaled_root_occ.child.get_real(CN_SRC_KEY_LOCATOR, on_create=on_create_cache_doc_modified)
 
-        pattern_hashes: ty.List[str] = []
-        locator_decal_redundant_check: ty.Dict[str, ty.Set[str]] = {}
-        idps: ty.List[InsertDecalParameter] = []
-        locator_hashes_on_patterns: ty.List[ty.List[str]] = []
+        pattern_hashes: list[str] = []
+        locator_decal_redundant_check: dict[str, set[str]] = {}
+        idps: list[InsertDecalParameter] = []
+        locator_hashes_on_patterns: list[list[str]] = []
 
         for lp in prepare_locator_parameters:
-            locator_hashes: ty.List[str] = []
+            locator_hashes: list[str] = []
 
             def on_create_locator_pattern_occ(occ: F3Occurrence):
                 self.cache_doc_is_modified = True
@@ -344,13 +311,11 @@ class PartsDepot:
                             **convert_quantity_to_float(lp.decal_parameters)))  # type: ignore
             locator_hashes_on_patterns.append(locator_hashes)
 
-        self.pattern_hashes = pattern_hashes
-        self.locator_hashes_on_patterns = locator_hashes_on_patterns
-        self.names_images_on_patterns = [lp.names_images for lp in prepare_locator_parameters]
+        names_images_on_patterns = [lp.names_images for lp in prepare_locator_parameters]
 
         # fp: fixed part
-        fp_comps: ty.List[af.Component] = []
-        fp_hashes: ty.List[str] = []
+        fp_comps: list[af.Component] = []
+        fp_hashes: list[str] | None = []
         for pp in prepare_part_parameters:
             fp_hash_src = (pp.part_source_filename, pp.placeholder, pp.cap_placeholder_parameters is None, tuple((k, str(v)) for k, v in sorted(pp.model_parameters.items())))
             fp_hash = hashlib.md5(json.dumps(fp_hash_src).encode()).hexdigest()
@@ -404,13 +369,13 @@ class PartsDepot:
 
         # cp: cap placeholder
         cp_root_occ = decaled_root_occ.child[CN_SRC_CAP_PLACEHOLDER]
-        cp_decal_redundant_check: ty.Set[str] = set()
-        cp_img_cpdp_hashes_on_fps: ty.List[ty.Optional[ty.List[str]]] = []
+        cp_decal_redundant_check: set[str] = set()
+        cp_img_cpdp_hashes_on_fps: list[list[str] | None] = []
         for pp, fp_comp, fp_hash in zip(prepare_part_parameters, fp_comps, fp_hashes):
             if pp.cap_placeholder_parameters is None:
                 cp_img_cpdp_hashes_on_fps.append(None)
             else:
-                cp_img_cpdp_hashes: ty.List[str] = []
+                cp_img_cpdp_hashes: list[str] | None = []
 
                 def on_create_cp_src_occ(new_occ: F3Occurrence):
                     self.cache_doc_is_modified = True
@@ -463,23 +428,12 @@ class PartsDepot:
                                 ], **convert_quantity_to_float(pp.cap_placeholder_parameters.decal_parameters)))  # type: ignore
                 cp_img_cpdp_hashes_on_fps.append(cp_img_cpdp_hashes)
 
-        self.fp_hashes = fp_hashes
-        self.cp_img_cpdp_hashes_on_fps = cp_img_cpdp_hashes_on_fps
-        self.new_name_on_fps = [pp.new_name for pp in prepare_part_parameters]
-        self.names_images_on_fps = [pp.cap_placeholder_parameters.names_images if pp.cap_placeholder_parameters is not None else None for pp in prepare_part_parameters]
-
-        # prepare f360_insert_decal_rpa
-        self.done = EventAndHandler(RpaEventHandler(self, lambda _: self.prepare_next(acc_occ, next, error)), CUSTOM_EVENT_DONE_ID)
-        self.error = EventAndHandler(RpaEventHandler(self, error), CUSTOM_EVENT_ERROR_ID)
+        new_name_on_fps = [pp.new_name for pp in prepare_part_parameters]
+        names_images_on_fps = [pp.cap_placeholder_parameters.names_images if pp.cap_placeholder_parameters is not None else None for pp in prepare_part_parameters]
 
         if len(idps) > 0:
             self.cache_doc_is_modified = True
-            insert_decal_rpa_start(CUSTOM_EVENT_DONE_ID, CUSTOM_EVENT_ERROR_ID, ac.ViewOrientations.TopViewOrientation, ac.Point3D.create(0., 0., 0.), idps, silent)
-        else:
-            con.app.fireCustomEvent(CUSTOM_EVENT_DONE_ID)
-
-    def _prepare_next_impl(self, acc_occ: F3Occurrence) -> None:
-        con = get_context()
+            start_batch(ac.ViewOrientations.TopViewOrientation, ac.Point3D.create(0., 0., 0.), idps)
 
         def copy_paste_new(obj_occ: F3Occurrence, acc_occ: F3Occurrence, new_name: str, is_visible: bool):
             if new_name is acc_occ.child:
@@ -513,14 +467,14 @@ class PartsDepot:
         decaled_root_occ = con.child[CN_SRC_DECALED]
         container_occ = ty.cast(F3Occurrence, con.child.new_real(CN_CONTAINER))
 
-        if self.fp_hashes is not None:
+        if fp_hashes is not None:
             cp_root_occ = decaled_root_occ.child[CN_SRC_CAP_PLACEHOLDER]
             cp_root_occ.light_bulb = True
             cp_acc_occ = container_occ.child.new_real(PCN_DEPOT_PORTING + CN_DEPOT_CAP_PLACEHOLDER + CNP_DEPOT_PORTING)
             cp_acc_occ.light_bulb = True
             fixed_acc_occ = container_occ.child.new_real(PCN_DEPOT_PORTING + CN_DEPOT_PARTS + CNP_DEPOT_PORTING)
             for fp_hash, cp_img_cpdp_hashes, new_name, names_images in zip(
-                self.fp_hashes, self.cp_img_cpdp_hashes_on_fps, self.new_name_on_fps, self.names_images_on_fps
+                fp_hashes, cp_img_cpdp_hashes_on_fps, new_name_on_fps, names_images_on_fps
             ):
                 if new_name is not None:
                     n = PCN_DEPOT_PORTING + new_name + CNP_DEPOT_PORTING
@@ -544,12 +498,12 @@ class PartsDepot:
             cp_root_occ.light_bulb = False
             fixed_acc_occ.light_bulb = False
 
-        if self.pattern_hashes is not None and self.names_images_on_patterns is not None:
+        if pattern_hashes is not None and names_images_on_patterns is not None:
             locator_root_occ = decaled_root_occ.child[CN_SRC_KEY_LOCATOR]
             locator_root_occ.light_bulb = True
             locator_acc_occ = container_occ.child.new_real(PCN_DEPOT_PORTING + CN_KEY_LOCATORS + CNP_DEPOT_PORTING)
             locator_acc_occ.light_bulb = True
-            for pattern_hash, locator_hashes, names_images in zip(self.pattern_hashes, self.locator_hashes_on_patterns, self.names_images_on_patterns):
+            for pattern_hash, locator_hashes, names_images in zip(pattern_hashes, locator_hashes_on_patterns, names_images_on_patterns):
                 if pattern_hash is not None and locator_hashes is not None:
                     locator_pattern_occ = locator_root_occ.child[pattern_hash + CNP_KEY_LOCATOR]
                     for locator_hash, (name, _) in zip(locator_hashes, names_images):
@@ -565,23 +519,28 @@ class PartsDepot:
         fp = prepare_tmp_dir() / 'cache_container.f3d'
         if fp.is_file():
             fp.unlink()
-        fn = str(fp)
+        cache_container_fn = str(fp)
         em = con.des.exportManager
         try:
-            em.execute(em.createFusionArchiveExportOptions(fn, container_occ.comp))  # very time consuming. 30 sec or above.
+            em.execute(em.createFusionArchiveExportOptions(cache_container_fn, container_occ.comp))  # very time consuming. 30 sec or above.
         except Exception:
-            print(f'F3D file export failed: {fn}', file=sys.stderr)
+            print(f'F3D file export failed: {cache_container_fn}', file=sys.stderr)
             raise
 
         container_occ.raw_occ.nativeObject.deleteMe()
 
-        self.orig_doc.activate()
-
-        con = set_context(self.orig_con)
         # i_timeline_before = con.des.timeline.count
 
+        return cache_container_fn
+
+    def _prepare_on_orig(
+            self,
+            acc_occ: F3Occurrence,
+            cache_container_fn: str
+    ) -> None:
+        con = get_context()
         im = con.app.importManager
-        im_opt = im.createFusionArchiveImportOptions(fn)
+        im_opt = im.createFusionArchiveImportOptions(cache_container_fn)
         dp_occ = acc_occ.child.get_real(CN_DEPOT_PORTING)
         dp_occ.light_bulb = False
 
@@ -591,7 +550,7 @@ class PartsDepot:
             try:
                 im.importToTarget(im_opt, dp_occ.comp)  # very time consuming. 60 sec or above.
             except Exception:
-                print(f'F3D file import failed: {fn}', file=sys.stderr)
+                print(f'F3D file import failed: {cache_container_fn}', file=sys.stderr)
                 raise
         imported_occ = c.pop()
 
@@ -628,22 +587,8 @@ class PartsDepot:
         # tg = con.des.timeline.timelineGroups.add(i_timeline_before, i_timeline_after - 1)
         # tg.name = 'P2PPCB Insert'
 
-    def prepare_next(self, acc_occ: F3Occurrence, next: ty.Callable[[str], None], error: ty.Callable[[str], None]) -> None:
-        try:
-            self._prepare_next_impl(acc_occ)
-        except Exception as e:
-            traceback.print_exc()
-            error(str(e))
-            return
-        next('')
-
     def close(self) -> None:
         if self.is_close:
             return
         self.cache_doc.close(False)  # Save when updated
         self.is_close = True
-
-    def finish_rpa(self) -> None:
-        for x in [self.done, self.error]:
-            if x is not None:
-                x.finish()
