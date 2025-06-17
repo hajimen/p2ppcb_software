@@ -59,13 +59,10 @@ I can make custom printed PBT keycaps. The total cost will be from about $30.
 
 Download the latest release file from here: <https://github.com/hajimen/p2ppcb_software/releases>
 
-Unzip the release file, run F360, click the **UTILITIES** tab -> **Scripts and Add-ins** command icon on the F360 menu (or type Shift-S).
-In the command dialog, click the **Add-Ins** tab, click **+** at the right of **My Add-Ins**.
+Unzip the release file, run F360, click the **UTILITIES** tab -> click **+** -> Choose **Script or add-in from device**.
 Select the `p2ppcb_composer_f360` directory in the unzipped release file.
-Select `P2PPCB Composer F360` in the **Add-Ins** tab and click **Run**.
+Find `P2PPCB Composer F360` row and click the **Run** column's slide switch.
 Now the "P2PPCB" tab should appear in the F360 menu.
-
-https://user-images.githubusercontent.com/1212166/205190084-6b400099-2b3c-4de8-aa02-cd9ade1af381.mp4
 
 ## Overview of operations
 
@@ -95,12 +92,8 @@ https://user-images.githubusercontent.com/1212166/205190521-6bdee0ec-76c7-4ee5-b
 
 4. Load KLE file
 
-This can take tens of minutes for a large keyboard. F360 is not very suitable for P2PPCB Composer, but you don't want to pay
+This can take several minutes for a large keyboard. F360 is not very suitable for P2PPCB Composer, but you don't want to pay
 thousands of USD for CATIA, I guess.
-
-This command uses RPA when the cache is not enough. You cannot use the mouse/keyboard while running RPA.
-
-https://user-images.githubusercontent.com/1212166/205190601-aa501d4e-4c94-4c00-b48b-c263d903dbeb.mp4
 
 5. Adjust any key
 
@@ -348,11 +341,6 @@ I can't help but doubt F360 is going to die. So now I am reluctant to invest muc
 
 In some cases, interference check doesn't work:
 <https://forums.autodesk.com/t5/fusion-360-support/obvious-interference-was-not-detected/m-p/10633251>
-
-In some cases, `importToTarget()` corrupts the imported component. See `p2ppcb_parts_depot.depot.prepare()`.
-The bug is erratic and non-reproducible. I suspect it has something to do with CPU usage.
-When it occurs, `P2PPCB Cache` file is corrupted. Remove the file and try again.
-But it can be difficult to detect the phenomenon.
 
 Attributes of native objects can be destruct by some irrelevant operations: 
 <https://forums.autodesk.com/t5/fusion-360-support/attributes-of-native-objects-corrupt-by-removing-a-component/m-p/11909404>
