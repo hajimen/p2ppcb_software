@@ -1,5 +1,6 @@
 import typing as ty
-from f360_common import BadCodeException, BadConditionException, get_context
+import sys
+from f360_common import BadCodeException, BadConditionException, get_context, SEPARATE_PYTHON_CONFIG_PATH, set_separate_python, CURRENT_DIR
 from p2ppcb_composer.cmd_common import CommandHandlerBase
 from p2ppcb_composer.cmd_init_project import InitializeP2ppcbProjectCommandHandler
 from p2ppcb_composer.cmd_load_kle import LoadKleFileCommandHandler, ExtractKleFileCommandHandler
@@ -57,6 +58,43 @@ def init_toolbar():
     design_workspace = con.ui.workspaces.itemById('FusionSolidEnvironment')
     if design_workspace is None:
         raise BadConditionException('FusionSolidEnvironment not found in workspaces.')
+
+    if sys.platform == 'darwin':
+        import p2ppcb_parts_resolver.resolver as parts_resolver
+        if SEPARATE_PYTHON_CONFIG_PATH.is_file():
+            with open(SEPARATE_PYTHON_CONFIG_PATH, 'r') as f:
+                p = f.readlines()
+            if len(p) > 0:
+                p = p[0].strip()
+                try:
+                    parts_resolver.PartsInfo(CURRENT_DIR.parent / 'p2ppcb_parts_data_f360' / parts_resolver.PARTS_INFO_DIRNAME, p)
+                    set_separate_python(p)
+                except Exception:
+                    SEPARATE_PYTHON_CONFIG_PATH.unlink()
+            else:
+                SEPARATE_PYTHON_CONFIG_PATH.unlink()
+        if not SEPARATE_PYTHON_CONFIG_PATH.is_file():
+            p = config_separate_python()
+            if p is None:
+                return
+            try:
+                pi = parts_resolver.PartsInfo(CURRENT_DIR.parent / 'p2ppcb_parts_data_f360' / parts_resolver.PARTS_INFO_DIRNAME, p)
+                from reimport import APP_PACKAGES
+                import pathlib
+                if pi.check_separate_python(pathlib.Path(APP_PACKAGES)):
+                    with open(SEPARATE_PYTHON_CONFIG_PATH, 'w') as f:
+                        f.write(p)
+                    set_separate_python(p)
+                    con.ui.messageBox(f'The python interpreter path is stored to {SEPARATE_PYTHON_CONFIG_PATH}.', 'P2PPCB')
+                else:
+                    con.ui.messageBox('This python interpreter is not available. Is this Homebrew Python?\nPlease restart PC0.', 'P2PPCB')
+                    return
+            except Exception as e:
+                import traceback
+                msg = '\n'.join(traceback.format_exception(e))
+                con.ui.messageBox(msg + '\nPlease restart PC0.', 'P2PPCB')
+                return
+
     tabs = design_workspace.toolbarTabs
     tab = tabs.itemById(TBT_ID_P2PPCB)
     if tab is None:
@@ -116,3 +154,19 @@ def terminate_toolbar():
         print(f'{TBT_ID_P2PPCB} deleteMe() failed.')
 
     HANDLERS.clear()
+
+
+def config_separate_python() -> str | None:
+    import adsk.core as ac
+    con = get_context()
+    vs = f'{sys.version_info.major}.{sys.version_info.minor}'
+    con.ui.messageBox(f'On macOS, PC0 requires Homebrew Python {vs}.\nPython.org is not available, just Homebrew.\nPlease choose the interpreter executable.', 'P2PPCB')
+    file_dlg = con.ui.createFileDialog()
+    file_dlg.isMultiSelectEnabled = False
+    file_dlg.initialDirectory = str('/')
+    file_dlg.title = f'Choose python{vs} file'
+    file_dlg.filter = f'Executable File (python{vs})'
+    if file_dlg.showOpen() != ac.DialogResults.DialogOK:
+        con.ui.messageBox('Please restart PC0.', 'P2PPCB')
+        return None
+    return file_dlg.filename

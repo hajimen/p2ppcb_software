@@ -24,10 +24,9 @@ def get_tag():
     raise Exception()
 
 
-ap = str(CURRENT_DIR / f'app-packages-{get_tag()}')
-if ap not in sys.path:
-    sys.path.append(ap)
-del ap
+APP_PACKAGES = str(CURRENT_DIR / f'app-packages-{get_tag()}')
+if APP_PACKAGES not in sys.path:
+    sys.path.append(APP_PACKAGES)
 
 
 def reimport(module_names: ty.List[str], package_names: ty.List[str] = []):

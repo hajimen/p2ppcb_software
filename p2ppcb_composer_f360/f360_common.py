@@ -35,6 +35,8 @@ ZU_V3D = ac.Vector3D.create(0, 0, 1)
 CURRENT_DIR = pathlib.Path(__file__).parent
 PARTS_DATA_DIR = CURRENT_DIR.parent / 'p2ppcb_parts_data_f360'
 F3D_DIRNAME = 'f3d'
+SEPARATE_PYTHON_CONFIG_PATH = CURRENT_DIR / 'separate_python.txt'
+SEPARATE_PYTHON: pathlib.Path | None = None
 
 
 ATTR_GROUP = 'P2PPCB'
@@ -907,8 +909,8 @@ def get_parts_data_path():
     return pathlib.Path(get_context().child[CN_INTERNAL].comp_attr[AN_PARTS_DATA_PATH])
 
 
-def get_part_info():
-    return parts_resolver.PartsInfo(get_parts_data_path() / parts_resolver.PARTS_INFO_DIRNAME)
+def get_part_info(separate_python: pathlib.Path | str | None = SEPARATE_PYTHON):
+    return parts_resolver.PartsInfo(get_parts_data_path() / parts_resolver.PARTS_INFO_DIRNAME, separate_python)
 
 
 def get_inverted_m3d(m3d: ac.Matrix3D):
@@ -921,6 +923,11 @@ def get_transformed_mpv3d(mpv3d, m3d: ac.Matrix3D):
     ret = mpv3d.copy()
     ret.transformBy(m3d)
     return ret
+
+
+def set_separate_python(separate_python: str):
+    global SEPARATE_PYTHON
+    SEPARATE_PYTHON = pathlib.Path(separate_python)
 
 
 from time import perf_counter

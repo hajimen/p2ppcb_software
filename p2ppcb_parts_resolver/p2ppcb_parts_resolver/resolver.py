@@ -183,7 +183,23 @@ class ResolveParameterException(Exception):
 
 
 class PartsInfo:
-    def __init__(self, parts_info_dir: ty.Union[os.PathLike, str]):
+    def __init__(self, parts_info_dir: ty.Union[os.PathLike, str], kle_scraper_executable_path: os.PathLike | str | None = None):
+        self.kle_scraper_executable_path = kle_scraper_executable_path
+        if kle_scraper_executable_path is not None:
+            p = pathlib.Path(kle_scraper_executable_path)
+            if not p.is_file():
+                raise Exception(f'Wrong path: {kle_scraper_executable_path} does not exist or is not a file.')
+            import subprocess
+            cp = subprocess.run([str(p), '-V'], capture_output=True)
+            ss = cp.stdout.decode().split(' ')
+            if cp.returncode != 0 or len(ss) != 2 or ss[0] != 'Python':
+                raise Exception(f'Wrong path: {kle_scraper_executable_path} is not a python interpreter.')
+            vs = ss[1].split('.')
+            import sys
+            if len(vs) != 3:
+                raise Exception(f'Wrong path: {kle_scraper_executable_path} returns odd version: {cp.stdout.decode()}.')
+            if vs[0] != str(sys.version_info.major) or vs[1] != str(sys.version_info.minor):
+                raise Exception(f'Wrong path: {kle_scraper_executable_path} python version {vs[0]}.{vs[1]} does not match {sys.version_info.major}.{sys.version_info.minor} .')
         self.parts_info_dir = pathlib.Path(parts_info_dir)
         if not self.parts_info_dir.is_dir():
             raise Exception(f'Wrong path: {parts_info_dir} is not a directory.')
@@ -372,6 +388,22 @@ class PartsInfo:
             ph = parameters.pop('Placeholder')
         return parameters, ph
 
+    def check_separate_python(self, app_packages: pathlib.Path) -> bool:
+        import subprocess
+        import site
+
+        env = os.environ.copy()
+        env.update({
+            'PYTHONPATH': os.pathsep.join([str(app_packages)] + site.getsitepackages())
+        })
+        cp = subprocess.run([
+            str(self.kle_scraper_executable_path),
+            '-m',
+            'cef_capi.smoke_test'
+        ], env=env, capture_output=True)
+
+        return cp.returncode == 0
+
     def resolve_kle(self, kle_json_path: os.PathLike, image_output_dir: ty.Optional[os.PathLike]):
         image_output_dir = None if image_output_dir is None else pathlib.Path(image_output_dir)
         # op: OccurrenceParameter, pn: pattern name
@@ -384,8 +416,29 @@ class PartsInfo:
                 json = f.read()
             keyboard = kle_serial.parse(json)
         else:
-            from kle_scraper import scrape
-            keyboard = scrape(kle_json_path, image_output_dir)
+            if self.kle_scraper_executable_path is None:
+                from kle_scraper import scrape
+                keyboard = scrape(kle_json_path, image_output_dir)
+            else:
+                import subprocess
+                import pickle
+                import site
+                app_packages = pathlib.Path(__file__).parent
+                env = os.environ.copy()
+                env.update({
+                    'PYTHONPATH': os.pathsep.join([str(app_packages)] + site.getsitepackages())
+                })
+                cp = subprocess.run([
+                    str(self.kle_scraper_executable_path),
+                    '-m',
+                    __name__.split('.')[0] + '.separate_scraper',
+                    str(kle_json_path),
+                    str(image_output_dir)
+                ], env=env, capture_output=True)
+                print(cp.stderr.decode())
+                if cp.returncode != 0:
+                    raise Exception('kle_scraper child process error:\n' + cp.stdout.decode() + cp.stderr.decode())
+                keyboard = pickle.loads(cp.stdout)
         if keyboard is None:
             raise Exception('Bad KLE file or image_output_dir.')
         for i, k in enumerate(keyboard.keys):

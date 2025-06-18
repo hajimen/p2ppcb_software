@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.1.12] - 2025-02-XX
+## [0.1.13] - 2025-06-18
+
+- Adds separate process feature in `resolve_kle()`.
+
+## [0.1.12] - 2025-01-23
 
 - Runs with latest dependencies.
 - Changelog style has been changed.

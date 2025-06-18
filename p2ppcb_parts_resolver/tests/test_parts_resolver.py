@@ -1,22 +1,14 @@
 import pathlib
-import sys
 import unittest
 import pickle
-
-CURRENT_DIR = pathlib.Path(__file__).parent.parent
-PARTS_DATA_DIR = CURRENT_DIR.parent / 'p2ppcb_parts_data_f360'
-
-if str(CURRENT_DIR) not in sys.path:
-    sys.path.append(str(CURRENT_DIR))
-ap = CURRENT_DIR / 'app-packages'
-if str(ap) not in sys.path:
-    sys.path.append(str(ap))
-del ap
-
 import numpy as np
 import p2ppcb_parts_resolver.resolver as parts_resolver
 from p2ppcb_parts_resolver.resolver import SpecsOpsOnPn
 from PIL import Image, ImageChops
+
+CURRENT_DIR = pathlib.Path(__file__).parent.parent
+PARTS_DATA_DIR = CURRENT_DIR.parent / 'p2ppcb_parts_data_f360'
+SEPARATE_PYTHON_FN = CURRENT_DIR / 'separate_python.txt'
 
 
 class TestPartsResolver(unittest.TestCase):
@@ -52,6 +44,28 @@ class TestPartsResolver(unittest.TestCase):
             canvas = self.render_total_image(*pi.resolve_kle(pathlib.Path(f'test_data/kle/{fn}.json'), pathlib.Path('tmp')))
             oracle = Image.open(f'test_data/kle/{fn}.png')
             self.assertIsNone(ImageChops.difference(canvas, oracle).getbbox(), f'{fn} failed.')
+
+    def _get_separate_python(self) -> str | None:
+        if not SEPARATE_PYTHON_FN.is_file():
+            return None
+        with open(SEPARATE_PYTHON_FN, 'r') as f:
+            separate_python = f.readlines()
+        if len(separate_python) == 0:
+            raise Exception('separate_python.txt exists but is empty.')
+        return separate_python[0].strip()
+
+    def test_0_resolve_kle_separate(self):
+        # "0" in method name controls running order. test_resolve_kle() blocks this test.
+        pi = parts_resolver.PartsInfo(PARTS_DATA_DIR / parts_resolver.PARTS_INFO_DIRNAME, self._get_separate_python())
+        fn = 'single-bigass'
+        canvas = self.render_total_image(*pi.resolve_kle(pathlib.Path(f'test_data/kle/{fn}.json'), pathlib.Path('tmp')))
+        oracle = Image.open(f'test_data/kle/{fn}.png')
+        self.assertIsNone(ImageChops.difference(canvas, oracle).getbbox(), f'{fn} failed.')
+
+    def test_check_separate_python(self):
+        pi = parts_resolver.PartsInfo(PARTS_DATA_DIR / parts_resolver.PARTS_INFO_DIRNAME, self._get_separate_python())
+        app_packages = pathlib.Path(__file__).parent
+        self.assertTrue(pi.check_separate_python(app_packages))
 
     def test_resolve_kle_without_image(self):
         fns = ['60percent', 'single', 'iso105', 'ergodox', 'single-rotated-iso', 'single-bigass', 'rotation', 'stepped']

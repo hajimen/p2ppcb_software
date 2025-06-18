@@ -130,7 +130,7 @@ class TestCmdCommon(unittest.TestCase):
         specs_ops_on_pn['1u'] = [('1u', parts_resolver.OccurrenceParameter(
             (0., 0.), (0., 0.), (1., 1.), 0., [''] * 12, CURRENT_DIR, 0
         ))]
-        pps_part = prepare_key_assembly(specs_ops_on_pn, get_part_info())
+        pps_part = prepare_key_assembly(specs_ops_on_pn, get_part_info(None))
         self.assertEqual(pps_part[0].new_name, 'Cap DSA 1u Travel 3.2 millimeter_P')
         self.assertEqual(pps_part[1].new_name, 'Switch Choc V2_P')
         self.assertEqual(pps_part[2].new_name, 'PCB Choc V2_P')
