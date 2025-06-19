@@ -909,7 +909,9 @@ def get_parts_data_path():
     return pathlib.Path(get_context().child[CN_INTERNAL].comp_attr[AN_PARTS_DATA_PATH])
 
 
-def get_part_info(separate_python: pathlib.Path | str | None = SEPARATE_PYTHON):
+def get_part_info(separate_python: pathlib.Path | str | None = None):
+    if SEPARATE_PYTHON is not None:
+        separate_python = SEPARATE_PYTHON
     return parts_resolver.PartsInfo(get_parts_data_path() / parts_resolver.PARTS_INFO_DIRNAME, separate_python)
 
 

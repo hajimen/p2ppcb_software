@@ -292,6 +292,21 @@ F360 doesn't allow name collision of F360 components. All F360 components should
 To avoid name collision with user's components, I add magic string 'mU0jU' to most components' name.
 (The exception is 'P2PPCB Internal'.)
 
+## Homebrew's Python dependency in macOS
+
+This is a long story.
+
+PC0 depends on Chromium Embedded Framework (CEF) for keytops' image from KLE.
+Chromium requires multi process usually, but it still has single process mode.
+The mode is not supported nor maintained, but it still works well accidentally.
+PC0 depends on single process mode for a good reason. Please look at
+[cef-capi-py](https://github.com/hajimen/cef-capi-py) about it.
+
+CEF single process mode works well accidentally.
+In macOS, python.org's Python is not in the case.
+F360's embedded Python is locked by Team ID and cannot accept CEF.
+So we need Homebrew's Python.
+
 ## How to build `app-packages-win_amd64` (Windows)
 
 Prepare venv with python.org's `python.exe`.
@@ -308,15 +323,15 @@ pip install ../p2ppcb_parts_resolver -r requirements.txt -t app-packages-win_amd
 
 ## How to build `app-packages-macosx_*` (Mac)
 
-Use python.org's or Homebrew's python 3.12 because Mac F360's python lacks `pip` module.
+Use Homebrew's Python 3.12 because Mac F360's embedded Python lacks `pip` module.
 If you run on Apple Silicon, you can choose Intel or Apple Silicon by `arch` command.
 It is true for F360 itself.
 
 Architecture independent part:
 
 ```bash
-python3.12 -m pip install --upgrade pip
-pip3.12 install -U setuptools wheel build
+python -m pip install --upgrade pip
+pip install -U setuptools wheel build
 mkdir repos
 cd repos
 git clone https://github.com/hajimen/p2ppcb_software
@@ -327,15 +342,18 @@ Architecture dependent part:
 
 ```bash
 tag='macosx_11_0_x86_64'  # or 'macosx_11_0_arm64'
-pip3.12 install ../p2ppcb_parts_resolver -r requirements.txt -t app-packages-$tag
+pip install ../p2ppcb_parts_resolver -r requirements.txt -t app-packages-$tag
 ```
 
 # Further development
 
-PC0 has been improved over the past few years. But I am thinking about the future of F360.
+PC0 has been improved over the past few years. I believe that PC0 is already good enough to design good prototypes.
+
+I am thinking about the future of F360.
 In my opinion, rebranding (Fusion 360 to Fusion) is a bad sign of the business.
 Recent decal API bugs were quite easy to find, but shipped in the product.
 I can't help but doubt F360 is going to die. So now I am reluctant to invest much more on F360.
+For the time being, I will continue bug fixing and following of F360 update, but no exiting new feature will not arrive.
 
 ## F360's bugs that can annoy you or get you stuck
 

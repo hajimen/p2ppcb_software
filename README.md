@@ -77,8 +77,7 @@ But by modifying a Cherry-style plate-mount stabilizer with a knife, it works (v
 
 # P2PPCB Composer F360
 
-**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360) on Windows PC.
-F360 runs on Mac too, but PC0 lacks some features on Mac.
+**P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion 360 (F360) on Windows PC and Mac.
 More details can be found here: <https://github.com/hajimen/p2ppcb_software/tree/main/p2ppcb_composer_f360>
 
 ## Keycaps
