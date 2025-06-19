@@ -19,6 +19,9 @@ from f360_common import catch_exception, get_context
 def run(context):
     con = get_context()
 
+    if con.des.designType == af.DesignTypes.ParametricDesignType:
+        con.des.designType = af.DesignTypes.DirectDesignType
+
     def _rec(occ: af.Occurrence):
         for b in occ.component.bRepBodies:
             b = b.createForAssemblyContext(occ)

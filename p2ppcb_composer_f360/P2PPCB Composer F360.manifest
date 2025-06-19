@@ -6,7 +6,7 @@
 	"description":	{
 		"":	"P2PPCB Composer F360"
 	},
-	"version": "2025/06/17",
+	"version": "2025/06/19",
 	"supportedOS":	"windows | mac",
 	"editEnabled":	true
 }
