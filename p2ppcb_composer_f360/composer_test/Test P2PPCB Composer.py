@@ -104,6 +104,13 @@ def run(context):
         APP.userInterface.messageBox('Use Edit button -> F5 key, instead of Run button.')
         return
 
+    if sys.platform == 'darwin':
+        from f360_common import load_separate_python, SEPARATE_PYTHON_CONFIG_PATH
+        load_separate_python()
+        if not SEPARATE_PYTHON_CONFIG_PATH.is_file():
+            print('config python interpreter first.')
+            return
+
     test_suite = unittest.TestSuite()
 
     load_automated_tests(test_suite)

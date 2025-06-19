@@ -925,9 +925,21 @@ def get_transformed_mpv3d(mpv3d, m3d: ac.Matrix3D):
     return ret
 
 
-def set_separate_python(separate_python: str):
+def load_separate_python():
     global SEPARATE_PYTHON
-    SEPARATE_PYTHON = pathlib.Path(separate_python)
+    if not SEPARATE_PYTHON_CONFIG_PATH.is_file():
+        return
+    with open(SEPARATE_PYTHON_CONFIG_PATH, 'r') as f:
+        p = f.readlines()
+    if len(p) > 0:
+        p = p[0].strip()
+        try:
+            parts_resolver.PartsInfo(CURRENT_DIR.parent / 'p2ppcb_parts_data_f360' / parts_resolver.PARTS_INFO_DIRNAME, p)
+            SEPARATE_PYTHON = pathlib.Path(p)
+        except Exception:
+            SEPARATE_PYTHON_CONFIG_PATH.unlink()
+    else:
+        SEPARATE_PYTHON_CONFIG_PATH.unlink()
 
 
 from time import perf_counter

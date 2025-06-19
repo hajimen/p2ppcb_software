@@ -36,6 +36,8 @@ SPN_SWITCH_BOTTOM_HEIGHT = 'SwitchBottomHeight'
 
 SpecsOpsOnPn = ty.Dict[str, ty.List[ty.Tuple[str, ty.Optional['OccurrenceParameter']]]]
 
+ENV_SRK = 'SYSTEMROOT'  # Windows Python ThreadingHTTPServer fails if lacks this env.
+
 # import traceback
 # from time import perf_counter
 
@@ -392,10 +394,13 @@ class PartsInfo:
         import subprocess
         import site
 
-        env = os.environ.copy()
-        env.update({
-            'PYTHONPATH': os.pathsep.join([str(app_packages)] + site.getsitepackages())
-        })
+        env = os.environ
+        if ENV_SRK in env:
+            env = {ENV_SRK: env[ENV_SRK]}
+        else:
+            env = {}
+        env['PYTHONPATH'] = os.pathsep.join([str(app_packages)] + site.getsitepackages())
+        env['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'  # disable warning
         cp = subprocess.run([
             str(self.kle_scraper_executable_path),
             '-m',
@@ -423,11 +428,15 @@ class PartsInfo:
                 import subprocess
                 import pickle
                 import site
-                app_packages = pathlib.Path(__file__).parent
-                env = os.environ.copy()
-                env.update({
-                    'PYTHONPATH': os.pathsep.join([str(app_packages)] + site.getsitepackages())
-                })
+                app_packages = pathlib.Path(__file__).parent.parent
+                env = os.environ
+                SRK = 'SYSTEMROOT'
+                if SRK in env:
+                    env = {SRK: env[SRK]}
+                else:
+                    env = {}
+                env['PYTHONPATH'] = os.pathsep.join([str(app_packages)] + site.getsitepackages())
+                env['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'  # disable warning
                 cp = subprocess.run([
                     str(self.kle_scraper_executable_path),
                     '-m',
@@ -435,7 +444,6 @@ class PartsInfo:
                     str(kle_json_path),
                     str(image_output_dir)
                 ], env=env, capture_output=True)
-                print(cp.stderr.decode())
                 if cp.returncode != 0:
                     raise Exception('kle_scraper child process error:\n' + cp.stdout.decode() + cp.stderr.decode())
                 keyboard = pickle.loads(cp.stdout)
