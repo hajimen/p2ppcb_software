@@ -295,9 +295,10 @@ class PartsDepot:
                 if pattern_img_hash not in locator_decal_redundant_check[pattern_hash]:
                     locator_decal_redundant_check[pattern_hash].add(pattern_img_hash)
                     if image is None:
-                        target_occ = locator_acc_occ.child.get_real(comp_name)
-                        for b in locator_src_occ.comp.bRepBodies:
-                            b.copyToComponent(target_occ.raw_occ)
+                        def _on_create(target_occ):
+                            for b in locator_src_occ.comp.bRepBodies:
+                                b.copyToComponent(target_occ.raw_occ)
+                        target_occ = locator_acc_occ.child.get_real(comp_name, on_create=_on_create)
                         target_occ.comp.attributes.add('P2PPCB Depot', 'pattern_hash', hashlib.md5(pattern_hash_bytes).hexdigest())
                         target_occ.comp.attributes.add('P2PPCB Depot', 'img_hash', hashlib.md5(img_hash_bytes).hexdigest())
                     elif comp_name not in locator_acc_occ.child:
@@ -408,9 +409,10 @@ class PartsDepot:
                     if cp_img_cpdp_hash not in cp_decal_redundant_check:
                         cp_decal_redundant_check.add(cp_img_cpdp_hash)
                         if image is None:
-                            target_occ = cp_acc_occ.child.get_real(comp_name)
-                            for b in cp_src_occ.comp.bRepBodies:
-                                b.copyToComponent(target_occ.raw_occ)
+                            def _on_create(target_occ):
+                                for b in cp_src_occ.comp.bRepBodies:
+                                    b.copyToComponent(target_occ.raw_occ)
+                            target_occ = cp_acc_occ.child.get_real(comp_name, on_create=_on_create)
                             target_occ.comp.attributes.add('P2PPCB Depot', 'fp_hash', fp_hash)
                             target_occ.comp.attributes.add('P2PPCB Depot', 'cpdp_hash', hashlib.md5(cpdp_hash_bytes).hexdigest())
                             target_occ.comp.attributes.add('P2PPCB Depot', 'img_hash', hashlib.md5(img_hash_bytes).hexdigest())
