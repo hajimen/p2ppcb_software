@@ -308,7 +308,7 @@ class TestInitProject(unittest.TestCase):
     def test_generate_scaffold(self):
         doc = new_document()
         from p2ppcb_composer.cmd_init_project import generate_scaffold
-        pitch_x, pitch_y, offset, skeleton_surface, alternative_surface, layout_plane = generate_scaffold()
+        pitch_x, pitch_y, offset, travel, skeleton_surface, alternative_surface, layout_plane = generate_scaffold()
         self.assertEqual(pitch_x, 1.9)
         self.assertEqual(pitch_y, 1.9)
         self.assertEqual(offset, 0.)

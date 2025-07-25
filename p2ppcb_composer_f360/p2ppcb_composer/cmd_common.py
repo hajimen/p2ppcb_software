@@ -40,8 +40,9 @@ INP_ID_STABILIZER_ORIENTATION_DD = 'stabilizerOrientation'
 INP_ID_SWITCH_DESC_DD = 'switchDesc'
 INP_ID_SWITCH_ORIENTATION_DD = 'switchOrientation'
 INP_ID_KEY_V_ALIGN_TO_DD = 'keyVAlignTo'
-INP_ID_KEY_V_OFFSET_STR = 'keyVOffset'
 INPS_ID_OPTION = [INP_ID_CAP_DESC_DD, INP_ID_STABILIZER_DESC_DD, INP_ID_STABILIZER_ORIENTATION_DD, INP_ID_SWITCH_DESC_DD, INP_ID_SWITCH_ORIENTATION_DD, INP_ID_KEY_V_ALIGN_TO_DD]
+INP_ID_KEY_V_OFFSET_STR = 'keyVOffset'
+INP_ID_TRAVEL_STR = 'travel'
 INP_ID_PARTS_DATA_PATH_BOOL = 'partsDataPath'
 INP_ID_SHOW_INF_HOLE_BOOL = 'showHole'
 INP_ID_SHOW_INF_MEV_BOOL = 'showMEV'
@@ -57,6 +58,7 @@ TOOLTIPS_PARTS_DIR = ('Parts Data Dir', 'Parts data dir contains the parts data 
 TOOLTIPS_STABILIZER_ORIENTATION = ('Stabilizer Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 should be always Front.')
 TOOLTIPS_SWITCH_ORIENTATION = ('Switch Orientation', 'Front is normal. You can choose this to avoid interference. Choc V1 should be always Front.')
 TOOLTIPS_V_ALIGN = ('Key V-Align', "The anchor point of the vertical alignment. The anchor point is on its skeleton surface.\nStemBottom refers key-up state. TravelBottom refers the cap's top of key-down state.")
+TOOLTIPS_TRAVEL = ('Travel', "Switch travel. You can leave this blank if you choose default.")
 
 
 class _CommandEventHandler(ac.CommandEventHandler):
@@ -347,8 +349,18 @@ class PartsCommandBlock:
     def get_v_offset_in(self):
         return ac.StringValueCommandInput.cast(self.parent.inputs.itemById(INP_ID_KEY_V_OFFSET_STR))
 
+    def get_travel_in(self):
+        return ac.StringValueCommandInput.cast(self.parent.inputs.itemById(INP_ID_TRAVEL_STR))
+
     def get_v_offset(self) -> ty.Optional[float]:
         vo = self.get_v_offset_in().value
+        try:
+            return Quantity(vo).m_as('cm')  # type: ignore
+        except:  # noqa: E722
+            return None
+
+    def get_travel(self) -> ty.Optional[float]:
+        vo = self.get_travel_in().value
         try:
             return Quantity(vo).m_as('cm')  # type: ignore
         except:  # noqa: E722
@@ -391,6 +403,8 @@ class PartsCommandBlock:
         i = inputs.addDropDownCommandInput(INP_ID_KEY_V_ALIGN_TO_DD, 'Key V-Align', ac.DropDownStyles.TextListDropDownStyle)
         i.tooltip, i.tooltipDescription = TOOLTIPS_V_ALIGN
         _ = inputs.addStringValueInput(INP_ID_KEY_V_OFFSET_STR, 'Key V-Offset', '0 mm')
+        i = inputs.addStringValueInput(INP_ID_TRAVEL_STR, 'Travel', '')
+        i.tooltip, i.tooltipDescription = TOOLTIPS_TRAVEL
         self.set_parts_data_path(PARTS_DATA_DIR if self.parts_data_path is None else self.parts_data_path)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs):
@@ -402,6 +416,16 @@ class PartsCommandBlock:
         except:  # noqa: E722
             vo_in.isValueError = True
             event_args.areInputsValid = False
+
+        t_in = self.get_travel_in()
+        if t_in.value != '':
+            try:
+                if not Quantity(t_in.value).check('mm'):  # type: ignore
+                    t_in.isValueError = True
+                    event_args.areInputsValid = False
+            except:  # noqa: E722
+                t_in.isValueError = True
+                event_args.areInputsValid = False
 
     def b_notify_input_changed(self, changed_input: CommandInput):
         if changed_input.id == INP_ID_PARTS_DATA_PATH_BOOL:
@@ -421,13 +445,18 @@ class PartsCommandBlock:
         for inp in self.get_option_ins():
             for li in inp.listItems:
                 li.isSelected = False
+
         vo_in = self.get_v_offset_in()
         vo_in.value = ''
+
+        t_in = self.get_travel_in()
+        t_in.value = ''
 
     def show_hide(self, is_visible: bool):
         for inp in self.get_option_ins():
             inp.isVisible = is_visible
         self.get_v_offset_in().isVisible = is_visible
+        self.get_travel_in().isVisible = is_visible
         if self.choose_path:
             self.get_parts_data_in().isVisible = is_visible
 

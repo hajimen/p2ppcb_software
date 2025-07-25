@@ -2,12 +2,12 @@ from enum import IntEnum
 import typing as ty
 import pickle
 from dataclasses import dataclass
+from pint import Quantity
 import p2ppcb_parts_resolver.resolver as parts_resolver
 from p2ppcb_parts_resolver.resolver import Part
-import adsk
 import adsk.core as ac
 import adsk.fusion as af
-from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
+from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_TRAVEL, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, ANS_OPTION, \
     ATTR_GROUP, CN_DEPOT_CAP_PLACEHOLDER, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, \
     CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, BadCodeException, BodyFinder, CreateObjectCollectionT, \
@@ -15,7 +15,7 @@ from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, A
     cap_placeholder_name, capture_position, \
     get_context, CN_INTERNAL, CN_KEY_LOCATORS, ORIGIN_P3D, XU_V3D, \
     FourOrientation, TwoOrientation, YU_V3D, ZU_V3D, get_inverted_m3d, get_transformed_mpv3d, key_assembly_name, \
-    key_placeholder_name, pcb_name, stabilizer_name, switch_name, ANS_HOLE_MEV_MF, get_parts_data_path, BadConditionException
+    key_placeholder_name, pcb_name, stabilizer_name, switch_name, ANS_HOLE_MEV_MF, get_parts_data_path
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_LOCATORS_PLANE_TOKEN, check_layout_plane
 
@@ -58,6 +58,7 @@ class PrepareKeyAssemblyParameter:
     align_to: parts_resolver.AlignTo
     offset: float
     kps: ty.List[PrepareKeyPlaceholderParameter]
+    travel: float | None = None
 
 
 def _find_hit_point_face(hit_points, hit_faces, surface: af.BRepBody) -> ty.Union[ty.Tuple[ac.Point3D, af.BRepFace], ty.Tuple[None, None]]:
@@ -109,6 +110,10 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
         offset_str = kl_occ.comp_attr[AN_KEY_V_OFFSET]
         specifier_options_offset_joined = specifier + ' ' + ' '.join(options) + ' ' + offset_str
+        travel = None
+        if AN_TRAVEL in kl_occ.comp_attr:
+            specifier_options_offset_joined += ' ' + kl_occ.comp_attr[AN_TRAVEL]
+            travel = float(kl_occ.comp_attr[AN_TRAVEL])
         specifier_options = ' '.join([specifier, ] + options)
         legend_pickled = kl_occ.comp_attr[AN_LOCATORS_LEGEND_PICKLED]
         legend: ty.List[str] = pickle.loads(bytes.fromhex(legend_pickled))
@@ -131,7 +136,8 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
                     FourOrientation[options[I_ANS_OPTION.SWITCH_ORIENTATION]],
                     parts_resolver.AlignTo[options[I_ANS_OPTION.KEY_V_ALIGN]],
                     float(offset_str),
-                    []
+                    [],
+                    travel
                 )
                 pp_ka_on_so[specifier_options] = pp
             pp.kps.append(PrepareKeyPlaceholderParameter(i, legend))
@@ -274,6 +280,13 @@ def prepare_key_assembly(
         specs_ops = specs_ops_on_pn[pattern_name]
 
         part_filename, part_parameters, part_placeholder, part_z_pos, switch_xya = pi.resolve_specifier(specifier, cap_desc, stabilizer_desc, switch_desc, align_to)
+
+        if pka.travel is not None:
+            t = Quantity(pka.travel, 'cm')
+            travel_diff = t - part_parameters[Part.Cap][parts_resolver.SPN_TRAVEL]
+            if abs(travel_diff.m_as('cm')) > 0.001:
+                part_z_pos[Part.Cap] += travel_diff  # type: ignore
+                part_parameters[Part.Cap][parts_resolver.SPN_TRAVEL] = t  # type: ignore
 
         if PN_USE_STABILIZER in part_parameters[Part.Stabilizer]:
             if part_parameters[Part.Stabilizer][PN_USE_STABILIZER].m_as('mm') == 0:

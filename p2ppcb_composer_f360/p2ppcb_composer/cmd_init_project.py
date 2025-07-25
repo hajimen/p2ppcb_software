@@ -4,7 +4,7 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
 from f360_common import AN_KEY_PITCH_D, AN_KEY_PITCH_W, ANS_KEY_PITCH, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, F3Occurrence, \
-    create_component, get_context, AN_PARTS_DATA_PATH
+    create_component, get_context, AN_PARTS_DATA_PATH, AN_TRAVEL
 from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
     has_sel_in, get_cis, PartsCommandBlock, AN_MAIN_SURFACE, CommandHandlerBase, check_layout_plane
 import mainboard
@@ -142,7 +142,7 @@ def _generate_scaffold_impl():
     pitch = 1.9
     offset = 0.
 
-    return pitch, pitch, offset, skeleton_surface, alternative_surface, layout_plane
+    return pitch, pitch, offset, None, skeleton_surface, alternative_surface, layout_plane
 
 
 CUSTOM_EVENT_ID_INITIALIZE = 'initialize_project'
@@ -265,7 +265,8 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             scaffold_in = ac.BoolValueCommandInput.cast(changed_input)
             scaffold_disabled = not scaffold_in.value
             for ci in self.get_selection_ins() + self.parts_cb.get_option_ins() \
-                    + (self.get_pitch_w_in(), self.get_pitch_d_in(), self.get_mainboard_in(), self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in()):
+                    + (self.get_pitch_w_in(), self.get_pitch_d_in(), self.get_mainboard_in(),
+                       self.parts_cb.get_parts_data_in(), self.parts_cb.get_v_offset_in(), self.parts_cb.get_travel_in()):
                 ci.isVisible = scaffold_disabled
                 ci.isEnabled = scaffold_disabled
             for sci in self.get_selection_ins():
@@ -298,7 +299,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
     def execute_common(self, event_args: CommandEventArgs, is_execute: bool):
         if self.get_scaffold_in().value:
             options = [inp.listItems[1].name for inp in self.parts_cb.get_option_ins()]
-            pitch_w, pitch_d, offset, main_surface, _, layout_plane = generate_scaffold()
+            pitch_w, pitch_d, offset, travel, main_surface, _, layout_plane = generate_scaffold()
             mb = mainboard.DEFAULT
         else:
             main_in, layout_plane_in = self.get_selection_ins()
@@ -312,9 +313,10 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             offset = self.parts_cb.get_v_offset()
             if offset is None:
                 raise BadCodeException()
+            travel = self.parts_cb.get_travel()
             mb = self.get_mainboard_in().selectedItem.name
 
-        return pitch_w, pitch_d, offset, main_surface, layout_plane, options, mb
+        return pitch_w, pitch_d, offset, travel, main_surface, layout_plane, options, mb
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
         self.execute_common(event_args, False)
@@ -325,7 +327,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     def notify_execute(self, event_args: CommandEventArgs) -> None:
         con = get_context()
-        pitch_w, pitch_d, offset, main_surface, layout_plane, options, mb = self.execute_common(event_args, True)
+        pitch_w, pitch_d, offset, travel, main_surface, layout_plane, options, mb = self.execute_common(event_args, True)
         if main_surface.assemblyContext is None:  # the surface is in the root component.
             so = con.child.get_real(CN_SURFACE)
             main_surface = main_surface.moveToComponent(so.raw_occ)
@@ -339,6 +341,8 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
         for an, option in zip(ANS_MAIN_OPTION, options):
             inl_occ.comp_attr[an] = option
         inl_occ.comp_attr[AN_MAIN_KEY_V_OFFSET] = str(offset)
+        if travel is not None:
+            inl_occ.comp_attr[AN_TRAVEL] = str(travel)
         inl_occ.comp_attr[AN_MAINBOARD] = mb
 
         InitializeEventHandler()
