@@ -311,10 +311,10 @@ class PartsInfo:
         travel_gap = parameters[SPN_STABILIZER_TRAVEL] - parameters[SPN_TRAVEL]
         part_z_pos: ty.Dict[Part, Quantity] = {
             Part.Cap: - part_height_parameter[Part.Cap][SPN_CAP_SB_HEIGHT],
-            Part.Stabilizer: - part_height_parameter[Part.Stabilizer][SPN_STABILIZER_SB_HEIGHT] + travel_gap,
+            Part.Stabilizer: - part_height_parameter[Part.Stabilizer][SPN_STABILIZER_SB_HEIGHT] + travel_gap,  # type: ignore
             Part.Switch: - part_height_parameter[Part.Switch][SPN_SWITCH_SB_HEIGHT],
             Part.PCB: - part_height_parameter[Part.Switch][SPN_SWITCH_SB_HEIGHT] + part_height_parameter[Part.Switch][SPN_SWITCH_BOTTOM_HEIGHT],
-        }  # type: ignore
+        }
         if align_to == AlignTo.TravelBottom:
             for p in part_z_pos.keys():
                 part_z_pos[p] += part_height_parameter[Part.Cap][SPN_CAP_SB_HEIGHT] + parameters[SPN_TRAVEL] - parameters[SPN_TOP_HEIGHT]  # type: ignore
