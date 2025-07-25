@@ -2,4 +2,4 @@ p2ppcb_parts_resolver
 kle-scraper >= 0.1.1
 pulp == 2.9.0
 cef-capi-py >= 131.3.5
-Pillow == 11.2.1
+Pillow == 11.3.0
