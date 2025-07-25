@@ -4,8 +4,8 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput
 from f360_common import AN_KEY_PITCH_D, AN_KEY_PITCH_W, ANS_KEY_PITCH, CN_DEPOT_APPEARANCE, CN_DEPOT_PARTS, CN_FOOT, CN_INTERNAL, CURRENT_DIR, BadCodeException, CreateObjectCollectionT, F3Occurrence, \
-    create_component, get_context, AN_PARTS_DATA_PATH, AN_TRAVEL
-from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
+    create_component, get_context, AN_PARTS_DATA_PATH
+from p2ppcb_composer.cmd_common import AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAINBOARD, AN_MAIN_TRAVEL, ANS_MAIN_OPTION, OnceEventHandler, all_has_sel_ins, \
     has_sel_in, get_cis, PartsCommandBlock, AN_MAIN_SURFACE, CommandHandlerBase, check_layout_plane
 import mainboard
 from route.route import get_cn_mainboard, get_mainboard_constants
@@ -240,6 +240,16 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
                 if not hit:
                     inp.listItems[0].isSelected = True
 
+        if AN_MAIN_KEY_V_OFFSET in attr:
+            offset_str = attr[AN_MAIN_KEY_V_OFFSET]
+            vo_in = self.parts_cb.get_v_offset_in()
+            vo_in.value = f'{float(offset_str) * 10:.1f} mm'
+
+        if AN_MAIN_TRAVEL in attr:
+            travel_str = attr[AN_MAIN_TRAVEL]
+            travel_in = self.parts_cb.get_travel_in()
+            travel_in.value = f'{float(travel_str) * 10:.1f} mm'
+
         scaffold_in = self.inputs.addBoolValueInput(INP_ID_SCAFFOLD_BOOL, 'Generate a scaffold set', True)
         scaffold_in.tooltip = 'Start with a scaffold set instead of your own set.'
         if all_has_sel_ins([main_in, layout_plane_in]) and all([inp.selectedItem.name != '' for inp in self.parts_cb.get_option_ins()]):
@@ -342,7 +352,7 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
             inl_occ.comp_attr[an] = option
         inl_occ.comp_attr[AN_MAIN_KEY_V_OFFSET] = str(offset)
         if travel is not None:
-            inl_occ.comp_attr[AN_TRAVEL] = str(travel)
+            inl_occ.comp_attr[AN_MAIN_TRAVEL] = str(travel)
         inl_occ.comp_attr[AN_MAINBOARD] = mb
 
         InitializeEventHandler()

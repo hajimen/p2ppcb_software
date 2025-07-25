@@ -29,8 +29,9 @@ AN_MAIN_STABILIZER_ORIENTATION = 'mainStabilizerOrientation'
 AN_MAIN_SWITCH_DESC = 'mainSwitchDesc'
 AN_MAIN_SWITCH_ORIENTATION = 'mainSwitchOrientation'
 AN_MAIN_KEY_V_ALIGN = 'mainKeyVAlign'
-AN_MAIN_KEY_V_OFFSET = 'mainKeyVOffset'
 ANS_MAIN_OPTION = [AN_MAIN_CAP_DESC, AN_MAIN_STABILIZER_DESC, AN_MAIN_STABILIZER_ORIENTATION, AN_MAIN_SWITCH_DESC, AN_MAIN_SWITCH_ORIENTATION, AN_MAIN_KEY_V_ALIGN]
+AN_MAIN_KEY_V_OFFSET = 'mainKeyVOffset'
+AN_MAIN_TRAVEL = 'mainTravel'
 AN_MB_LOCATION_INPUTS = 'mbLocationInputs'
 
 
@@ -354,15 +355,19 @@ class PartsCommandBlock:
 
     def get_v_offset(self) -> ty.Optional[float]:
         vo = self.get_v_offset_in().value
+        if vo == '':
+            return None
         try:
             return Quantity(vo).m_as('cm')  # type: ignore
         except:  # noqa: E722
             return None
 
     def get_travel(self) -> ty.Optional[float]:
-        vo = self.get_travel_in().value
+        t = self.get_travel_in().value
+        if t == '' or t == 'Default':
+            return None
         try:
-            return Quantity(vo).m_as('cm')  # type: ignore
+            return Quantity(t).m_as('cm')  # type: ignore
         except:  # noqa: E722
             return None
 
@@ -403,22 +408,23 @@ class PartsCommandBlock:
         i = inputs.addDropDownCommandInput(INP_ID_KEY_V_ALIGN_TO_DD, 'Key V-Align', ac.DropDownStyles.TextListDropDownStyle)
         i.tooltip, i.tooltipDescription = TOOLTIPS_V_ALIGN
         _ = inputs.addStringValueInput(INP_ID_KEY_V_OFFSET_STR, 'Key V-Offset', '0 mm')
-        i = inputs.addStringValueInput(INP_ID_TRAVEL_STR, 'Travel', '')
+        i = inputs.addStringValueInput(INP_ID_TRAVEL_STR, 'Travel', 'Default')
         i.tooltip, i.tooltipDescription = TOOLTIPS_TRAVEL
         self.set_parts_data_path(PARTS_DATA_DIR if self.parts_data_path is None else self.parts_data_path)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs):
         vo_in = self.get_v_offset_in()
-        try:
-            if not Quantity(vo_in.value).check('mm'):  # type: ignore
+        if vo_in.value != '':
+            try:
+                if not Quantity(vo_in.value).check('mm'):  # type: ignore
+                    vo_in.isValueError = True
+                    event_args.areInputsValid = False
+            except:  # noqa: E722
                 vo_in.isValueError = True
                 event_args.areInputsValid = False
-        except:  # noqa: E722
-            vo_in.isValueError = True
-            event_args.areInputsValid = False
 
         t_in = self.get_travel_in()
-        if t_in.value != '':
+        if t_in.value != 'Default' and t_in.value != '':
             try:
                 if not Quantity(t_in.value).check('mm'):  # type: ignore
                     t_in.isValueError = True

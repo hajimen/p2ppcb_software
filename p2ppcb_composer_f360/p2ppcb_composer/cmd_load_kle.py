@@ -10,13 +10,13 @@ import adsk.core as ac
 import adsk.fusion as af
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
-    AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, ANS_OPTION, \
+    AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_TRAVEL, ANS_OPTION, \
     CN_KEY_PLACEHOLDERS, DECAL_DESC_KEY_LOCATOR, BadConditionException, BadCodeException, SpecsOpsOnPn, \
     VirtualF3Occurrence, CURRENT_DIR, get_context, CN_INTERNAL, CN_KEY_LOCATORS, key_locator_name, \
     ANS_KEY_PITCH, AN_KLE_B64, load_kle, get_part_info
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import AN_MAIN_SURFACE, get_ci, AN_LOCATORS_PLANE_TOKEN, MoveComponentCommandBlock, \
-    CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, ANS_MAIN_OPTION, locator_notify_pre_select, has_sel_in, get_selected_locators
+    CommandHandlerBase, AN_MAIN_KEY_V_OFFSET, AN_MAIN_LAYOUT_PLANE, AN_MAIN_TRAVEL, ANS_MAIN_OPTION, locator_notify_pre_select, has_sel_in, get_selected_locators
 from p2ppcb_composer.cmd_key_common import AN_LOCATORS_SKELETON_TOKEN, place_key_placeholders, prepare_key_assembly, prepare_parts_sync, get_layout_plane_transform, \
     AN_LOCATORS_ANGLE_TOKEN, PP_KEY_LOCATORS_ON_SPECIFIER, INP_ID_KEY_LOCATOR_SEL
 
@@ -31,6 +31,7 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
     lp_trans = get_layout_plane_transform(lp)
     options = [inl_occ.comp_attr[an] for an in ANS_MAIN_OPTION]
     offset_str = inl_occ.comp_attr[AN_MAIN_KEY_V_OFFSET]
+    travel_str = inl_occ.comp_attr[AN_MAIN_TRAVEL] if AN_MAIN_TRAVEL in inl_occ.comp_attr else 'Default'
 
     locators_occ = con.child[CN_INTERNAL].child.get_real(CN_KEY_LOCATORS)
     locators_occ.light_bulb = True
@@ -60,6 +61,8 @@ def place_locators(pi: parts_resolver.PartsInfo, specs_ops_on_pn: SpecsOpsOnPn, 
                 o.comp_attr[AN_LOCATORS_SKELETON_TOKEN] = main_surface.entityToken
                 o.comp_attr[AN_LOCATORS_ANGLE_TOKEN] = main_surface.entityToken
                 o.comp_attr[AN_LOCATORS_PLANE_TOKEN] = lp.entityToken
+                if travel_str != 'Default':
+                    o.comp_attr[AN_TRAVEL] = travel_str
 
                 if specifier in pp_kl_on_specifier:
                     pp = pp_kl_on_specifier[specifier]

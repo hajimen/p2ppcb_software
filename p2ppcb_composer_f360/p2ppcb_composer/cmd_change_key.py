@@ -5,11 +5,11 @@ import adsk.fusion as af
 import adsk.core as ac
 from adsk.core import InputChangedEventArgs, CommandEventArgs, CommandCreatedEventArgs, CommandInput, SelectionEventArgs, SelectionCommandInput, Selection
 from f360_common import AN_KEY_V_OFFSET, AN_LOCATORS_ENABLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_PARTS_DATA_PATH, AN_TRAVEL, ANS_OPTION, CN_KEY_LOCATORS, \
-    CN_KEY_PLACEHOLDERS, CURRENT_DIR, BadCodeException, BadConditionException, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, \
-    AN_KLE_B64, get_context, CN_INTERNAL, key_placeholder_name, load_kle_by_b64, get_part_info, get_parts_data_path
+    CN_KEY_PLACEHOLDERS, CURRENT_DIR, BadCodeException, BadConditionException, FourOrientation, SpecsOpsOnPn, TwoOrientation, VirtualF3Occurrence, F3Occurrence, \
+    AN_KLE_B64, get_context, CN_INTERNAL, key_placeholder_name, load_kle_by_b64, get_part_info, get_parts_data_path, CNP_KEY_LOCATOR
 import p2ppcb_parts_depot.depot as parts_depot
 from p2ppcb_composer.cmd_common import CommandHandlerBase, PartsCommandBlock, \
-    get_ci, has_sel_in, get_selected_locators, locator_notify_pre_select, OnceEventHandler, TOOLTIPS_TRAVEL
+    get_ci, has_sel_in, get_selected_locators, OnceEventHandler, TOOLTIPS_TRAVEL
 from p2ppcb_composer.cmd_key_common import INP_ID_KEY_LOCATOR_SEL, I_ANS_OPTION, PP_KEY_ASSEMBLY_ON_SO, PrepareKeyAssemblyParameter, PrepareKeyPlaceholderParameter, \
     place_key_placeholders, prepare_key_assembly, fill_surrogate, prepare_parts_sync
 
@@ -96,7 +96,20 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
 
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id == INP_ID_KEY_LOCATOR_SEL:
-            locator_notify_pre_select(INP_ID_KEY_LOCATOR_SEL, event_args, active_input, selection)
+            e: af.BRepBody = selection.entity  # type: ignore
+            if not e.parentComponent.name.endswith(CNP_KEY_LOCATOR) or e.assemblyContext is None or e.assemblyContext.assemblyContext is None or e.assemblyContext.assemblyContext.component.name != CN_KEY_LOCATORS:
+                event_args.isSelectable = False
+                return
+            
+            # Enabled keys are not selectable along disabled keys because F360 checkbox does not have gray status.
+            locator_in = self.get_selection_in()
+            selected_locators = get_selected_locators(locator_in)
+            if len(selected_locators) > 0:
+                kl_occ = selected_locators[0]
+                o = F3Occurrence(e.assemblyContext)
+                if bool(o.comp_attr[AN_LOCATORS_ENABLED]) != bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED]):
+                    event_args.isSelectable = False
+                    return
 
     def notify_input_changed(self, event_args: InputChangedEventArgs, changed_input: CommandInput) -> None:
         locator_in = self.get_selection_in()
@@ -132,7 +145,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
                     same_offset = same_offset and (last_offset_str is None or offset_str == last_offset_str)
                     last_offset_str = offset_str
 
-                    travel_str = kl_occ.comp_attr[AN_TRAVEL] if AN_TRAVEL in kl_occ.comp_attr else ''
+                    travel_str = kl_occ.comp_attr[AN_TRAVEL] if AN_TRAVEL in kl_occ.comp_attr else 'Default'
                     same_travel = same_travel and (last_travel_str is None or travel_str == last_travel_str)
                     last_travel_str = travel_str
 
@@ -156,7 +169,9 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
                     vo_in.value = ''
 
                 travel_in = self.parts_cb.get_travel_in()
-                if same_travel and (last_travel_str != '' and last_travel_str is not None):
+                if same_travel and last_travel_str == 'Default':
+                    travel_in.value = 'Default'
+                elif same_travel and last_travel_str is not None:
                     travel_in.value = f'{float(last_travel_str) * 10:.1f} mm'
                 else:
                     travel_in.value = ''
@@ -171,68 +186,84 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
 
         self.parts_cb.b_notify_input_changed(changed_input)
 
-    def get_selected_specifier_options_offset_travel_enable(self):
-        selected_options = self.parts_cb.get_selected_options()
-        selected_specifier = self.get_specifier_in().value
-        selected_enable = self.get_enable_in().value
-        return selected_specifier, selected_options, str(self.parts_cb.get_v_offset()), str(self.parts_cb.get_travel()), selected_enable  # type: ignore
-
     def get_changed_locators(self):
         locator_in = self.get_selection_in()
         selected_locators = get_selected_locators(locator_in)
-        selected_specifier, selected_options, selected_offset_str, selected_travel_str, selected_enable = self.get_selected_specifier_options_offset_travel_enable()
+        selected_options = self.parts_cb.get_selected_options()
+        selected_specifier = self.get_specifier_in().value
+        selected_enable = self.get_enable_in().value
+        selected_offset_str = str(self.parts_cb.get_v_offset())
+        selected_travel_str = 'Default' if self.parts_cb.get_travel_in().value == 'Default' else str(self.parts_cb.get_travel())
         changed_locators: ty.List[VirtualF3Occurrence] = []
 
         for kl_occ in selected_locators:
-            options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
-            specifier = kl_occ.comp_attr[AN_LOCATORS_SPECIFIER]
-            offset_str = kl_occ.comp_attr[AN_KEY_V_OFFSET]
-            travel_str = kl_occ.comp_attr[AN_TRAVEL] if AN_TRAVEL in kl_occ.comp_attr else 'None'
-            enable = bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED])
-            if options != selected_options or specifier != selected_specifier or offset_str != selected_offset_str or travel_str != selected_travel_str or enable != selected_enable:
-                for an, d in zip(ANS_OPTION, selected_options):
+            hit = False
+
+            def update(an: str, d: str):
+                nonlocal hit
+                if d != '' and d != 'None' and kl_occ.comp_attr[an] != d:
                     kl_occ.comp_attr[an] = d
-                kl_occ.comp_attr[AN_LOCATORS_SPECIFIER] = selected_specifier
-                kl_occ.comp_attr[AN_KEY_V_OFFSET] = selected_offset_str
-                if selected_travel_str == 'None':
-                    if AN_TRAVEL in kl_occ.comp_attr:
-                        del kl_occ.comp_attr[AN_TRAVEL]
-                else:
+                    hit = True
+
+            for an, d in zip(ANS_OPTION, selected_options):
+                update(an, d)
+            update(AN_LOCATORS_SPECIFIER, selected_specifier)
+            update(AN_LOCATORS_ENABLED, str(selected_enable))
+            update(AN_KEY_V_OFFSET, selected_offset_str)
+            if selected_travel_str == 'Default':
+                if AN_TRAVEL in kl_occ.comp_attr:
+                    del kl_occ.comp_attr[AN_TRAVEL]
+                    hit = True
+            elif selected_travel_str != 'None':
+                if AN_TRAVEL not in kl_occ.comp_attr or kl_occ.comp_attr[AN_TRAVEL] != selected_travel_str:
                     kl_occ.comp_attr[AN_TRAVEL] = selected_travel_str
-                kl_occ.comp_attr[AN_LOCATORS_ENABLED] = 'True' if selected_enable else ''
+                    hit = True
+            if hit:
                 changed_locators.append(kl_occ)
 
         # retval should be changed_locators. This is a bug workaround of F360.
         return ty.cast(ty.List[VirtualF3Occurrence], selected_locators)
 
     def notify_validate(self, event_args: ac.ValidateInputsEventArgs) -> None:
-        if has_sel_in(self.get_selection_in()):
-            self.parts_cb.notify_validate(event_args)
-            if not event_args.areInputsValid:
-                return
-            locator_in = self.get_selection_in()
-            specifier_in = self.get_specifier_in()
-            selected_locators = get_selected_locators(locator_in)
-            selected_specifier, selected_options, selected_offset_str, selected_travel_str, enable = self.get_selected_specifier_options_offset_travel_enable()
-            if '' in selected_options or '' == selected_offset_str:
-                event_args.areInputsValid = False
-                return
+        if not has_sel_in(self.get_selection_in()):
+            event_args.areInputsValid = False
+            return
+        self.parts_cb.notify_validate(event_args)
+        if not event_args.areInputsValid:
+            return
+        locator_in = self.get_selection_in()
+        specifier_in = self.get_specifier_in()
+        selected_locators = get_selected_locators(locator_in)
+        selected_options = self.parts_cb.get_selected_options()
+        selected_specifier = self.get_specifier_in().value
+        specifier_in.tooltip = ''
+        availables: set[str] | None = None
+        for kl_occ in selected_locators:
+            specifier = kl_occ.comp_attr[AN_LOCATORS_SPECIFIER]
+            if selected_specifier != '':
+                specifier = selected_specifier
+            options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
+            for i, so in enumerate(selected_options):
+                if so != '':
+                    options[i] = so
             try:
                 self.pi.resolve_specifier(
-                    selected_specifier,
-                    selected_options[I_ANS_OPTION.CAP_DESC],
-                    selected_options[I_ANS_OPTION.STABILIZER_DESC],
-                    selected_options[I_ANS_OPTION.SWITCH_DESC],
-                    parts_resolver.AlignTo[selected_options[I_ANS_OPTION.KEY_V_ALIGN]])
-                specifier_in.tooltip = ''
+                    specifier,
+                    options[I_ANS_OPTION.CAP_DESC],
+                    options[I_ANS_OPTION.STABILIZER_DESC],
+                    options[I_ANS_OPTION.SWITCH_DESC],
+                    parts_resolver.AlignTo[options[I_ANS_OPTION.KEY_V_ALIGN]])
                 # specifier_in.isValueError = False
             except parts_resolver.SpecifierException as e:
                 pn = selected_locators[0].comp_attr[AN_LOCATORS_PATTERN_NAME]
-                availables = [a for a in e.available_specifiers if pn in a]
+                avs = set(a for a in e.available_specifiers if pn in a)
+                availables = avs if availables is None else availables & avs
+        if availables is not None:
+            if len(availables) == 0:
+                specifier_in.tooltip = 'No available specifier with these options.'
+            else:
                 specifier_in.tooltip = 'Available Specifiers:\n' + '\n'.join(availables)
-                specifier_in.isValueError = True
-                event_args.areInputsValid = False
-        else:
+            specifier_in.isValueError = True
             event_args.areInputsValid = False
 
     def notify_execute_preview(self, event_args: CommandEventArgs) -> None:
