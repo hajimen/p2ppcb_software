@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2] - 2025-07-25
+
+- Gateron LP stabilizer design has been revised.
+- Now [Choc V2 clip type stabilizer](https://keeb-on.com/products/stabilizer-chocv2) is available.
+- Now key travel can be specified.
+- Change Key command has been improved.
+
 ## [0.2.1] - 2025-06-19
 
 - PCB snap design has been revised.

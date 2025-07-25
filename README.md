@@ -70,10 +70,8 @@ Available stabilizers:
 - Cherry-style plate-mount (for MX)
 - Coaster (for MX)
 - [Kailh Choc V1 stabilizer](https://www.aliexpress.com/item/33039182740.html) (for Choc V1)
+- [Choc V2 clip type stabilizer](https://keeb-on.com/products/stabilizer-chocv2) (for Choc V2)
 - [Gateron LP](https://gateron.com/products/gateron-low-profile-plate-mounted-stabilizer?VariantsId=10478)
-
-Stabilizer for Choc V2 is not available yet because there is no such item in the market yet. I hope it will appear on the market.
-But by modifying a Cherry-style plate-mount stabilizer with a knife, it works (very geeky way).
 
 # P2PPCB Composer F360
 
