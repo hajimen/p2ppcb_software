@@ -191,7 +191,7 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
         selected_locators = get_selected_locators(locator_in)
         selected_options = self.parts_cb.get_selected_options()
         selected_specifier = self.get_specifier_in().value
-        selected_enable = self.get_enable_in().value
+        selected_enable = 'True' if self.get_enable_in().value else ''
         selected_offset_str = str(self.parts_cb.get_v_offset())
         selected_travel_str = 'Default' if self.parts_cb.get_travel_in().value == 'Default' else str(self.parts_cb.get_travel())
         changed_locators: ty.List[VirtualF3Occurrence] = []
@@ -208,7 +208,9 @@ class ChangeKeyDescsCommandHandler(CommandHandlerBase):
             for an, d in zip(ANS_OPTION, selected_options):
                 update(an, d)
             update(AN_LOCATORS_SPECIFIER, selected_specifier)
-            update(AN_LOCATORS_ENABLED, str(selected_enable))
+            if kl_occ.comp_attr[AN_LOCATORS_ENABLED] != selected_enable:
+                kl_occ.comp_attr[AN_LOCATORS_ENABLED] = selected_enable
+                hit = True
             update(AN_KEY_V_OFFSET, selected_offset_str)
             if selected_travel_str == 'Default':
                 if AN_TRAVEL in kl_occ.comp_attr:
