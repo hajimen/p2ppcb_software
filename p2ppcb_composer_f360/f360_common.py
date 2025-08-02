@@ -90,7 +90,7 @@ AN_LOCATORS_SPECIFIER = 'locatorsSpecifier'
 AN_LOCATORS_I = 'locatorsI'
 AN_LOCATORS_LEGEND_PICKLED = 'locatorsLegendPickled'
 AN_LOCATORS_ENABLED = 'locatorsEnabled'
-AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET = 'keyPlaceholdersSpecifierDescs'
+AN_KEY_PLACEHOLDERS_KA_DESC = 'keyPlaceholdersSpecifierDescs'
 
 AN_CAP_DESC = 'capDesc'
 AN_STABILIZER_DESC = 'stabilizerDesc'

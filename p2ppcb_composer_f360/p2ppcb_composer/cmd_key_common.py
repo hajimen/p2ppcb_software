@@ -7,7 +7,7 @@ import p2ppcb_parts_resolver.resolver as parts_resolver
 from p2ppcb_parts_resolver.resolver import Part
 import adsk.core as ac
 import adsk.fusion as af
-from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET, AN_KEY_V_OFFSET, AN_TRAVEL, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
+from f360_common import AN_HOLE, AN_KEY_PLACEHOLDERS_KA_DESC, AN_KEY_V_OFFSET, AN_TRAVEL, AN_LOCATORS_ENABLED, AN_LOCATORS_I, \
     AN_LOCATORS_LEGEND_PICKLED, AN_LOCATORS_PATTERN_NAME, AN_LOCATORS_SPECIFIER, AN_MEV, AN_MF, ANS_OPTION, \
     ATTR_GROUP, CN_DEPOT_CAP_PLACEHOLDER, CN_DEPOT_KEY_ASSEMBLY, CN_DEPOT_PARTS, \
     CN_KEY_PLACEHOLDERS, EYE_M3D, F3D_DIRNAME, PN_USE_STABILIZER, BadCodeException, BodyFinder, CreateObjectCollectionT, \
@@ -109,19 +109,18 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
         enable = bool(kl_occ.comp_attr[AN_LOCATORS_ENABLED])
         options = [kl_occ.comp_attr[an] for an in ANS_OPTION]
         offset_str = kl_occ.comp_attr[AN_KEY_V_OFFSET]
-        specifier_options_offset_joined = specifier + ' ' + ' '.join(options) + ' ' + offset_str
+        ka_desc = specifier + ' ' + ' '.join(options) + ' ' + offset_str
         travel = None
         if AN_TRAVEL in kl_occ.comp_attr:
-            specifier_options_offset_joined += ' ' + kl_occ.comp_attr[AN_TRAVEL]
+            ka_desc += ' ' + kl_occ.comp_attr[AN_TRAVEL]
             travel = float(kl_occ.comp_attr[AN_TRAVEL])
-        specifier_options = ' '.join([specifier, ] + options)
         legend_pickled = kl_occ.comp_attr[AN_LOCATORS_LEGEND_PICKLED]
         legend: ty.List[str] = pickle.loads(bytes.fromhex(legend_pickled))
 
         def _on_surrogate_kp(o: VirtualF3Occurrence):
-            o.comp_attr[AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET] = specifier_options_offset_joined
-            if specifier_options in pp_ka_on_so:
-                pp = pp_ka_on_so[specifier_options]
+            o.comp_attr[AN_KEY_PLACEHOLDERS_KA_DESC] = ka_desc
+            if ka_desc in pp_ka_on_so:
+                pp = pp_ka_on_so[ka_desc]
                 for kp in pp.kps:
                     if kp.i == i and kp.legend == legend:
                         return
@@ -139,13 +138,13 @@ def place_key_placeholders(kl_occs: ty.Optional[ty.List[VirtualF3Occurrence]] = 
                     [],
                     travel
                 )
-                pp_ka_on_so[specifier_options] = pp
+                pp_ka_on_so[ka_desc] = pp
             pp.kps.append(PrepareKeyPlaceholderParameter(i, legend))
 
         kn = key_placeholder_name(i, pattern_name)
         if kn in key_placeholders_occ.child:
             kp_occ = key_placeholders_occ.child[kn]
-            if kp_occ.comp_attr[AN_KEY_PLACEHOLDERS_SPECIFIER_OPTIONS_OFFSET] != specifier_options_offset_joined:
+            if kp_occ.comp_attr[AN_KEY_PLACEHOLDERS_KA_DESC] != ka_desc:
                 del key_placeholders_occ.child[kn]
                 kp_occ = key_placeholders_occ.child.get_virtual(kn, on_surrogate=_on_surrogate_kp)
         else:
