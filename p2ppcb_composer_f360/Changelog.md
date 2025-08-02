@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.3] - 2025-08-02
+
+- Bug fix: Key enable/disable works now.
+- Bug fix: Change Key command in multiple selection and editing Offset.
+
 ## [0.2.2] - 2025-07-25
 
 - Gateron LP stabilizer design has been revised.
