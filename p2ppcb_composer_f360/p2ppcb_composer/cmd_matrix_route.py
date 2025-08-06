@@ -78,6 +78,8 @@ class AssignMatrixCommandHandler(CommandHandlerBase):
         self.last_light_bulb = key_locators.light_bulb
         key_locators.light_bulb = True
 
+        self.show_billboard()
+
     def notify_pre_select(self, event_args: SelectionEventArgs, active_input: SelectionCommandInput, selection: Selection) -> None:
         if active_input.id != INP_ID_KEY_LOCATOR_SEL:
             return
