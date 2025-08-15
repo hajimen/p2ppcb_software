@@ -408,7 +408,7 @@ class CheckKeyAssemblyCommandHandler(CommandHandlerBase):
         specifier, options, offset_str = self.get_selected_specifier_options_offset()
         specifier_options = ' '.join([specifier, ] + options)
         travel_str = self.parts_cb.get_travel_in().value
-        travel = None if len(travel_str) == 0 else Quantity(travel_str).m_as('cm')
+        travel = None if travel_str == 'Default' or len(travel_str) == 0 else Quantity(travel_str).m_as('cm')
         pp = PrepareKeyAssemblyParameter(
             pattern_name,
             specifier,
