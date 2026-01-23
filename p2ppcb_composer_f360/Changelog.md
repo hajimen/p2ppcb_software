@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.4] - 2026-01-23
+
+- Follows F360 update.
+
 ## [0.2.3] - 2025-08-02
 
 - Bug fix: Key enable/disable works now.
