@@ -439,10 +439,8 @@ class PartsInfo:
                 env['PYDEVD_DISABLE_FILE_VALIDATION'] = '1'  # disable warning
                 cp = subprocess.run([
                     str(self.kle_scraper_executable_path),
-                    '-m',
-                    __name__.split('.')[0] + '.separate_scraper',
-                    str(kle_json_path),
-                    str(image_output_dir)
+                    '-c',
+                    f'from kle_scraper import scrape; import pickle; import sys; keyboard = scrape("{str(kle_json_path)}", "{str(image_output_dir)}"); buf = pickle.dumps(keyboard); sys.stdout.buffer.write(buf)'
                 ], env=env, capture_output=True)
                 if cp.returncode != 0:
                     raise Exception('kle_scraper child process error:\n' + cp.stdout.decode() + cp.stderr.decode())
