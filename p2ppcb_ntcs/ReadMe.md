@@ -257,7 +257,7 @@ the dominance.
 
 ## Iteration 1
 
-https://user-images.githubusercontent.com/1212166/207766975-fe80b625-9c89-4bb3-ab00-f115f13a7b42.mp4
+https://user-images.githubusercontent.com/1212166/207766975-fe80b625-9c89-4bb3-ab00-f115f13a7b42.mp4?raw=true
 
 The first trial. Left hand only, naked style, custom keycap based. In this iteration, I didn't adopt the start point 2.
 
@@ -270,7 +270,7 @@ much higher than common keyboards.
 
 ## Iteration 2
 
-https://user-images.githubusercontent.com/1212166/207769963-8871a65c-baf6-4fd5-8fc1-cc160b2b6ee9.mp4
+https://user-images.githubusercontent.com/1212166/207769963-8871a65c-baf6-4fd5-8fc1-cc160b2b6ee9.mp4?raw=true
 
 The first trial of the covered style. I adopted the start point 2 from this iteration.
 
@@ -284,9 +284,9 @@ And I don't mention the right hand part too. It will be redundant.
 
 ## Iteration 3
 
-https://user-images.githubusercontent.com/1212166/207800112-49950f18-dee0-47fb-89b6-9756c5d27d19.mp4
+https://user-images.githubusercontent.com/1212166/207800112-49950f18-dee0-47fb-89b6-9756c5d27d19.mp4?raw=true
 
-https://user-images.githubusercontent.com/1212166/207801987-bb7279e0-d1bd-43f7-8470-23f2b017d544.mp4
+https://user-images.githubusercontent.com/1212166/207801987-bb7279e0-d1bd-43f7-8470-23f2b017d544.mp4?raw=true
 
 The first trial of built-in wrist rests. I thought of taking a video at this time.
 The material is SLA of WENEXT. Built-in wrist rests take up a lot of space,
@@ -302,9 +302,9 @@ and it makes 3D printing much more expensive.
 
 ## Iteration 4
 
-https://user-images.githubusercontent.com/1212166/207805898-d4af1ae7-47c4-46dc-a097-f8915beb6a94.mp4
+https://user-images.githubusercontent.com/1212166/207805898-d4af1ae7-47c4-46dc-a097-f8915beb6a94.mp4?raw=true
 
-https://user-images.githubusercontent.com/1212166/207806336-694a83c3-6f9b-410a-8993-eb757cfd567e.mp4
+https://user-images.githubusercontent.com/1212166/207806336-694a83c3-6f9b-410a-8993-eb757cfd567e.mp4?raw=true
 
 - Shift key should be further front.
 - LANG1 should be lower. Pressing the Ctrl key interferes.
@@ -312,9 +312,9 @@ https://user-images.githubusercontent.com/1212166/207806336-694a83c3-6f9b-410a-8
 
 ## Iteration 5
 
-https://user-images.githubusercontent.com/1212166/207811766-837e6841-0c39-4954-b991-4490d437edb7.mp4
+https://user-images.githubusercontent.com/1212166/207811766-837e6841-0c39-4954-b991-4490d437edb7.mp4?raw=true
 
-https://user-images.githubusercontent.com/1212166/207813334-f48241b7-b52c-4ad7-b488-d3c9fbc1e20a.mp4
+https://user-images.githubusercontent.com/1212166/207813334-f48241b7-b52c-4ad7-b488-d3c9fbc1e20a.mp4?raw=true
 
 In this iteration, the material is MJF PA12 black.
 
@@ -325,9 +325,9 @@ In this iteration, the material is MJF PA12 black.
 This is the last iteration worth mentioning. I have done many more, but the findings are trivial.
 This iteration is not the final result, but it is close enough for the purpose of this story.
 
-https://user-images.githubusercontent.com/1212166/207817193-05dbc5cd-c3d1-442c-9eca-ad06bcb6c566.mp4
+https://user-images.githubusercontent.com/1212166/207817193-05dbc5cd-c3d1-442c-9eca-ad06bcb6c566.mp4?raw=true
 
-https://user-images.githubusercontent.com/1212166/207817925-683ccf40-5cc8-40d5-9adb-0121a6b742cf.mp4
+https://user-images.githubusercontent.com/1212166/207817925-683ccf40-5cc8-40d5-9adb-0121a6b742cf.mp4?raw=true
 
 - The key angle surface should be finely tuned.
 
