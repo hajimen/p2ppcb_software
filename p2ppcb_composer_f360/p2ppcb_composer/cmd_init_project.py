@@ -181,6 +181,14 @@ class InitializeP2ppcbProjectCommandHandler(CommandHandlerBase):
 
     def notify_create(self, event_args: CommandCreatedEventArgs):
         con = get_context()
+        if con.des.designIntent != af.DesignIntentTypes.AssemblyDesignIntentType:
+            if con.ui.messageBox('P2PPCB requires assembly design mode. The design is going to enter assembly design mode.',
+                                 'P2PPCB',
+                                 ac.MessageBoxButtonTypes.OKCancelButtonType) != ac.DialogResults.DialogOK:
+                self.create_ok = False
+                return
+            con.des.designIntent = af.DesignIntentTypes.AssemblyDesignIntentType
+
         if con.des.designType == af.DesignTypes.ParametricDesignType:
             if con.ui.messageBox('P2PPCB requires direct modeling mode. The design is going to enter direct modeling mode.',
                                  'P2PPCB',
