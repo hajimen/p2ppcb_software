@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.5] - 2026-01-31
+
+- Bug fix: Now F360 has "Part Design" and makes it as default of new design. Follows this change.
+
 ## [0.2.4] - 2026-01-23
 
 - Follows F360 update.
