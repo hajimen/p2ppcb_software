@@ -1,8 +1,12 @@
 # Changelog
 
-## [0.2.5] - 2026-05-30
+## [0.2.6] - 2026-05-30
 
 - Announcement: P2PPCB platform will be abandoned in Jan 2027 if there is no demand.
+
+## [0.2.5] - 2026-01-31
+
+- Bug fix: Now F360 has "Part Design" and makes it as default of new design. Follows this change.
 
 ## [0.2.4] - 2026-01-23
 
