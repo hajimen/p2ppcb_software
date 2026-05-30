@@ -1,3 +1,14 @@
+# Maintenance mode
+
+Now P2PPCB platform is maintenance mode.
+
+You can still buy P2PPCB components, but they are not in stock of 
+[DecentKeyboards Etsy shop](https://www.etsy.com/shop/DecentKeyboards).
+Please ask me via Etsy system if you need them.
+
+I will maintain P2PPCB platform until Jan 2027. If there is no demand until Jan 2027,
+I will stop to maintain.
+
 # P2PPCB Composer F360
 
 **P2PPCB Composer F360 (PC0)** is an add-in of Autodesk Fusion (f.k.a. Fusion 360). It helps you to design your own keyboard

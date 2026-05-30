@@ -19,6 +19,12 @@ def run(context):
     import adsk.fusion as af
     print('Run P2PPCB Composer F360')
     app = ac.Application.get()
+    app.userInterface.messageBox('''Now P2PPCB platform is maintenance mode.
+You can still buy P2PPCB components, but they are not in stock of
+DecentKeyboards Etsy shop. Please ask me via Etsy system if you need them.
+
+I will maintain P2PPCB platform until Jan 2027. If there is no demand until Jan 2027,
+I will stop to maintain.''', 'P2PPCB')
     _fp = app.preferences.productPreferences.itemByName('Design')
     if _fp is None:
         print("ERROR: app.preferences.productPreferences.itemByName('Design') is None")

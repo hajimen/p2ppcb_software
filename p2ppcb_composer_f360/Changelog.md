@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.5] - 2026-05-30
+
+- Announcement: P2PPCB platform will be abandoned in Jan 2027 if there is no demand.
+
 ## [0.2.4] - 2026-01-23
 
 - Follows F360 update.
